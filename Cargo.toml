@@ -11,6 +11,11 @@ edition = "2018"
 tonic = {version="0.4.0", features = ["tls", "transport"]}
 prost = "0.7.0"
 prost-types = "0.7.0"
+# end of above part
+goauth = "0.9.0"
+smpl_jwt = "0.6.0"
+log = "0.4.13"
+thiserror = "1.0.23"
 
 [build-dependencies]
 tonic-build = "0.4.0"
