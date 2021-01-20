@@ -89,7 +89,7 @@ impl AccessToken {
                 return;
             }
 
-            if self
+            if let Ok(_) = self
                 .refresh_active
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed) // changed by fuyang
             {

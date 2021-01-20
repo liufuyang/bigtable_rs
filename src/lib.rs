@@ -1,5 +1,5 @@
 mod access_token;
-mod bigtable;
+pub mod bigtable;
 mod root_ca_certificate;
 
 mod google {
@@ -9,6 +9,7 @@ mod google {
         concat!("/src/google/google.rpc.rs")
         ));
     }
+
     pub mod bigtable {
         pub mod v2 {
             include!(concat!(
@@ -17,11 +18,6 @@ mod google {
             ));
         }
     }
-}
-
-
-fn f() {
-    use google::bigtable::v2::Row;
 }
 
 #[cfg(test)]
