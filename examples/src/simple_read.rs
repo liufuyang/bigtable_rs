@@ -11,7 +11,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let connection = bigtable::BigTableConnection::new(instance_name, true, None).await?;
     let mut bigtable = connection.client();
     let row_data = bigtable.get_single_row_data(table_name, key).await?;
-    let (cell, value) = row_data.get(0).unwrap();
-    println!("{}, {}", cell, String::from_utf8(value.to_vec())?);
+    if let Some((cell, value)) = row_data.get(0) {
+        println!("{}, {}", cell, String::from_utf8(value.to_vec())?);
+    }
     Ok(())
 }

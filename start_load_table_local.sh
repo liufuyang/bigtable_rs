@@ -1,6 +1,6 @@
 $(gcloud beta emulators bigtable env-init)
 
-echo "BIGTABLE_EMULATOR_HOST=$BIGTABLE_EMULATOR_HOST"
+echo "To run examples with emulator, remember to set ENV param BIGTABLE_EMULATOR_HOST=$BIGTABLE_EMULATOR_HOST"
 
 # https://cloud.google.com/bigtable/docs/quickstart-cbt
 cbt -instance test1 -project emulator  createtable my-table
