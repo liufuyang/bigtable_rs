@@ -1,21 +1,6 @@
-[package]
-name = "bigtable-rs"
-version = "0.1.0"
-authors = ["Fuyang Liu <liufuyang@users.noreply.github.com>"]
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-# tonic, prost, and prost-types are need for build generated rs files
-tonic = {version="0.4.0", features = ["tls", "transport"]}
-prost = "0.7.0"
-prost-types = "0.7.0"
-# end of above part
-goauth = "0.9.0"
-smpl_jwt = "0.6.0"
-log = "0.4.13"
-thiserror = "1.0.23"
-
-[build-dependencies]
-tonic-build = "0.4.0"
+[workspace]
+members = [
+    "bigtable-rs",
+    # Non-published crates
+    "examples",
+]

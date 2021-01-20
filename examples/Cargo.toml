@@ -1,5 +1,5 @@
 [package]
-name = "examples1"
+name = "examples"
 version = "0.1.0"
 authors = ["Fuyang Liu <liufuyang@users.noreply.github.com>"]
 edition = "2018"
@@ -10,5 +10,5 @@ name = "simple_read"
 path = "src/simple_read.rs"
 
 [dependencies]
-bigtable-rs = { path = "../"}
+bigtable-rs = { path = "../bigtable-rs"}
 tokio = { version = "1.0", features = ["rt-multi-thread", "time", "fs", "macros", "net"] }

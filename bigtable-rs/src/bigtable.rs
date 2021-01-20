@@ -4,10 +4,10 @@ use crate::{
     access_token::{AccessToken, Scope},
     root_ca_certificate,
 };
+use log::{info, trace, warn};
 use std::time::{Duration, Instant};
 use thiserror::Error;
 use tonic::{metadata::MetadataValue, transport::ClientTlsConfig, Request};
-use log::{info, warn, trace};
 
 pub type RowKey = String;
 pub type RowData = Vec<(CellName, CellValue)>;
@@ -115,8 +115,8 @@ impl BigTableConnection {
                 } else {
                     Scope::BigTableData
                 })
-                    .await
-                    .map_err(Error::AccessTokenError)?;
+                .await
+                .map_err(Error::AccessTokenError)?;
 
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
@@ -128,12 +128,12 @@ impl BigTableConnection {
                     let endpoint =
                         tonic::transport::Channel::from_static("https://bigtable.googleapis.com")
                             .tls_config(
-                                ClientTlsConfig::new()
-                                    .ca_certificate(
-                                        root_ca_certificate::load().map_err(Error::CertificateError)?,
-                                    )
-                                    .domain_name("bigtable.googleapis.com"),
-                            )?;
+                            ClientTlsConfig::new()
+                                .ca_certificate(
+                                    root_ca_certificate::load().map_err(Error::CertificateError)?,
+                                )
+                                .domain_name("bigtable.googleapis.com"),
+                        )?;
 
                     if let Some(timeout) = timeout {
                         endpoint.timeout(timeout)
@@ -146,7 +146,7 @@ impl BigTableConnection {
                     access_token: Some(access_token),
                     channel: endpoint.connect_lazy()?,
                     table_prefix,
-                    timeout
+                    timeout,
                 })
             }
         }
@@ -297,7 +297,7 @@ impl BigTable {
                 // End of a row?
                 if chunk.row_status.is_some() {
                     if let Some(read_rows_response::cell_chunk::RowStatus::CommitRow(_)) =
-                    chunk.row_status
+                        chunk.row_status
                     {
                         if let Some(cell_name) = cell_name {
                             row_data.push((cell_name, cell_value));
