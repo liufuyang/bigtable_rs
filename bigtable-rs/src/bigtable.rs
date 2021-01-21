@@ -1,4 +1,7 @@
-use crate::google::bigtable::v2::*;
+use crate::google::bigtable::v2::{
+    bigtable_client, read_rows_response, row_filter, ReadRowsRequest, ReadRowsResponse, RowFilter,
+    RowSet,
+};
 
 use crate::{
     access_token::{AccessToken, Scope},
@@ -14,6 +17,7 @@ pub type RowData = Vec<(CellName, CellValue)>;
 pub type RowDataSlice<'a> = &'a [(CellName, CellValue)];
 pub type CellName = String;
 pub type CellValue = Vec<u8>;
+
 pub enum CellData<B, P> {
     Bincode(B),
     Protobuf(P),
@@ -54,6 +58,7 @@ pub enum Error {
     #[error("Timeout error")]
     TimeoutError,
 }
+
 impl std::convert::From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Self::IoError(err)
@@ -71,6 +76,7 @@ impl std::convert::From<tonic::Status> for Error {
         Self::RpcError(err)
     }
 }
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone)]
