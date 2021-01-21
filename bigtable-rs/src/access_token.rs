@@ -89,13 +89,13 @@ impl AccessToken {
                 return;
             }
 
-            if let Ok(_) = self.refresh_active.compare_exchange(
+            // TODO changed by fuyang, check whether it works
+            if let Err(_) = self.refresh_active.compare_exchange(
                 false,
                 true,
                 Ordering::Relaxed,
                 Ordering::Relaxed,
             )
-            // changed by fuyang
             {
                 // Refresh already pending
                 return;

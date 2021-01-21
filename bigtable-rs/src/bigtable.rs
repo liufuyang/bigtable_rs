@@ -10,7 +10,11 @@ use crate::{
 use log::{info, trace, warn};
 use std::time::{Duration, Instant};
 use thiserror::Error;
-use tonic::{metadata::MetadataValue, transport::ClientTlsConfig, Request};
+use tonic::transport::Endpoint;
+use tonic::{
+    codec::Streaming, metadata::MetadataValue, transport::Channel, transport::ClientTlsConfig,
+    Request, Response, Status,
+};
 
 pub type RowKey = String;
 pub type RowData = Vec<(CellName, CellValue)>;
@@ -100,16 +104,23 @@ impl BigTableConnection {
         instance_name: &str,
         read_only: bool,
         timeout: Option<Duration>,
+        channel_size: usize,
     ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
                 info!("Connecting to bigtable emulator at {}", endpoint);
+                let endpoint = format!("http://{}", endpoint);
+                let endpoints: Result<Vec<Endpoint>> = vec![0; channel_size.max(1)]
+                    .iter()
+                    .map(move |_| {
+                        Channel::from_shared(endpoint.clone())
+                            .map_err(|err| Error::InvalidUri(endpoint.clone(), err.to_string()))
+                    })
+                    .collect();
 
                 Ok(Self {
                     access_token: None,
-                    channel: tonic::transport::Channel::from_shared(format!("http://{}", endpoint))
-                        .map_err(|err| Error::InvalidUri(endpoint, err.to_string()))?
-                        .connect_lazy()?,
+                    channel: Channel::balance_list(endpoints?.into_iter()),
                     table_prefix: format!("projects/emulator/instances/{}/tables/", instance_name),
                     timeout,
                 })
@@ -192,11 +203,19 @@ impl BigTableConnection {
 pub struct BigTable {
     access_token: Option<AccessToken>,
     client: BigtableClient<tonic::transport::Channel>,
-    table_prefix: String,
+    pub table_prefix: String,
     timeout: Option<Duration>,
 }
 
 impl BigTable {
+    pub async fn read_rows(
+        &mut self,
+        request: ReadRowsRequest,
+    ) -> std::result::Result<Response<Streaming<ReadRowsResponse>>, Status> {
+        self.refresh_access_token().await;
+        self.client.read_rows(request).await
+    }
+
     /// Get latest data from a single row of `table`, if that row exists. Returns an error if that
     /// row does not exist.
     ///
