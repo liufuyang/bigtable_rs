@@ -1,4 +1,4 @@
-#[path = "./"]
+#[path = ""]
 pub mod bigtable {
     #[path = "google.bigtable.v2.rs"]
     pub mod v2;

@@ -1,6 +1,6 @@
 use crate::google::bigtable::v2::{
-    bigtable_client, read_rows_response, row_filter, ReadRowsRequest, ReadRowsResponse, RowFilter,
-    RowSet,
+    bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, row_filter,
+    ReadRowsRequest, ReadRowsResponse, RowFilter, RowSet,
 };
 
 use crate::{
@@ -165,23 +165,20 @@ impl BigTableConnection {
     pub fn client(&self) -> BigTable {
         let client = if let Some(access_token) = &self.access_token {
             let access_token = access_token.clone();
-            bigtable_client::BigtableClient::with_interceptor(
-                self.channel.clone(),
-                move |mut req: Request<()>| {
-                    match MetadataValue::from_str(&access_token.get()) {
-                        Ok(authorization_header) => {
-                            req.metadata_mut()
-                                .insert("authorization", authorization_header);
-                        }
-                        Err(err) => {
-                            warn!("Failed to set authorization header: {}", err);
-                        }
+            BigtableClient::with_interceptor(self.channel.clone(), move |mut req: Request<()>| {
+                match MetadataValue::from_str(&access_token.get()) {
+                    Ok(authorization_header) => {
+                        req.metadata_mut()
+                            .insert("authorization", authorization_header);
                     }
-                    Ok(req)
-                },
-            )
+                    Err(err) => {
+                        warn!("Failed to set authorization header: {}", err);
+                    }
+                }
+                Ok(req)
+            })
         } else {
-            bigtable_client::BigtableClient::new(self.channel.clone())
+            BigtableClient::new(self.channel.clone())
         };
         BigTable {
             access_token: self.access_token.clone(),
@@ -194,7 +191,7 @@ impl BigTableConnection {
 
 pub struct BigTable {
     access_token: Option<AccessToken>,
-    client: bigtable_client::BigtableClient<tonic::transport::Channel>,
+    client: BigtableClient<tonic::transport::Channel>,
     table_prefix: String,
     timeout: Option<Duration>,
 }
@@ -302,9 +299,7 @@ impl BigTable {
 
                 // End of a row?
                 if chunk.row_status.is_some() {
-                    if let Some(read_rows_response::cell_chunk::RowStatus::CommitRow(_)) =
-                        chunk.row_status
-                    {
+                    if let Some(RowStatus::CommitRow(_)) = chunk.row_status {
                         if let Some(cell_name) = cell_name {
                             row_data.push((cell_name, cell_value));
                         }

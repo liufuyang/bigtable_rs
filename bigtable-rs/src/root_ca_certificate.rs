@@ -13,7 +13,7 @@ pub fn load() -> Result<Certificate, String> {
             .map_err(|err| format!("Failed to read {}: {}", cert_file, err))?,
         None => {
             // PEM file from Google Trust Services (https://pki.goog/roots.pem)
-            include_bytes!("pki-goog-roots.pem").to_vec()
+            include_bytes!("roots.pem").to_vec()
         }
     };
     Ok(Certificate::from_pem(&pem))
