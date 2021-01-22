@@ -11,7 +11,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let channel_size = 4;
 
     let connection =
-        bigtable::BigTableConnection::new(instance_name, true, None, channel_size).await?;
+        bigtable::BigTableConnection::new("project-id", instance_name, true, None, channel_size)
+            .await?;
     let mut bigtable = connection.client();
 
     let request = ReadRowsRequest {

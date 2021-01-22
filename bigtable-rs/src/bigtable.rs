@@ -100,6 +100,7 @@ impl BigTableConnection {
     /// The BIGTABLE_EMULATOR_HOST environment variable is also respected.
     ///
     pub async fn new(
+        project_id: &str,
         instance_name: &str,
         read_only: bool,
         timeout: Option<Duration>,
@@ -143,8 +144,7 @@ impl BigTableConnection {
 
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
-                    access_token.project(),
-                    instance_name
+                    project_id, instance_name
                 );
 
                 let endpoints: Result<Vec<Endpoint>> = vec![0; channel_size.max(1)]

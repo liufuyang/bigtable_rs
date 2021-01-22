@@ -53,11 +53,6 @@ impl AccessToken {
         }
     }
 
-    /// The project that this token grants access to
-    pub fn project(&self) -> String {
-        self.credentials.project()
-    }
-
     async fn get_token(
         credentials: &Credentials,
         scope: &Scope,
