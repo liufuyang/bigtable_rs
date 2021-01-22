@@ -8,10 +8,7 @@ edition = "2018"
 [[bin]]
 name = "simple_read"
 path = "src/simple_read.rs"
-[[bin]]
-name = "simple_read2"
-path = "src/simple_read2.rs"
 
 [dependencies]
-bigtable-rs = { path = "../bigtable-rs"}
+bigtable-rs = { path = "../bigtable-rs" }
 tokio = { version = "1.0", features = ["rt-multi-thread", "time", "fs", "macros", "net"] }

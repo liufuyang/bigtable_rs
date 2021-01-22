@@ -95,8 +95,7 @@ impl AccessToken {
                 true,
                 Ordering::Relaxed,
                 Ordering::Relaxed,
-            )
-            {
+            ) {
                 // Refresh already pending
                 return;
             }
