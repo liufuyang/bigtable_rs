@@ -11,4 +11,5 @@ path = "src/simple_read.rs"
 
 [dependencies]
 bigtable-rs = { path = "../bigtable-rs" }
-tokio = { version = "1.0", features = ["rt-multi-thread", "time", "fs", "macros", "net"] }
+tokio = { version = "1.0", features = ["rt-multi-thread"] }
+env_logger = "0.8.2"

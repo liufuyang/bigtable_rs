@@ -1,24 +1,25 @@
 use crate::google::bigtable::v2::{
-    bigtable_client::BigtableClient, ReadRowsRequest, ReadRowsResponse,
+    bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, ReadRowsRequest,
+    ReadRowsResponse,
 };
 
 use crate::{
     access_token::{AccessToken, Scope},
     root_ca_certificate,
 };
-use log::{info, warn};
-use std::time::Duration;
+use log::{info, trace, warn};
+use std::time::{Duration, Instant};
 use thiserror::Error;
 use tonic::transport::Endpoint;
 use tonic::{
     codec::Streaming, metadata::MetadataValue, transport::Channel, transport::ClientTlsConfig,
-    Request, Response, Status,
+    Request,
 };
 
-pub type RowKey = String;
+pub type RowKey = Vec<u8>;
 pub type RowData = Vec<(CellName, CellValue)>;
 pub type RowDataSlice<'a> = &'a [(CellName, CellValue)];
-pub type CellName = String;
+pub type CellName = Vec<u8>;
 pub type CellValue = Vec<u8>;
 
 pub enum CellData<B, P> {
@@ -39,9 +40,6 @@ pub enum Error {
 
     #[error("Transport error: {0}")]
     TransportError(tonic::transport::Error),
-
-    #[error("Invalid URI {0}: {1}")]
-    InvalidUri(String, String),
 
     #[error("Row not found")]
     RowNotFound,
@@ -103,8 +101,8 @@ impl BigTableConnection {
         project_id: &str,
         instance_name: &str,
         read_only: bool,
-        timeout: Option<Duration>,
         channel_size: usize,
+        timeout: Option<Duration>,
     ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
@@ -212,6 +210,7 @@ impl BigTableConnection {
             access_token: self.access_token.clone(),
             client,
             table_prefix: self.table_prefix.clone(),
+            timeout: self.timeout,
         }
     }
 }
@@ -220,20 +219,97 @@ pub struct BigTable {
     access_token: Option<AccessToken>,
     client: BigtableClient<tonic::transport::Channel>,
     pub table_prefix: String,
+    timeout: Option<Duration>,
 }
 
 impl BigTable {
-    pub async fn read_rows(
-        &mut self,
-        request: ReadRowsRequest,
-    ) -> std::result::Result<Response<Streaming<ReadRowsResponse>>, Status> {
+    pub async fn read_rows(&mut self, request: ReadRowsRequest) -> Result<Vec<(RowKey, RowData)>> {
         self.refresh_access_token().await;
-        self.client.read_rows(request).await
+        let response = self.client.read_rows(request).await?.into_inner();
+        self.decode_read_rows_response(response).await
     }
 
     async fn refresh_access_token(&self) {
         if let Some(ref access_token) = self.access_token {
             access_token.refresh().await;
         }
+    }
+
+    async fn decode_read_rows_response(
+        &self,
+        mut rrr: Streaming<ReadRowsResponse>,
+    ) -> Result<Vec<(RowKey, RowData)>> {
+        let mut rows: Vec<(RowKey, RowData)> = vec![];
+
+        let mut row_key = None;
+        let mut row_data = vec![];
+
+        let mut cell_name = None;
+        let mut cell_timestamp = 0;
+        let mut cell_value = vec![];
+        let mut cell_version_ok = true;
+        let started = Instant::now();
+
+        while let Some(res) = rrr.message().await? {
+            if let Some(timeout) = self.timeout {
+                if Instant::now().duration_since(started) > timeout {
+                    return Err(Error::TimeoutError);
+                }
+            }
+            for (i, mut chunk) in res.chunks.into_iter().enumerate() {
+                // The comments for `read_rows_response::CellChunk` provide essential details for
+                // understanding how the below decoding works...
+                trace!("chunk {}: {:?}", i, chunk);
+
+                // Starting a new row?
+                if !chunk.row_key.is_empty() {
+                    row_key = Some(chunk.row_key);
+                }
+
+                // Starting a new cell?
+                if let Some(qualifier) = chunk.qualifier {
+                    if let Some(cell_name) = cell_name {
+                        row_data.push((cell_name, cell_value));
+                        cell_value = vec![];
+                    }
+                    cell_name = Some(qualifier);
+                    cell_timestamp = chunk.timestamp_micros;
+                    cell_version_ok = true;
+                } else {
+                    // Continuing the existing cell.  Check if this is the start of another version of the cell
+                    if chunk.timestamp_micros != 0 {
+                        if chunk.timestamp_micros < cell_timestamp {
+                            trace!("ignore older versions of the cell");
+                            cell_version_ok = false; // ignore older versions of the cell
+                        } else {
+                            // newer version of the cell, remove the older cell
+                            cell_version_ok = true;
+                            cell_value = vec![];
+                            cell_timestamp = chunk.timestamp_micros;
+                        }
+                    }
+                }
+                if cell_version_ok {
+                    cell_value.append(&mut chunk.value);
+                }
+
+                // End of a row?
+                if let Some(RowStatus::CommitRow(_)) = chunk.row_status {
+                    if let Some(cell_name) = cell_name {
+                        row_data.push((cell_name, cell_value));
+                    }
+
+                    if let Some(row_key) = row_key {
+                        rows.push((row_key, row_data))
+                    }
+                }
+
+                row_key = None;
+                row_data = vec![];
+                cell_value = vec![];
+                cell_name = None;
+            }
+        }
+        Ok(rows)
     }
 }
