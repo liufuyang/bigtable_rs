@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "bigtable-rs",
+    "bigtable_rs",
     # Non-published crates
     "examples",
 ]

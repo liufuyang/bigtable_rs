@@ -1,4 +1,4 @@
-# bigtable-rs
+# bigtable_rs
 
 ## Disclaimer - this is NOT ready for any production use
 
@@ -13,7 +13,7 @@ https://github.com/solana-labs/solana/tree/master/storage-bigtable. Will try wor
 You can use the library as follow:
 ```toml
 [dependencies]
-bigtable-rs = { path = "../bigtable-rs" }
+bigtable_rs = { path = "../bigtable_rs" }
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.8.2"
 ```

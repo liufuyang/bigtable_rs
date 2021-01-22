@@ -1,5 +1,5 @@
 [package]
-name = "bigtable-rs"
+name = "bigtable_rs"
 version = "0.1.0"
 authors = ["Fuyang Liu <liufuyang@users.noreply.github.com>"]
 edition = "2018"
