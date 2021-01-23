@@ -12,10 +12,12 @@ https://github.com/solana-labs/solana/tree/master/storage-bigtable). Will try wo
 ## Introduction 
 Current idea is to make this library very light weighted and you assemble
 requests based on [Google Bigtable V2 protobuf schema](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto) and issue request via 
-tonic GRPC.
+tonic GRPC. So the user have the flexibility of creating any type of Bigtable
+request and use this client to talk to Bigtable service.
 
 Supported interfaces towards Bigtable:
-* ReadRows
+* [ReadRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L55)
+* [More will come...]
 
 Also support connection authenticated via Google service account key `json` file 
 (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
