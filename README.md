@@ -5,10 +5,20 @@
 I just started trying to create a bigtable client. This library is far far away from a stage for others to use. But any
 contribution or help is highly appreciated.
 
-I had this idea and got some input from others see here
-https://github.com/durch/rust-bigtable/issues/4
-and basically ported many code from
-https://github.com/solana-labs/solana/tree/master/storage-bigtable. Will try work on it to make it more useful.
+I had this idea and got some input from others see [here](https://github.com/durch/rust-bigtable/issues/4)
+and basically ported many code from [here](
+https://github.com/solana-labs/solana/tree/master/storage-bigtable). Will try work on it to make it more useful.
+
+## Introduction 
+Current idea is to make this library very light weighted and you assemble
+requests based on [Google Bigtable V2 protobuf schema](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto) and issue request via 
+tonic GRPC.
+
+Supported interfaces towards Bigtable:
+* ReadRows
+
+Also support connection authenticated via Google service account key `json` file 
+(by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
 
 You can use the library as follow:
 ```toml
@@ -18,13 +28,15 @@ tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.8.2"
 ```
 
+The following example showing how to do a key range scan
 ```rust
 use bigtable_rs::bigtable;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowSet, RowRange};
-use bigtable_rs::google::bigtable::v2::row_range::{StartKey, EndKey};
+use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
+use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
 use env_logger;
 use std::error::Error;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -39,6 +51,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let key_start: String = "key1".to_owned();
     let key_end: String = "key3".to_owned();
 
+    // make a bigtable client
     let connection = bigtable::BigTableConnection::new(
         project_id,
         instance_name,
@@ -46,14 +59,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
         channel_size,
         Some(timeout),
     )
-    .await?;
+        .await?;
     let mut bigtable = connection.client();
 
+    // prepare a ReadRowsRequest
     let request = ReadRowsRequest {
         table_name: format!("{}{}", bigtable.table_prefix, table_name),
         rows_limit: 10,
         rows: Some(RowSet {
-            row_keys: vec![], // vec![key_start.into_bytes()]
+            row_keys: vec![], // use this field to put keys for reading specific rows
             row_ranges: vec![RowRange {
                 start_key: Some(StartKey::StartKeyClosed(key_start.into_bytes())),
                 end_key: Some(EndKey::EndKeyOpen(key_end.into_bytes())),
@@ -77,8 +91,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         ..ReadRowsRequest::default()
     };
 
+    // calling bigtable API to get results
     let response = bigtable.read_rows(request).await?;
 
+    // simply print results for example usage
     response.into_iter().for_each(|(key, data)| {
         data.into_iter().for_each(|(cell_name, cell_value)| {
             println!(

@@ -4,7 +4,7 @@ use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
 use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
 use env_logger;
 use std::error::Error;
-use tokio::time::Duration;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -19,6 +19,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let key_start: String = "key1".to_owned();
     let key_end: String = "key3".to_owned();
 
+    // make a bigtable client
     let connection = bigtable::BigTableConnection::new(
         project_id,
         instance_name,
@@ -29,11 +30,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .await?;
     let mut bigtable = connection.client();
 
+    // prepare a ReadRowsRequest
     let request = ReadRowsRequest {
         table_name: format!("{}{}", bigtable.table_prefix, table_name),
         rows_limit: 10,
         rows: Some(RowSet {
-            row_keys: vec![], // vec![key_start.into_bytes()]
+            row_keys: vec![], // use this field to put keys for reading specific rows
             row_ranges: vec![RowRange {
                 start_key: Some(StartKey::StartKeyClosed(key_start.into_bytes())),
                 end_key: Some(EndKey::EndKeyOpen(key_end.into_bytes())),
@@ -57,8 +59,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         ..ReadRowsRequest::default()
     };
 
+    // calling bigtable API to get results
     let response = bigtable.read_rows(request).await?;
 
+    // simply print results for example usage
     response.into_iter().for_each(|(key, data)| {
         data.into_iter().for_each(|(cell_name, cell_value)| {
             println!(
