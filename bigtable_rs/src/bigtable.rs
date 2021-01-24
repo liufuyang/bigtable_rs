@@ -1,6 +1,6 @@
 use crate::google::bigtable::v2::{
     bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, ReadRowsRequest,
-    ReadRowsResponse,
+    ReadRowsResponse, SampleRowKeysRequest, SampleRowKeysResponse,
 };
 
 use crate::{
@@ -229,6 +229,15 @@ impl BigTable {
         self.refresh_access_token().await;
         let response = self.client.read_rows(request).await?.into_inner();
         self.decode_read_rows_response(response).await
+    }
+
+    pub async fn sample_row_keys(
+        &mut self,
+        request: SampleRowKeysRequest,
+    ) -> Result<Streaming<SampleRowKeysResponse>> {
+        self.refresh_access_token().await;
+        let response = self.client.sample_row_keys(request).await?.into_inner();
+        Ok(response)
     }
 
     async fn refresh_access_token(&self) {

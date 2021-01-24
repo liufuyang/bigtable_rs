@@ -9,6 +9,10 @@ edition = "2018"
 name = "simple_read"
 path = "src/simple_read.rs"
 
+[[bin]]
+name = "sample_row_keys"
+path = "src/sample_row_keys.rs"
+
 [dependencies]
 bigtable_rs = { path = "../bigtable_rs" }
 tokio = { version = "1.0", features = ["rt-multi-thread"] }

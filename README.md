@@ -17,6 +17,7 @@ request and use this client to talk to Bigtable service.
 
 Supported interfaces towards Bigtable:
 * [ReadRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L55)
+* [SampleRowKeys](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L68)
 * [More will come...]
 
 Also support connection authenticated via Google service account key `json` file 
