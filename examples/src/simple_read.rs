@@ -11,8 +11,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
 
     let project_id = "project-id";
-    let instance_name = "test1";
-    let table_name = "my-table";
+    let instance_name = "instance-1";
+    let table_name = "table-1";
     let channel_size = 4;
     let timeout = Duration::from_secs(10);
 
