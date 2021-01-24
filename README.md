@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let timeout = Duration::from_secs(10);
 
     let key_start: String = "key1".to_owned();
-    let key_end: String = "key3".to_owned();
+    let key_end: String = "key4".to_owned();
 
     // make a bigtable client
     let connection = bigtable::BigTableConnection::new(
@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         filter: Some(Filter::ColumnQualifierRegexFilter("c1".as_bytes().to_vec())),
                     },
                     RowFilter {
-                        filter: Some(Filter::CellsPerColumnLimitFilter(1)),
+                        filter: Some(Filter::CellsPerColumnLimitFilter(2)),
                     },
                 ],
             })),
@@ -98,18 +98,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // simply print results for example usage
     response.into_iter().for_each(|(key, data)| {
-        data.into_iter().for_each(|(cell_name, cell_value)| {
+        println!("------------\n{}", String::from_utf8(key.clone()).unwrap());
+        data.into_iter().for_each(|row_cell| {
             println!(
-                "{} -> {}:{}",
-                String::from_utf8(key.clone()).unwrap(),
-                String::from_utf8(cell_name).unwrap(),
-                String::from_utf8(cell_value).unwrap()
+                "    [{}:{}] \"{}\" at {}",
+                row_cell.family_name,
+                String::from_utf8(row_cell.qualifier).unwrap(),
+                String::from_utf8(row_cell.value).unwrap(),
+                row_cell.timestamp_micros
             )
         })
     });
 
     Ok(())
 }
+
 ```
 
 To start develop or test the example above, start a test bigtable instance locally first:

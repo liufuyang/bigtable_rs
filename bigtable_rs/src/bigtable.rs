@@ -17,14 +17,13 @@ use tonic::{
 };
 
 pub type RowKey = Vec<u8>;
-pub type RowData = Vec<(CellName, CellValue)>;
-pub type RowDataSlice<'a> = &'a [(CellName, CellValue)];
-pub type CellName = Vec<u8>;
 pub type CellValue = Vec<u8>;
 
-pub enum CellData<B, P> {
-    Bincode(B),
-    Protobuf(P),
+pub struct RowCell {
+    pub family_name: String,
+    pub qualifier: Vec<u8>,
+    pub value: CellValue,
+    pub timestamp_micros: i64,
 }
 
 #[derive(Debug, Error)]
@@ -223,7 +222,10 @@ pub struct BigTable {
 }
 
 impl BigTable {
-    pub async fn read_rows(&mut self, request: ReadRowsRequest) -> Result<Vec<(RowKey, RowData)>> {
+    pub async fn read_rows(
+        &mut self,
+        request: ReadRowsRequest,
+    ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
         self.refresh_access_token().await;
         let response = self.client.read_rows(request).await?.into_inner();
         self.decode_read_rows_response(response).await
@@ -238,16 +240,16 @@ impl BigTable {
     async fn decode_read_rows_response(
         &self,
         mut rrr: Streaming<ReadRowsResponse>,
-    ) -> Result<Vec<(RowKey, RowData)>> {
-        let mut rows: Vec<(RowKey, RowData)> = vec![];
+    ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
+        let mut rows: Vec<(RowKey, Vec<RowCell>)> = vec![];
 
         let mut row_key = None;
-        let mut row_data = vec![];
+        let mut row_data: Vec<RowCell> = vec![];
 
+        let mut family_name = None;
         let mut cell_name = None;
         let mut cell_timestamp = 0;
         let mut cell_value = vec![];
-        let mut cell_version_ok = true;
         let started = Instant::now();
 
         while let Some(res) = rrr.message().await? {
@@ -266,48 +268,69 @@ impl BigTable {
                     row_key = Some(chunk.row_key);
                 }
 
+                // Staring a new family?
+                if let Some(chunk_family_name) = chunk.family_name {
+                    family_name = Some(chunk_family_name);
+                }
+
                 // Starting a new cell?
-                if let Some(qualifier) = chunk.qualifier {
+                if let Some(chunk_qualifier) = chunk.qualifier {
                     if let Some(cell_name) = cell_name {
-                        row_data.push((cell_name, cell_value));
+                        // previous cell_name exist, then store the previous cell value
+                        let row_cell = RowCell {
+                            family_name: family_name.take().unwrap_or("".to_owned()),
+                            qualifier: cell_name,
+                            value: cell_value,
+                            timestamp_micros: cell_timestamp,
+                        };
+                        row_data.push(row_cell);
                         cell_value = vec![];
                     }
-                    cell_name = Some(qualifier);
+                    cell_name = Some(chunk_qualifier);
                     cell_timestamp = chunk.timestamp_micros;
-                    cell_version_ok = true;
-                } else {
-                    // Continuing the existing cell.  Check if this is the start of another version of the cell
-                    if chunk.timestamp_micros != 0 {
-                        if chunk.timestamp_micros < cell_timestamp {
-                            trace!("ignore older versions of the cell");
-                            cell_version_ok = false; // ignore older versions of the cell
-                        } else {
-                            // newer version of the cell, remove the older cell
-                            cell_version_ok = true;
-                            cell_value = vec![];
-                            cell_timestamp = chunk.timestamp_micros;
-                        }
-                    }
                 }
-                if cell_version_ok {
-                    cell_value.append(&mut chunk.value);
-                }
+
+                cell_value.append(&mut chunk.value);
 
                 // End of a row?
-                if let Some(RowStatus::CommitRow(_)) = chunk.row_status {
-                    if let Some(cell_name) = cell_name {
-                        row_data.push((cell_name, cell_value));
+                match chunk.row_status {
+                    None => {
+                        // more for this row
+                        if let Some(cell_name) = cell_name.take() {
+                            let row_cell = RowCell {
+                                family_name: family_name.take().unwrap_or("".to_owned()),
+                                qualifier: cell_name,
+                                value: cell_value,
+                                timestamp_micros: cell_timestamp,
+                            };
+                            row_data.push(row_cell);
+                            cell_value = vec![];
+                        } else {
+                            warn!("chunk.row_status=None")
+                        }
                     }
+                    Some(RowStatus::CommitRow(_)) => {
+                        if let Some(cell_name) = cell_name.take() {
+                            let row_cell = RowCell {
+                                family_name: family_name.take().unwrap_or("".to_owned()),
+                                qualifier: cell_name,
+                                value: cell_value,
+                                timestamp_micros: cell_timestamp,
+                            };
+                            row_data.push(row_cell);
+                            cell_value = vec![];
+                        } else {
+                        }
 
-                    if let Some(row_key) = row_key {
-                        rows.push((row_key, row_data))
+                        if let Some(row_key) = row_key.take() {
+                            rows.push((row_key, row_data));
+                            row_data = vec![];
+                        }
+                    }
+                    Some(RowStatus::ResetRow(_)) => {
+                        // do nothing here, will reset row
                     }
                 }
-
-                row_key = None;
-                row_data = vec![];
-                cell_value = vec![];
-                cell_name = None;
             }
         }
         Ok(rows)
