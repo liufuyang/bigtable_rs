@@ -67,7 +67,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         println!("------------\n{}", String::from_utf8(key.clone()).unwrap());
         data.into_iter().for_each(|row_cell| {
             println!(
-                "    [{}:{}] \"{}\" at {}",
+                "    [{}:{}] \"{}\" @ {}",
                 row_cell.family_name,
                 String::from_utf8(row_cell.qualifier).unwrap(),
                 String::from_utf8(row_cell.value).unwrap(),

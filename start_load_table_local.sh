@@ -18,6 +18,7 @@ cbt -instance instance-1 -project emulator  set table-1 key6 cf1:c1=value6
 
 # Set another version into key1
 cbt -instance instance-1 -project emulator  set table-1 key1 cf1:c1=value1.v1
+cbt -instance instance-1 -project emulator  set table-1 key1 cf1:c2=value1.c2
 
 # Set another qualifier on key2
 cbt -instance instance-1 -project emulator  set table-1 key2 cf1:c2=value2.c2
