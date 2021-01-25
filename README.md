@@ -1,29 +1,39 @@
 # bigtable_rs
 
-## Disclaimer - this is NOT ready for any production use
+A simple Rust library for working
+with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2)
+
+## Disclaimer - this is NOT ready for any production use yet
 
 I just started trying to create a bigtable client. This library is far far away from a stage for others to use. But any
 contribution or help is highly appreciated.
 
 I had this idea and got some input from others see [here](https://github.com/durch/rust-bigtable/issues/4)
 and basically ported many code from [here](
-https://github.com/solana-labs/solana/tree/master/storage-bigtable). Will try work on it to make it more useful.
+https://github.com/solana-labs/solana/tree/master/storage-bigtable)
+(thanks to [@mvines](https://github.com/mvines)). Will try work on it to make it more useful.
 
-## Introduction 
-Current idea is to make this library very light weighted and you assemble
-requests based on [Google Bigtable V2 protobuf schema](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto) and issue request via 
-tonic GRPC. So the user have the flexibility of creating any type of Bigtable
-request and use this client to talk to Bigtable service.
+## Introduction
+
+Current idea is to make this library very light weighted and you assemble requests based
+on [Google Bigtable V2 protobuf schema](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto)
+and send the requests via [tonic gRPC over HTTP/2](https://github.com/hyperium/tonic). So the user have the flexibility
+of creating any type of Bigtable request and use this client to talk to Bigtable service.
+
+Compiled Bigtable API proto as Rust code is also included in the repo here so users don't need to compile from proto
+again.
 
 Supported interfaces towards Bigtable:
+
 * [ReadRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L55)
 * [SampleRowKeys](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L68)
 * [More will come...]
 
-Also support connection authenticated via Google service account key `json` file 
+Also support connection authenticated via Google service account key `json` file
 (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
 
 You can use the library as follow:
+
 ```toml
 [dependencies]
 bigtable_rs = { path = "../bigtable_rs" }
@@ -32,6 +42,7 @@ env_logger = "0.8.2"
 ```
 
 The following example showing how to do a key range scan
+
 ```rust
 use bigtable_rs::bigtable;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
