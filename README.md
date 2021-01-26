@@ -27,7 +27,11 @@ Supported interfaces towards Bigtable:
 
 * [ReadRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L55)
 * [SampleRowKeys](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L68)
-* [More will come...]
+* [MutateRow](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L78)
+* [MutateRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L90)
+
+For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble the request you need to
+interact with Bigtable service.
 
 Also support connection authenticated via Google service account key `json` file
 (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)

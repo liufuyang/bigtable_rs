@@ -1,6 +1,95 @@
+//! `bigtable_rs` provides a few convenient struct for calling Google Bigtable from Rust code.
+//!
+//!
+//! Example usage:
+//! ```rust,no_run
+//! use bigtable_rs::bigtable;
+//! use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
+//! use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
+//! use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
+//! use env_logger;
+//! use std::error::Error;
+//! use std::time::Duration;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn Error>> {
+//!     env_logger::init();
+//!
+//!     let project_id = "project-id";
+//!     let instance_name = "instance-1";
+//!     let table_name = "table-1";
+//!     let channel_size = 4;
+//!     let timeout = Duration::from_secs(10);
+//!
+//!     let key_start: String = "key1".to_owned();
+//!     let key_end: String = "key4".to_owned();
+//!
+//!     // make a bigtable client
+//!     let connection = bigtable::BigTableConnection::new(
+//!         project_id,
+//!         instance_name,
+//!         true,
+//!         channel_size,
+//!         Some(timeout),
+//!     )
+//!         .await?;
+//!     let mut bigtable = connection.client();
+//!
+//!     // prepare a ReadRowsRequest
+//!     let request = ReadRowsRequest {
+//!         app_profile_id: "default".to_owned(),
+//!         table_name: bigtable.get_table_prefix(table_name),
+//!         rows_limit: 10,
+//!         rows: Some(RowSet {
+//!             row_keys: vec![], // use this field to put keys for reading specific rows
+//!             row_ranges: vec![RowRange {
+//!                 start_key: Some(StartKey::StartKeyClosed(key_start.into_bytes())),
+//!                 end_key: Some(EndKey::EndKeyOpen(key_end.into_bytes())),
+//!             }],
+//!         }),
+//!         filter: Some(RowFilter {
+//!             filter: Some(Filter::Chain(Chain {
+//!                 filters: vec![
+//!                     RowFilter {
+//!                         filter: Some(Filter::FamilyNameRegexFilter("cf1".to_owned())),
+//!                     },
+//!                     RowFilter {
+//!                         filter: Some(Filter::ColumnQualifierRegexFilter("c1".as_bytes().to_vec())),
+//!                     },
+//!                     RowFilter {
+//!                         filter: Some(Filter::CellsPerColumnLimitFilter(1)),
+//!                     },
+//!                 ],
+//!             })),
+//!         }),
+//!         ..ReadRowsRequest::default()
+//!     };
+//!
+//!     // calling bigtable API to get results
+//!     let response = bigtable.read_rows(request).await?;
+//!
+//!     // simply print results for example usage
+//!     response.into_iter().for_each(|(key, data)| {
+//!         println!("------------\n{}", String::from_utf8(key.clone()).unwrap());
+//!         data.into_iter().for_each(|row_cell| {
+//!             println!(
+//!                 "    [{}:{}] \"{}\" @ {}",
+//!                 row_cell.family_name,
+//!                 String::from_utf8(row_cell.qualifier).unwrap(),
+//!                 String::from_utf8(row_cell.value).unwrap(),
+//!                 row_cell.timestamp_micros
+//!             )
+//!         })
+//!     });
+//!
+//!     Ok(())
+//! }
+//! ```
+
 use crate::google::bigtable::v2::{
-    bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, ReadRowsRequest,
-    ReadRowsResponse, SampleRowKeysRequest, SampleRowKeysResponse,
+    bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, MutateRowRequest,
+    MutateRowResponse, MutateRowsRequest, MutateRowsResponse, ReadRowsRequest, ReadRowsResponse,
+    SampleRowKeysRequest, SampleRowKeysResponse,
 };
 
 use crate::{
@@ -13,7 +102,7 @@ use thiserror::Error;
 use tonic::transport::Endpoint;
 use tonic::{
     codec::Streaming, metadata::MetadataValue, transport::Channel, transport::ClientTlsConfig,
-    Request,
+    Request, Response,
 };
 
 pub type RowKey = Vec<u8>;
@@ -214,14 +303,16 @@ impl BigTableConnection {
     }
 }
 
+/// The core struct for Bigtable client, witch wraps a gPRC client defined by Bigtable proto
 pub struct BigTable {
     access_token: Option<AccessToken>,
-    client: BigtableClient<tonic::transport::Channel>,
+    client: BigtableClient<Channel>,
     pub table_prefix: String,
     timeout: Option<Duration>,
 }
 
 impl BigTable {
+    /// Wrapped `read_rows` method
     pub async fn read_rows(
         &mut self,
         request: ReadRowsRequest,
@@ -231,6 +322,7 @@ impl BigTable {
         self.decode_read_rows_response(response).await
     }
 
+    /// Wrapped `sample_row_keys` method
     pub async fn sample_row_keys(
         &mut self,
         request: SampleRowKeysRequest,
@@ -240,10 +332,43 @@ impl BigTable {
         Ok(response)
     }
 
-    async fn refresh_access_token(&self) {
+    /// Wrapped `mutate_row` method
+    pub async fn mutate_row(
+        &mut self,
+        request: MutateRowRequest,
+    ) -> Result<Response<MutateRowResponse>> {
+        self.refresh_access_token().await;
+        let response = self.client.mutate_row(request).await?;
+        Ok(response)
+    }
+
+    /// Wrapped `mutate_rows` method
+    pub async fn mutate_rows(
+        &mut self,
+        request: MutateRowsRequest,
+    ) -> Result<Streaming<MutateRowsResponse>> {
+        self.refresh_access_token().await;
+        let response = self.client.mutate_rows(request).await?.into_inner();
+        Ok(response)
+    }
+
+    /// Provide a convenient method to get the inner `BigtableClient` so user can use any methods
+    /// defined from the Bigtable V2 gRPC API
+    pub fn get_client(&mut self) -> &mut BigtableClient<Channel> {
+        &mut self.client
+    }
+
+    /// Only needed to call this if you interact with the internal `BigtableClient` directly.
+    /// Call this method to ensure the access token refreshed.
+    pub async fn refresh_access_token(&self) {
         if let Some(ref access_token) = self.access_token {
             access_token.refresh().await;
         }
+    }
+
+    /// Provide a convenient method to get table prefix, which can be used for build requests
+    pub fn get_table_prefix(&self, table_name: &str) -> String {
+        format!("{}{}", self.table_prefix, table_name)
     }
 
     /// As each `CellChunk` could be only part of a cell, this method reorganize multiple `CellChunk`

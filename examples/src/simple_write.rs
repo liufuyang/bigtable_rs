@@ -1,7 +1,10 @@
 use bigtable_rs::bigtable;
-use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
-use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
+use bigtable_rs::google::bigtable::v2::mutation;
+use bigtable_rs::google::bigtable::v2::mutation::SetCell;
+use bigtable_rs::google::bigtable::v2::row_filter::Filter;
+use bigtable_rs::google::bigtable::v2::{
+    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
+};
 use env_logger;
 use std::error::Error;
 use std::time::Duration;
@@ -16,8 +19,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let channel_size = 4;
     let timeout = Duration::from_secs(10);
 
-    let key_start: String = "key1".to_owned();
-    let key_end: String = "key4".to_owned();
+    let key: String = "new-key-1".to_owned();
 
     // make a bigtable client
     let connection = bigtable::BigTableConnection::new(
@@ -30,32 +32,34 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .await?;
     let mut bigtable = connection.client();
 
+    let request = MutateRowRequest {
+        table_name: bigtable.get_table_prefix(table_name),
+        row_key: key.clone().into_bytes(),
+        mutations: vec![Mutation {
+            mutation: Some(mutation::Mutation::SetCell(SetCell {
+                family_name: "cf1".to_owned(),
+                column_qualifier: "c1".to_owned().into_bytes(),
+                timestamp_micros: -1, // IMPORTANT: Don't leave it empty. Use -1 for current Bigtable server time.
+                value: "a new write value".to_owned().into_bytes(),
+            })),
+        }],
+        ..MutateRowRequest::default()
+    };
+
+    // write to table
+    let _response = bigtable.mutate_row(request).await?;
+
+    // read from table again
     // prepare a ReadRowsRequest
     let request = ReadRowsRequest {
-        app_profile_id: "default".to_owned(),
         table_name: bigtable.get_table_prefix(table_name),
         rows_limit: 10,
         rows: Some(RowSet {
-            row_keys: vec![], // use this field to put keys for reading specific rows
-            row_ranges: vec![RowRange {
-                start_key: Some(StartKey::StartKeyClosed(key_start.into_bytes())),
-                end_key: Some(EndKey::EndKeyOpen(key_end.into_bytes())),
-            }],
+            row_keys: vec![key.clone().into_bytes()],
+            row_ranges: vec![],
         }),
         filter: Some(RowFilter {
-            filter: Some(Filter::Chain(Chain {
-                filters: vec![
-                    RowFilter {
-                        filter: Some(Filter::FamilyNameRegexFilter("cf1".to_owned())),
-                    },
-                    RowFilter {
-                        filter: Some(Filter::ColumnQualifierRegexFilter("c1".as_bytes().to_vec())),
-                    },
-                    RowFilter {
-                        filter: Some(Filter::CellsPerColumnLimitFilter(2)),
-                    },
-                ],
-            })),
+            filter: Some(Filter::CellsPerColumnLimitFilter(1)),
         }),
         ..ReadRowsRequest::default()
     };
