@@ -5,13 +5,13 @@ with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](ht
 
 ## Disclaimer - this is NOT ready for any production use yet
 
-I just started trying to create a bigtable client. This library is far far away from a stage for others to use. But any
-contribution or help is highly appreciated.
+This library is not production ready but it works with simple examples. Any contribution or help is highly appreciated.
 
-I had this idea and got some input from others see [here](https://github.com/durch/rust-bigtable/issues/4)
-and basically ported many code from [here](
+I had the idea to build a client like this and got some input from others
+see [here](https://github.com/durch/rust-bigtable/issues/4)
+and this is basically done by porting code from [here](
 https://github.com/solana-labs/solana/tree/master/storage-bigtable)
-(thanks to [@mvines](https://github.com/mvines)). Will try work on it to make it more useful.
+(thanks to [@mvines](https://github.com/mvines)). Will try working on it to make it more useful.
 
 ## Introduction
 
@@ -40,7 +40,7 @@ You can use the library as follow:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.1.0"
+bigtable_rs = "0.1.1"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.8.2"
 ```
