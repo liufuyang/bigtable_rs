@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["TABLE_NAME",""]],"fn":[["get_handler",""],["main",""],["post_handler",""]],"struct":[["Value",""]]});

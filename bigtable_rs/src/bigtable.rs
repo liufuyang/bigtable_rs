@@ -1,4 +1,4 @@
-//! `bigtable_rs` provides a few convenient struct for calling Google Bigtable from Rust code.
+//! `bigtable` module provides a few convenient structs for calling Google Bigtable from Rust code.
 //!
 //!
 //! Example usage:
@@ -106,16 +106,20 @@ use tonic::{
     Request, Response,
 };
 
-pub type RowKey = Vec<u8>;
-pub type CellValue = Vec<u8>;
+/// An alias for Vec<u8> as row key
+type RowKey = Vec<u8>;
+/// A convenient Result type
+type Result<T> = std::result::Result<T, Error>;
 
+/// A data structure for returning the read content of a cell in a row.
 pub struct RowCell {
     pub family_name: String,
     pub qualifier: Vec<u8>,
-    pub value: CellValue,
+    pub value: Vec<u8>,
     pub timestamp_micros: i64,
 }
 
+/// Error types the client may have
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("AccessToken error: {0}")]
@@ -167,8 +171,7 @@ impl std::convert::From<tonic::Status> for Error {
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
-
+/// For initiate a Bigtable connection, then a `Bigtable` client can be made from it.
 #[derive(Clone)]
 pub struct BigTableConnection {
     access_token: Arc<Option<AccessToken>>,

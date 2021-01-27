@@ -1,3 +1,4 @@
+//! `google` module having the Rust code generated from Google Bigtable V2 gPRC API proto file.
 #[path = "google"]
 pub mod bigtable {
     #[path = "google.bigtable.v2.rs"]

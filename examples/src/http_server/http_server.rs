@@ -5,6 +5,7 @@ use bigtable_rs::google::bigtable::v2::row_filter::Filter;
 use bigtable_rs::google::bigtable::v2::{
     mutation, MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use warp::http::Response;
@@ -22,6 +23,7 @@ struct Value {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
+    let port = 3030;
 
     let project_id = "project-id";
     let instance_name = "instance-1";
@@ -52,7 +54,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // View access logs by setting `RUST_LOG=http`.
     let routes = get.or(post).with(warp::log("http"));
     // Start up the server...
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    info!("Starting http server on port: {}", port);
+    warp::serve(routes).run(([127, 0, 0, 1], port)).await;
 
     Ok(())
 }

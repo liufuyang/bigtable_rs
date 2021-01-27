@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["bigtable","`bigtable_rs` provides a few convenient struct for calling Google Bigtable from Rust code."],["google",""]]});
+initSidebarItems({"mod":[["bigtable","`bigtable` module provides a few convenient structs for calling Google Bigtable from Rust code."],["google","`google` module having the Rust code generated from Google Bigtable V2 gPRC API proto file."]]});

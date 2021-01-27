@@ -473,8 +473,11 @@
 <span id="470">470</span>
 <span id="471">471</span>
 <span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! `bigtable_rs` provides a few convenient struct for calling Google Bigtable from Rust code.</span>
+<span class="doccomment">//! `bigtable` module provides a few convenient structs for calling Google Bigtable from Rust code.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Example usage:</span>
@@ -582,16 +585,20 @@
     <span class="ident">Request</span>, <span class="ident">Response</span>,
 };
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RowKey</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CellValue</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An alias for Vec&lt;u8&gt; as row key</span>
+<span class="kw">type</span> <span class="ident">RowKey</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A convenient Result type</span>
+<span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
+<span class="doccomment">/// A data structure for returning the read content of a cell in a row.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RowCell</span> {
     <span class="kw">pub</span> <span class="ident">family_name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">qualifier</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">CellValue</span>,
+    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">timestamp_micros</span>: <span class="ident">i64</span>,
 }
 
+<span class="doccomment">/// Error types the client may have</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;AccessToken error: {0}&quot;</span>)]</span>
@@ -643,8 +650,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
-
+<span class="doccomment">/// For initiate a Bigtable connection, then a `Bigtable` client can be made from it.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BigTableConnection</span> {
     <span class="ident">access_token</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccessToken</span><span class="op">&gt;</span><span class="op">&gt;</span>,
