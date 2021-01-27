@@ -38,7 +38,7 @@
 //!     // prepare a ReadRowsRequest
 //!     let request = ReadRowsRequest {
 //!         app_profile_id: "default".to_owned(),
-//!         table_name: bigtable.get_table_prefix(table_name),
+//!         table_name: bigtable.get_full_table_name(table_name),
 //!         rows_limit: 10,
 //!         rows: Some(RowSet {
 //!             row_keys: vec![], // use this field to put keys for reading specific rows
@@ -307,7 +307,7 @@ impl BigTableConnection {
 pub struct BigTable {
     access_token: Option<AccessToken>,
     client: BigtableClient<Channel>,
-    pub table_prefix: String,
+    table_prefix: String,
     timeout: Option<Duration>,
 }
 
@@ -366,9 +366,9 @@ impl BigTable {
         }
     }
 
-    /// Provide a convenient method to get table prefix, which can be used for build requests
-    pub fn get_table_prefix(&self, table_name: &str) -> String {
-        format!("{}{}", self.table_prefix, table_name)
+    /// Provide a convenient method to get full table, which can be used for building requests
+    pub fn get_full_table_name(&self, table_name: &str) -> String {
+        [&self.table_prefix, table_name].concat()
     }
 
     /// As each `CellChunk` could be only part of a cell, this method reorganize multiple `CellChunk`

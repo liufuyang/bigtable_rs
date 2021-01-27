@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut bigtable = connection.client();
 
     let request = SampleRowKeysRequest {
-        table_name: format!("{}{}", bigtable.table_prefix, table_name),
+        table_name: bigtable.get_full_table_name(table_name),
         ..SampleRowKeysRequest::default()
     };
     let mut response = bigtable.sample_row_keys(request).await?;

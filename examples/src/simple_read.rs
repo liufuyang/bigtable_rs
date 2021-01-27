@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // prepare a ReadRowsRequest
     let request = ReadRowsRequest {
         app_profile_id: "default".to_owned(),
-        table_name: bigtable.get_table_prefix(table_name),
+        table_name: bigtable.get_full_table_name(table_name),
         rows_limit: 10,
         rows: Some(RowSet {
             row_keys: vec![], // use this field to put keys for reading specific rows

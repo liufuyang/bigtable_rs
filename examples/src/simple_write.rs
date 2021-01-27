@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut bigtable = connection.client();
 
     let request = MutateRowRequest {
-        table_name: bigtable.get_table_prefix(table_name),
+        table_name: bigtable.get_full_table_name(table_name),
         row_key: key.clone().into_bytes(),
         mutations: vec![Mutation {
             mutation: Some(mutation::Mutation::SetCell(SetCell {
@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // read from table again
     // prepare a ReadRowsRequest
     let request = ReadRowsRequest {
-        table_name: bigtable.get_table_prefix(table_name),
+        table_name: bigtable.get_full_table_name(table_name),
         rows_limit: 10,
         rows: Some(RowSet {
             row_keys: vec![key.clone().into_bytes()],
