@@ -97,6 +97,7 @@ use crate::{
     root_ca_certificate,
 };
 use log::{info, trace, warn};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 use tonic::transport::Endpoint;
@@ -170,10 +171,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone)]
 pub struct BigTableConnection {
-    access_token: Option<AccessToken>,
+    access_token: Arc<Option<AccessToken>>,
     channel: tonic::transport::Channel,
-    table_prefix: String,
-    timeout: Option<Duration>,
+    table_prefix: Arc<String>,
+    timeout: Arc<Option<Duration>>,
 }
 
 impl BigTableConnection {
@@ -212,10 +213,13 @@ impl BigTableConnection {
                     .collect();
 
                 Ok(Self {
-                    access_token: None,
+                    access_token: Arc::new(None),
                     channel: Channel::balance_list(endpoints.into_iter()),
-                    table_prefix: format!("projects/emulator/instances/{}/tables/", instance_name),
-                    timeout,
+                    table_prefix: Arc::new(format!(
+                        "projects/emulator/instances/{}/tables/",
+                        instance_name
+                    )),
+                    timeout: Arc::new(timeout),
                 })
             }
 
@@ -263,10 +267,10 @@ impl BigTableConnection {
                     .collect();
 
                 Ok(Self {
-                    access_token: Some(access_token),
+                    access_token: Arc::new(Some(access_token)),
                     channel: Channel::balance_list(endpoints.into_iter()),
-                    table_prefix,
-                    timeout,
+                    table_prefix: Arc::new(table_prefix),
+                    timeout: Arc::new(timeout),
                 })
             }
         }
@@ -275,9 +279,9 @@ impl BigTableConnection {
     /// Create a new BigTable client.
     ///
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
-    /// creating new clients is cheap and thus can be used as a work around for ease of use.
+    /// the created new clients can be cheaply cloned and thus can be send to different threads
     pub fn client(&self) -> BigTable {
-        let client = if let Some(access_token) = &self.access_token {
+        let client = if let Some(access_token) = &self.access_token.as_ref() {
             let access_token = access_token.clone();
             BigtableClient::with_interceptor(self.channel.clone(), move |mut req: Request<()>| {
                 match MetadataValue::from_str(&access_token.get()) {
@@ -295,26 +299,26 @@ impl BigTableConnection {
             BigtableClient::new(self.channel.clone())
         };
         BigTable {
-            access_token: &self.access_token,
+            access_token: self.access_token.clone(),
             client,
-            table_prefix: self.table_prefix.as_ref(),
-            timeout: &self.timeout,
+            table_prefix: self.table_prefix.clone(),
+            timeout: self.timeout.clone(),
         }
     }
 }
 
 /// The core struct for Bigtable client, witch wraps a gPRC client defined by Bigtable proto.
 /// In order easy share this struct in multiple thread, we only store references here, besides the
-/// `BigtableClient` as it is a tonic Channel and clone on it is cheap.
+/// `BigtableClient` as it wraps a tonic Channel and cloning on is cheap.
 #[derive(Clone)]
-pub struct BigTable<'a> {
-    access_token: &'a Option<AccessToken>,
-    client: BigtableClient<Channel>, // clone is cheap Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
-    table_prefix: &'a str,
-    timeout: &'a Option<Duration>,
+pub struct BigTable {
+    access_token: Arc<Option<AccessToken>>,
+    client: BigtableClient<Channel>, // clone is cheap with Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
+    table_prefix: Arc<String>,
+    timeout: Arc<Option<Duration>>,
 }
 
-impl<'a> BigTable<'a> {
+impl BigTable {
     /// Wrapped `read_rows` method
     pub async fn read_rows(
         &mut self,
@@ -364,7 +368,7 @@ impl<'a> BigTable<'a> {
     /// Only needed to call this if you interact with the internal `BigtableClient` directly.
     /// Call this method to ensure the access token refreshed.
     pub async fn refresh_access_token(&self) {
-        if let Some(ref access_token) = self.access_token {
+        if let Some(ref access_token) = self.access_token.as_ref() {
             access_token.refresh().await;
         }
     }
@@ -393,7 +397,7 @@ impl<'a> BigTable<'a> {
         let started = Instant::now();
 
         while let Some(res) = rrr.message().await? {
-            if let Some(timeout) = self.timeout {
+            if let Some(timeout) = self.timeout.as_ref() {
                 if Instant::now().duration_since(started) > *timeout {
                     return Err(Error::TimeoutError(timeout.as_secs()));
                 }

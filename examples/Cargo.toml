@@ -19,7 +19,7 @@ path = "src/simple_write.rs"
 
 [[bin]]
 name = "http_server"
-path = "src/http_server.rs"
+path = "src/http_server/http_server.rs"
 
 [dependencies]
 bigtable_rs = { path = "../bigtable_rs" }

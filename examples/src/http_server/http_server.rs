@@ -1,6 +1,7 @@
 use bigtable_rs::bigtable::{BigTable, BigTableConnection};
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
-use bigtable_rs::google::bigtable::v2::row_filter;
+use bigtable_rs::google::bigtable::v2::row_filter::Chain;
+use bigtable_rs::google::bigtable::v2::row_filter::Filter;
 use bigtable_rs::google::bigtable::v2::{
     mutation, MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
@@ -9,7 +10,7 @@ use std::time::Duration;
 use warp::http::Response;
 use warp::http::StatusCode;
 use warp::reply::with_status;
-use warp::{Filter, Rejection, Reply};
+use warp::{Filter as WarpFilter, Rejection, Reply};
 
 const TABLE_NAME: &str = "table-1";
 
@@ -48,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         //.and(warp::any().map(move || bigtable_clone.clone()))
         .and_then(move |key: String| get_handler(key, bigtable_clone.clone()));
 
-    // View access logs by setting `RUST_LOG=todos`.
+    // View access logs by setting `RUST_LOG=http`.
     let routes = get.or(post).with(warp::log("http"));
     // Start up the server...
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
@@ -59,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn post_handler(
     key: String,
     value: Value,
-    mut bigtable: BigTable<'_>,
+    mut bigtable: BigTable,
 ) -> Result<Box<dyn Reply>, Rejection> {
     let request = MutateRowRequest {
         table_name: bigtable.get_full_table_name(&TABLE_NAME),
@@ -87,7 +88,7 @@ async fn post_handler(
     }
 }
 
-async fn get_handler(key: String, mut bigtable: BigTable<'_>) -> Result<Box<dyn Reply>, Rejection> {
+async fn get_handler(key: String, mut bigtable: BigTable) -> Result<Box<dyn Reply>, Rejection> {
     // read from table again
     // prepare a ReadRowsRequest
     let request = ReadRowsRequest {
@@ -98,7 +99,19 @@ async fn get_handler(key: String, mut bigtable: BigTable<'_>) -> Result<Box<dyn 
             row_ranges: vec![],
         }),
         filter: Some(RowFilter {
-            filter: Some(row_filter::Filter::CellsPerColumnLimitFilter(1)),
+            filter: Some(Filter::Chain(Chain {
+                filters: vec![
+                    RowFilter {
+                        filter: Some(Filter::FamilyNameRegexFilter("cf1".to_owned())),
+                    },
+                    RowFilter {
+                        filter: Some(Filter::ColumnQualifierRegexFilter("c1".as_bytes().to_vec())),
+                    },
+                    RowFilter {
+                        filter: Some(Filter::CellsPerColumnLimitFilter(1)),
+                    },
+                ],
+            })),
         }),
         ..ReadRowsRequest::default()
     };
