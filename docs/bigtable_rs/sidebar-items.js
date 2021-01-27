@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["bigtable","`bigtable_rs` provides a few convenient struct for calling Google Bigtable from Rust code."],["google",""]]});
