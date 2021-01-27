@@ -295,23 +295,26 @@ impl BigTableConnection {
             BigtableClient::new(self.channel.clone())
         };
         BigTable {
-            access_token: self.access_token.clone(),
+            access_token: &self.access_token,
             client,
-            table_prefix: self.table_prefix.clone(),
-            timeout: self.timeout,
+            table_prefix: self.table_prefix.as_ref(),
+            timeout: &self.timeout,
         }
     }
 }
 
-/// The core struct for Bigtable client, witch wraps a gPRC client defined by Bigtable proto
-pub struct BigTable {
-    access_token: Option<AccessToken>,
-    client: BigtableClient<Channel>,
-    table_prefix: String,
-    timeout: Option<Duration>,
+/// The core struct for Bigtable client, witch wraps a gPRC client defined by Bigtable proto.
+/// In order easy share this struct in multiple thread, we only store references here, besides the
+/// `BigtableClient` as it is a tonic Channel and clone on it is cheap.
+#[derive(Clone)]
+pub struct BigTable<'a> {
+    access_token: &'a Option<AccessToken>,
+    client: BigtableClient<Channel>, // clone is cheap Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
+    table_prefix: &'a str,
+    timeout: &'a Option<Duration>,
 }
 
-impl BigTable {
+impl<'a> BigTable<'a> {
     /// Wrapped `read_rows` method
     pub async fn read_rows(
         &mut self,
@@ -391,7 +394,7 @@ impl BigTable {
 
         while let Some(res) = rrr.message().await? {
             if let Some(timeout) = self.timeout {
-                if Instant::now().duration_since(started) > timeout {
+                if Instant::now().duration_since(started) > *timeout {
                     return Err(Error::TimeoutError(timeout.as_secs()));
                 }
             }
