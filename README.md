@@ -45,6 +45,7 @@ tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.8.2"
 ```
 
+Documentation is on [crate.io](https://docs.rs/bigtable_rs/0.1.3/bigtable_rs/)
 The following example showing how to do a key range scan
 
 ```rust

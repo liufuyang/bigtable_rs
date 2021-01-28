@@ -1,9 +1,12 @@
 //!
-//! A simple Google Bigtable client
+//! A simple Google Bigtable client.
 //!
 //! See [`bigtable`] package for more info.
 //!
+//! [[github repo]]
+//!
 //! [`bigtable`]: mod@crate::bigtable
+//! [github repo]: https://github.com/liufuyang/bigtable_rs
 mod access_token;
 pub mod bigtable;
 pub mod google;
