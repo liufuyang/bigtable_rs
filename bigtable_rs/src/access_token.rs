@@ -16,7 +16,6 @@ use std::{
 pub use goauth::scopes::Scope;
 
 fn load_credentials() -> Result<Credentials, String> {
-    // Use standard GOOGLE_APPLICATION_CREDENTIALS environment variable
     let credentials_file = std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
         .map_err(|_| "GOOGLE_APPLICATION_CREDENTIALS environment variable not found".to_string())?;
 
@@ -84,7 +83,6 @@ impl AccessToken {
                 return;
             }
 
-            // TODO changed by fuyang, check whether it works
             if let Err(_) = self.refresh_active.compare_exchange(
                 false,
                 true,

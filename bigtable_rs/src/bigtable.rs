@@ -204,6 +204,7 @@ impl BigTableConnection {
                     .map(move |_| {
                         Channel::from_shared(format!("http://{}", endpoint))
                             .expect("Invalid connection emulator uri")
+                            .http2_keep_alive_interval(Duration::from_secs(60))
                             .keep_alive_while_idle(true)
                     })
                     .map(|ep| {
@@ -259,7 +260,10 @@ impl BigTableConnection {
 
                 let endpoints: Vec<Endpoint> = endpoints?
                     .into_iter()
-                    .map(|ep| ep.keep_alive_while_idle(true))
+                    .map(|ep| {
+                        ep.http2_keep_alive_interval(Duration::from_secs(60))
+                            .keep_alive_while_idle(true)
+                    })
                     .map(|ep| {
                         if let Some(timeout) = timeout {
                             ep.timeout(timeout)

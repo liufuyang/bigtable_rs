@@ -13,7 +13,7 @@ Make sure Bigtable emulator is running:
 Start the service
 
 ```
-BIGTABLE_EMULATOR_HOST=localhost:8086;RUST_LOG=bigtable_rs,http=trace cargo run --bin http_server
+BIGTABLE_EMULATOR_HOST=localhost:8086 RUST_LOG=bigtable_rs,http=trace cargo run --bin http_server
 ```
 
 Then from another terminal, test out the service:
