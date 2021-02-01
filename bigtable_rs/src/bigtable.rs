@@ -189,6 +189,17 @@ impl BigTableConnection {
     ///
     /// The BIGTABLE_EMULATOR_HOST environment variable is also respected.
     ///
+    /// `channel_size` defines the number of connections (or channels) established to Bigtable
+    /// service, and the requests are load balanced onto all the channels. You must therefore
+    /// make sure all of these connections are open when a new request is to be sent.
+    /// Idle connections are automatically closed in "a few minutes". Therefore it is important to
+    /// make sure you have a high enough QPS to send at least one request through all the
+    /// connections (in every service host) every minute. If not, you should consider decreasing the
+    /// channel size. If you are not sure what value to pick and your load is low, just start with 1.
+    /// The recommended value could be 2 x the thread count in your tokio environment see info here
+    /// https://docs.rs/tokio/latest/tokio/attr.main.html, but it might be a very different case for
+    /// different applications.
+    ///
     pub async fn new(
         project_id: &str,
         instance_name: &str,

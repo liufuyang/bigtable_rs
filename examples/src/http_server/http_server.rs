@@ -20,7 +20,7 @@ struct Value {
     value: String,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
     let port = 3030;
