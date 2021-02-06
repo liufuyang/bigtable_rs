@@ -3,7 +3,12 @@
 A simple Rust library for working
 with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2)
 
-## Disclaimer - this is NOT ready for any production use yet
+![ci_badge](https://github.com/liufuyang/bigtable_rs/workflows/bigtable_rs%20CI/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/bigtable_rs)](https://crates.io/crates/bigtable_rs)
+[![Documentation](https://docs.rs/bigtable_rs/badge.svg)](https://docs.rs/bigtable_rs)
+[![Crates.io](https://img.shields.io/crates/l/bigtable_rs)](LICENSE)
+
+## Disclaimer - might not be ready for production use yet
 
 This library is not production ready but it works with simple examples. Any contribution or help is highly appreciated.
 
