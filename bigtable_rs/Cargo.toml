@@ -22,5 +22,9 @@ smpl_jwt = "0.6.0"
 log = "0.4.13"
 thiserror = "1.0.23"
 
+[dev-dependencies]
+env_logger = "0.8.2"
+tokio = { version = "1.0", features = ["rt-multi-thread"] }
+
 [build-dependencies]
 tonic-build = "0.4.0"
