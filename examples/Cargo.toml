@@ -21,6 +21,10 @@ path = "src/simple_write.rs"
 name = "http_server"
 path = "src/http_server/http_server.rs"
 
+[[bin]]
+name = "prefix"
+path = "src/prefix.rs"
+
 [dependencies]
 bigtable_rs = { path = "../bigtable_rs" }
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
