@@ -11,6 +11,7 @@ mod access_token;
 pub mod bigtable;
 pub mod google;
 mod root_ca_certificate;
+mod util;
 
 #[cfg(test)]
 mod tests {
