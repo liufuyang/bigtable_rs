@@ -89,12 +89,14 @@
 use crate::google::bigtable::v2::{
     bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, MutateRowRequest,
     MutateRowResponse, MutateRowsRequest, MutateRowsResponse, ReadRowsRequest, ReadRowsResponse,
-    SampleRowKeysRequest, SampleRowKeysResponse,
+    RowRange, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
 };
 
+use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
 use crate::{
     access_token::{AccessToken, Scope},
     root_ca_certificate,
+    util::get_end_key,
 };
 use log::{info, trace, warn};
 use std::sync::Arc;
@@ -343,6 +345,25 @@ impl BigTable {
         request: ReadRowsRequest,
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
         self.refresh_access_token().await;
+        let response = self.client.read_rows(request).await?.into_inner();
+        self.decode_read_rows_response(response).await
+    }
+
+    /// Provide `read_rows_with_prefix` method to allow using a prefix as key
+    pub async fn read_rows_with_prefix(
+        &mut self,
+        mut request: ReadRowsRequest,
+        prefix: Vec<u8>,
+    ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
+        self.refresh_access_token().await;
+        let end_key = get_end_key(prefix.as_ref()).map(|end_key| EndKey::EndKeyOpen(end_key));
+        request.rows = Some(RowSet {
+            row_keys: vec![], // use this field to put keys for reading specific rows
+            row_ranges: vec![RowRange {
+                start_key: Some(StartKey::StartKeyClosed(prefix)),
+                end_key,
+            }],
+        });
         let response = self.client.read_rows(request).await?.into_inner();
         self.decode_read_rows_response(response).await
     }
