@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest] # todo: support windows-latest after knowing how to solve openssl issues
         rust: [stable]
 
     steps:
@@ -14,8 +14,6 @@ jobs:
         with:
           rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@master
-      - name: Install pkg-config
-        run: sudo apt install pkg-config
       - name: Install rustfmt
         run: rustup component add rustfmt
       - name: Check fmt
