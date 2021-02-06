@@ -1,0 +1,22 @@
+name: bigtable_rs CI
+
+on: [push]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        rust: [stable]
+
+    steps:
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+      - uses: actions/checkout@master
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+      - name: Check fmt
+        run: cargo fmt -- --check
+      - name: Run tests
+        run: cargo test --verbose
