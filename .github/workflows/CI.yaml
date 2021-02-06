@@ -14,6 +14,8 @@ jobs:
         with:
           rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@master
+      - name: Install pkg-config
+        run: sudo apt install pkg-config
       - name: Install rustfmt
         run: rustup component add rustfmt
       - name: Check fmt
