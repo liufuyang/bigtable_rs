@@ -8,9 +8,7 @@ pub(crate) fn get_end_key(start_key: &[u8]) -> Option<Vec<u8>> {
     let mut carry = 1u8;
 
     for (i, key_part) in start_key.iter().enumerate().rev() {
-        if *key_part == 0xFFu8 && carry == 1 {
-            vector[i] = 0;
-        } else {
+        if *key_part != 0xFFu8 || carry == 0 {
             vector[i] = *key_part + carry;
             carry = 0;
         }
