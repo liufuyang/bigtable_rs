@@ -249,8 +249,8 @@ impl BigTableConnection {
                 } else {
                     Scope::BigTableData
                 })
-                .await
-                .map_err(Error::AccessTokenError)?;
+                    .await
+                    .map_err(Error::AccessTokenError)?;
 
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
@@ -304,20 +304,13 @@ impl BigTableConnection {
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
     /// the created new clients can be cheaply cloned and thus can be send to different threads
     pub fn client(&self) -> BigTable {
-        let client = if let Some(access_token) = &self.access_token.as_ref() {
-            let access_token = access_token.clone();
-            BigtableClient::with_interceptor(
-                self.channel.clone(),
-                BTInterceptor {
-                    access_token: Some(access_token),
-                },
-            )
-        } else {
-            BigtableClient::with_interceptor(
-                self.channel.clone(),
-                BTInterceptor { access_token: None },
-            )
-        };
+        let client = BigtableClient::with_interceptor(
+            self.channel.clone(),
+            BTInterceptor {
+                access_token: self.access_token.as_ref().clone(),
+            },
+        );
+
         BigTable {
             access_token: self.access_token.clone(),
             client,
