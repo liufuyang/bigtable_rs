@@ -13,9 +13,9 @@ readme = "../README.md"
 
 [dependencies]
 # tonic, prost, and prost-types are need for build generated rs files
-tonic = {version="0.4.0", features = ["tls", "transport"]}
-prost = "0.7.0"
-prost-types = "0.7.0"
+tonic = {version="0.5.2", features = ["tls", "transport"]}
+prost = "0.8.0"
+prost-types = "0.8.0"
 # end of above part
 goauth = "0.9.0"
 smpl_jwt = "0.6.0"
@@ -27,4 +27,4 @@ env_logger = "0.8.2"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 
 [build-dependencies]
-tonic-build = "0.4.0"
+tonic-build = "0.5.2"

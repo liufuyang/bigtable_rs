@@ -102,16 +102,19 @@ use log::{info, trace, warn};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use thiserror::Error;
+use tonic::service::interceptor::InterceptedService;
+use tonic::service::Interceptor;
 use tonic::transport::Endpoint;
 use tonic::{
     codec::Streaming, metadata::MetadataValue, transport::Channel, transport::ClientTlsConfig,
-    Request, Response,
+    Response, Status,
 };
 
 /// An alias for Vec<u8> as row key
 type RowKey = Vec<u8>;
 /// A convenient Result type
 type Result<T> = std::result::Result<T, Error>;
+type BigtableClientIntercepted = BigtableClient<InterceptedService<Channel, BTInterceptor>>;
 
 /// A data structure for returning the read content of a cell in a row.
 pub struct RowCell {
@@ -303,20 +306,17 @@ impl BigTableConnection {
     pub fn client(&self) -> BigTable {
         let client = if let Some(access_token) = &self.access_token.as_ref() {
             let access_token = access_token.clone();
-            BigtableClient::with_interceptor(self.channel.clone(), move |mut req: Request<()>| {
-                match MetadataValue::from_str(&access_token.get()) {
-                    Ok(authorization_header) => {
-                        req.metadata_mut()
-                            .insert("authorization", authorization_header);
-                    }
-                    Err(err) => {
-                        warn!("Failed to set authorization header: {}", err);
-                    }
-                }
-                Ok(req)
-            })
+            BigtableClient::with_interceptor(
+                self.channel.clone(),
+                BTInterceptor {
+                    access_token: Some(access_token),
+                },
+            )
         } else {
-            BigtableClient::new(self.channel.clone())
+            BigtableClient::with_interceptor(
+                self.channel.clone(),
+                BTInterceptor { access_token: None },
+            )
         };
         BigTable {
             access_token: self.access_token.clone(),
@@ -333,7 +333,8 @@ impl BigTableConnection {
 #[derive(Clone)]
 pub struct BigTable {
     access_token: Arc<Option<AccessToken>>,
-    client: BigtableClient<Channel>, // clone is cheap with Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
+    client: BigtableClientIntercepted,
+    // clone is cheap with Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
     table_prefix: Arc<String>,
     timeout: Arc<Option<Duration>>,
 }
@@ -400,7 +401,7 @@ impl BigTable {
 
     /// Provide a convenient method to get the inner `BigtableClient` so user can use any methods
     /// defined from the Bigtable V2 gRPC API
-    pub fn get_client(&mut self) -> &mut BigtableClient<Channel> {
+    pub fn get_client(&mut self) -> &mut BigtableClientIntercepted {
         &mut self.client
     }
 
@@ -444,7 +445,7 @@ impl BigTable {
             for (i, mut chunk) in res.chunks.into_iter().enumerate() {
                 // The comments for `read_rows_response::CellChunk` provide essential details for
                 // understanding how the below decoding works...
-                trace!("chunk {}: {:?}", i, chunk);
+                trace!("chunk {}: {:?}", i, chunk.value);
 
                 // Starting a new row?
                 if !chunk.row_key.is_empty() {
@@ -507,5 +508,33 @@ impl BigTable {
             }
         }
         Ok(rows)
+    }
+}
+
+#[derive(Clone)]
+pub struct BTInterceptor {
+    access_token: Option<AccessToken>,
+}
+
+impl Interceptor for BTInterceptor {
+    fn call(
+        &mut self,
+        mut request: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Request<()>, Status> {
+        if let Some(token) = self.access_token.as_ref() {
+            match MetadataValue::from_str(&token.get()) {
+                Ok(authorization_header) => {
+                    request
+                        .metadata_mut()
+                        .insert("authorization", authorization_header);
+                }
+                Err(err) => {
+                    warn!("Failed to set authorization header: {}", err);
+                }
+            }
+            Ok(request)
+        } else {
+            Ok(request)
+        }
     }
 }

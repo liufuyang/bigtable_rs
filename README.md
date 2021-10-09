@@ -164,3 +164,12 @@ GOOGLE_APPLICATION_CREDENTIALS=./service_account_key.json cargo run --bin simple
 ```
 
 See `examples` folders for more examples.
+
+## To develop
+Clone this repo, then checkout the submodules if necesary
+```
+cd googleapis
+git submodule init
+git submodule update
+```
+Then checkout `bigtable_rs/src/build.rs` to update Google protos
