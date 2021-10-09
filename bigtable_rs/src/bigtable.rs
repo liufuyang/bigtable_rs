@@ -249,8 +249,8 @@ impl BigTableConnection {
                 } else {
                     Scope::BigTableData
                 })
-                    .await
-                    .map_err(Error::AccessTokenError)?;
+                .await
+                .map_err(Error::AccessTokenError)?;
 
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
