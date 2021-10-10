@@ -5,5 +5,17 @@ pub mod bigtable {
     pub mod v2;
 }
 
+#[path = "google"]
+pub mod cloud {
+    #[path = "./"]
+    pub mod conformace {
+        #[path = "./"]
+        pub mod bigtable {
+            #[path = "google.cloud.conformance.bigtable.v2.rs"]
+            pub mod v2;
+        }
+    }
+}
+
 #[path = "google/google.rpc.rs"]
 mod rpc;
