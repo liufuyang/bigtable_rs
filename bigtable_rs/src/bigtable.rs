@@ -426,6 +426,7 @@ impl BigTable {
         let mut cell_name = None;
         let mut cell_timestamp = 0;
         let mut cell_value = vec![];
+        let mut start_new_cell = false;
 
         let started = Instant::now();
 
@@ -445,25 +446,33 @@ impl BigTable {
                     row_key = Some(chunk.row_key);
                 }
 
-                // Starting a new cell? A new cell will have a qualifier and a family
-                if let Some(chunk_qualifier) = chunk.qualifier {
-                    // New cell begins. Check whether previous cell_name exist, if so then it means
-                    // the cell_value is not empty and previous cell is not closed up. So close up the previous cell.
-                    if let Some(cell_name) = cell_name {
+                // start a new cell with the existing cell_name or new cell_name (chunk.qualifier)
+                if (start_new_cell && cell_name.is_some()) || chunk.qualifier.is_some() {
+                    cell_value = Vec::with_capacity(chunk.value_size as usize);
+                    // when a new cell with the same qualifier starts, we need to reuse the old cell_name and cell_family_name
+                    cell_name = chunk.qualifier.or(cell_name);
+                    cell_family_name = chunk.family_name.or(cell_family_name);
+                    cell_timestamp = chunk.timestamp_micros;
+                    start_new_cell = false;
+                }
+
+                cell_value.append(&mut chunk.value);
+                // last chunk for the cell?
+                if chunk.value_size == 0 {
+                    // Close up the cell
+                    if cell_name.is_some() {
                         let row_cell = RowCell {
-                            family_name: cell_family_name.take().unwrap_or("".to_owned()),
-                            qualifier: cell_name,
+                            family_name: cell_family_name.clone().unwrap_or("".to_owned()),
+                            qualifier: cell_name.clone().unwrap(), // checked above
                             value: cell_value,
                             timestamp_micros: cell_timestamp,
                         };
+                        cell_value = vec![]; // borrow checker
                         row_data.push(row_cell);
-                        cell_value = vec![];
                     }
-                    cell_name = Some(chunk_qualifier);
-                    cell_family_name = chunk.family_name;
-                    cell_timestamp = chunk.timestamp_micros;
+                    // make sure we start a new cell in case the qualifier doesn't change
+                    start_new_cell = true;
                 }
-                cell_value.append(&mut chunk.value);
 
                 // End of a row?
                 match chunk.row_status {
@@ -472,20 +481,6 @@ impl BigTable {
                         // chunk close up those vectors.
                     }
                     Some(RowStatus::CommitRow(_)) => {
-                        // End of a row, closing up the cell, then close this row
-                        if let Some(cell_name) = cell_name.take() {
-                            let row_cell = RowCell {
-                                family_name: cell_family_name.take().unwrap_or("".to_owned()),
-                                qualifier: cell_name,
-                                value: cell_value,
-                                timestamp_micros: cell_timestamp,
-                            };
-                            row_data.push(row_cell);
-                            cell_value = vec![];
-                        } else {
-                            warn!("Row ended with cell_name=None. This should not happen.")
-                        }
-
                         if let Some(row_key) = row_key.take() {
                             rows.push((row_key, row_data));
                             row_data = vec![];
