@@ -7,6 +7,7 @@
 //!
 //! [`bigtable`]: mod@crate::bigtable
 //! [github repo]: https://github.com/liufuyang/bigtable_rs
+#![feature(proc_macro_is_available)]
 mod access_token;
 pub mod bigtable;
 pub mod google;
