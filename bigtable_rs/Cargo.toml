@@ -18,7 +18,7 @@ prost = "0.8.0"
 prost-types = "0.8.0"
 # end of above part
 goauth = "0.9.0"
-smpl_jwt = "0.6.0"
+smpl_jwt = "0.7.0"
 log = "0.4.13"
 thiserror = "1.0.23"
 
