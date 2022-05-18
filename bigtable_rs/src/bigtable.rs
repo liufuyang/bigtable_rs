@@ -105,10 +105,7 @@ use thiserror::Error;
 use tonic::service::interceptor::InterceptedService;
 use tonic::service::Interceptor;
 use tonic::transport::Endpoint;
-use tonic::{
-    codec::Streaming, metadata::MetadataValue, transport::Channel, transport::ClientTlsConfig,
-    Response, Status,
-};
+use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response, Status};
 
 /// An alias for Vec<u8> as row key
 type RowKey = Vec<u8>;
@@ -510,7 +507,7 @@ impl Interceptor for BTInterceptor {
         mut request: tonic::Request<()>,
     ) -> std::result::Result<tonic::Request<()>, Status> {
         if let Some(token) = self.access_token.as_ref() {
-            match MetadataValue::from_str(&token.get()) {
+            match token.get().as_str().parse() {
                 Ok(authorization_header) => {
                     request
                         .metadata_mut()
