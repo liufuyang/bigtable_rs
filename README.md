@@ -1,7 +1,7 @@
 # bigtable_rs
 
 A simple Rust library for working
-with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2)
+with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2).
 
 ![ci_badge](https://github.com/liufuyang/bigtable_rs/workflows/bigtable_rs%20CI/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/bigtable_rs)](https://crates.io/crates/bigtable_rs)
