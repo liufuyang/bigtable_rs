@@ -45,7 +45,7 @@ You can use the library as follow:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.1.5"
+bigtable_rs = "0.1.6"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.8.2"
 ```
