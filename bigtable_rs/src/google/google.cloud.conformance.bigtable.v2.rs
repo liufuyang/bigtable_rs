@@ -1,8 +1,12 @@
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TestFile {
     #[prost(message, repeated, tag="1")]
     pub read_rows_tests: ::prost::alloc::vec::Vec<ReadRowsTest>,
 }
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsTest {
     #[prost(string, tag="1")]
@@ -16,6 +20,8 @@ pub struct ReadRowsTest {
 pub mod read_rows_test {
     /// Expected results of reading the row.
     /// Only the last result can be an error.
+    #[derive(serde::Serialize,serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Result {
         #[prost(string, tag="1")]
