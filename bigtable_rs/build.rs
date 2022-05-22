@@ -12,8 +12,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // tonic_build::configure()
     //     .build_server(false)
     //     .out_dir("src/google")
+    //     .type_attribute(".", "#[serde_with::serde_as]")
     //     .type_attribute(".", "#[derive(serde::Serialize,serde::Deserialize)]")
     //     .type_attribute(".", "#[serde(rename_all = \"camelCase\")]")
+    //     .type_attribute(
+    //         ".google.cloud.conformance.bigtable.v2.ReadRowsTest.Result",
+    //         "#[serde(default)]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.row_key",
+    //         "#[serde_as(as = \"serde_with::base64::Base64\")]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.qualifier",
+    //         "#[serde_as(as = \"Option<serde_with::base64::Base64>\")]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.value",
+    //         "#[serde_as(as = \"serde_with::base64::Base64\")]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.timestamp_micros",
+    //         "#[serde_as(as = \"serde_with::DisplayFromStr\")]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.labels",
+    //         "#[serde(default)]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.value_size",
+    //         "#[serde(default)]",
+    //     )
+    //     .field_attribute(
+    //         ".google.cloud.conformance.bigtable.v2.ReadRowsTest.Result.timestamp_micros",
+    //         "#[serde_as(as = \"serde_with::DisplayFromStr\")]",
+    //     )
     //     .extern_path(".google.protobuf.Any", "::prost_wkt_types::Any")
     //     .file_descriptor_set_path(&descriptor_file)
     //     .compile(
