@@ -123,6 +123,7 @@ pub struct RowCell {
     pub qualifier: Vec<u8>,
     pub value: Vec<u8>,
     pub timestamp_micros: i64,
+    pub labels: Vec<String>,
 }
 
 /// Error types the client may have

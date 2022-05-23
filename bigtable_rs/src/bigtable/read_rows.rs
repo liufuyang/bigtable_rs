@@ -43,6 +43,7 @@ pub fn decode_read_rows_response_to_vec(
     let mut cell_name = None;
     let mut cell_timestamp = 0;
     let mut cell_value = vec![];
+    let mut cell_labels = vec![];
 
     let mut start_new_cell = false;
 
@@ -63,6 +64,7 @@ pub fn decode_read_rows_response_to_vec(
             cell_name = chunk.qualifier.or(cell_name);
             cell_family_name = chunk.family_name.or(cell_family_name);
             cell_timestamp = chunk.timestamp_micros;
+            cell_labels = chunk.labels;
             start_new_cell = false;
         }
 
@@ -76,8 +78,10 @@ pub fn decode_read_rows_response_to_vec(
                     qualifier: cell_name.clone().unwrap(), // checked above
                     value: cell_value,
                     timestamp_micros: cell_timestamp,
+                    labels: cell_labels,
                 };
                 cell_value = vec![]; // borrow checker
+                cell_labels = vec![];
                 row_data.push(row_cell);
             }
             // make sure we start a new cell in case the qualifier doesn't change

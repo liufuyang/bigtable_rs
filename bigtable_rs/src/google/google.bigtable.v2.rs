@@ -391,8 +391,8 @@ pub mod row_filter {
         /// Hook for introspection into the RowFilter. Outputs all cells directly to
         /// the output of the read rather than to any parent filter. Consider the
         /// following example:
-        /// ```text
         ///
+        /// ```text
         ///     Chain(
         ///       FamilyRegex("A"),
         ///       Interleave(
@@ -434,10 +434,10 @@ pub mod row_filter {
         ///                         A,A,1,w,labels:\[foo\]
         ///                         A,B,2,x,labels:\[foo\]  // could be switched
         ///                         A,B,2,x               // could be switched
-        /// ```
         ///
         /// Despite being excluded by the qualifier filter, a copy of every cell
         /// that reaches the sink is present in the final result.
+        /// ```
         ///
         /// As with an \[Interleave][google.bigtable.v2.RowFilter.Interleave\],
         /// duplicate cells are possible, and appear in an unspecified mutual order.
@@ -738,6 +738,7 @@ pub mod read_rows_response {
         /// previous ReadRowsResponse message.
         #[prost(bytes = "vec", tag = "1")]
         #[serde_as(as = "serde_with::base64::Base64")]
+        #[serde(default)]
         pub row_key: ::prost::alloc::vec::Vec<u8>,
         /// The column family name for this chunk of data.  If this message
         /// is not present this CellChunk is a continuation of the same column
@@ -754,6 +755,7 @@ pub mod read_rows_response {
         /// for `qualifier.value` being non-empty.
         #[prost(message, optional, tag = "3")]
         #[serde_as(as = "Option<serde_with::base64::Base64>")]
+        #[serde(default)]
         pub qualifier: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
         /// The cell's stored timestamp, which also uniquely identifies it
         /// within its column.  Values are always expressed in
@@ -764,6 +766,7 @@ pub mod read_rows_response {
         /// 1000.  Timestamps are only set in the first CellChunk per cell
         /// (for cells split into multiple chunks).
         #[prost(int64, tag = "4")]
+        #[serde(default)]
         #[serde_as(as = "serde_with::DisplayFromStr")]
         pub timestamp_micros: i64,
         /// Labels applied to the cell by a
@@ -779,6 +782,7 @@ pub mod read_rows_response {
         /// CellChunk came in a previous ReadRowsResponse.
         #[prost(bytes = "vec", tag = "6")]
         #[serde_as(as = "serde_with::base64::Base64")]
+        #[serde(default)]
         pub value: ::prost::alloc::vec::Vec<u8>,
         /// If this CellChunk is part of a chunked cell value and this is
         /// not the final chunk of that cell, value_size will be set to the

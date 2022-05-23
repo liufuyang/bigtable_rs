@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     .type_attribute(".", "#[derive(serde::Serialize,serde::Deserialize)]")
     //     .type_attribute(".", "#[serde(rename_all = \"camelCase\")]")
     //     .type_attribute(
-    //         ".google.cloud.conformance.bigtable.v2.ReadRowsTest.Result",
+    //         ".google.cloud.conformance.bigtable.v2.ReadRowsTest",
     //         "#[serde(default)]",
     //     )
     //     .field_attribute(
@@ -24,8 +24,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         "#[serde_as(as = \"serde_with::base64::Base64\")]",
     //     )
     //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.row_key",
+    //         "#[serde(default)]",
+    //     )
+    //     .field_attribute(
     //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.qualifier",
     //         "#[serde_as(as = \"Option<serde_with::base64::Base64>\")]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.qualifier",
+    //         "#[serde(default)]",
     //     )
     //     .field_attribute(
     //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.value",
@@ -33,11 +41,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     )
     //     .field_attribute(
     //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.timestamp_micros",
-    //         "#[serde_as(as = \"serde_with::DisplayFromStr\")]",
+    //         "#[serde(default)]",
     //     )
     //     .field_attribute(
     //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.labels",
     //         "#[serde(default)]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.value",
+    //         "#[serde(default)]",
+    //     )
+    //     .field_attribute(
+    //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.timestamp_micros",
+    //         "#[serde_as(as = \"serde_with::DisplayFromStr\")]",
     //     )
     //     .field_attribute(
     //         ".google.bigtable.v2.ReadRowsResponse.CellChunk.value_size",

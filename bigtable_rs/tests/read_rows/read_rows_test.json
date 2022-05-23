@@ -878,9 +878,7 @@
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
           "rowStatus": {
-            "rowStatus": {
-              "commitRow": true
-            }
+            "commitRow": true
           }
         }
       ],
@@ -910,9 +908,7 @@
           "qualifier": "Qw==",
           "value": "dmFsdWUtVkFM",
           "rowStatus": {
-            "rowStatus": {
-              "commitRow": true
-            }
+            "commitRow": true
           }
         },
         {
