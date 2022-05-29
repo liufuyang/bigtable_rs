@@ -46,6 +46,13 @@ pub fn decode_read_rows_response_to_vec(
     let mut cell_labels = vec![];
 
     let mut start_new_cell = false;
+    let mut committed_row_cell_count = 0usize;
+
+    // TODO: Moving tests from copy.json to temp.json and update the logic below to let tests all pass in the end...
+
+    if chunks.is_empty() {
+        return rows;
+    }
 
     for (i, mut chunk) in chunks.into_iter().enumerate() {
         // The comments for `read_rows_response::CellChunk` provide essential details for
@@ -57,12 +64,24 @@ pub fn decode_read_rows_response_to_vec(
             row_key = Some(chunk.row_key);
         }
 
+        // when starting a new cell with new family name, then a qualifier must exist
+        if chunk.family_name.is_some()
+            && !chunk.family_name.eq(&cell_family_name)
+            && chunk.qualifier.is_none()
+        {
+            rows.truncate(committed_row_cell_count);
+            rows.push(Err(Error::ChunkError(
+                "new col family but no specified qualifier".to_owned(),
+            )));
+            return rows;
+        }
+
         // start a new cell with the existing cell_name or new cell_name (chunk.qualifier)
         if (start_new_cell && cell_name.is_some()) || chunk.qualifier.is_some() {
             cell_value = Vec::with_capacity(chunk.value_size as usize);
             // when a new cell with the same qualifier starts, we need to reuse the old cell_name and cell_family_name
-            cell_name = chunk.qualifier.or(cell_name);
             cell_family_name = chunk.family_name.or(cell_family_name);
+            cell_name = chunk.qualifier.or(cell_name);
             cell_timestamp = chunk.timestamp_micros;
             cell_labels = chunk.labels;
             start_new_cell = false;
@@ -94,10 +113,13 @@ pub fn decode_read_rows_response_to_vec(
                 // more for this row, don't push to row_data or rows vector, let the next
                 // chunk close up those vectors.
             }
-            Some(RowStatus::CommitRow(_)) => {
-                if let Some(row_key) = row_key.take() {
+            Some(RowStatus::CommitRow(flag)) => {
+                if let Some(row_key) = row_key.clone() {
                     rows.push(Ok((row_key, row_data)));
                     row_data = vec![];
+                }
+                if flag {
+                    committed_row_cell_count = rows.len();
                 }
             }
             Some(RowStatus::ResetRow(_)) => {
@@ -108,5 +130,10 @@ pub fn decode_read_rows_response_to_vec(
             }
         }
     }
+
+    if committed_row_cell_count == 0 {
+        return vec![Err(Error::ChunkError("No rows committed".to_owned()))];
+    }
+
     return rows;
 }

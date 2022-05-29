@@ -40,6 +40,44 @@
           "value": "value-VAL"
         }
       ]
+    },
+    {
+      "description": "two unsplit cells",
+      "chunks": [
+        {
+          "rowKey": "Uks=",
+          "familyName": "A",
+          "qualifier": "Qw==",
+          "timestampMicros": "99",
+          "value": "dmFsdWUtVkFMXzE=",
+          "rowStatus": {
+            "commitRow": false
+          }
+        },
+        {
+          "timestampMicros": "98",
+          "value": "dmFsdWUtVkFMXzI=",
+          "rowStatus": {
+            "commitRow": true
+          }
+        }
+      ],
+      "results": [
+        {
+          "rowKey": "RK",
+          "familyName": "A",
+          "qualifier": "C",
+          "timestampMicros": "99",
+          "value": "value-VAL_1"
+        },
+        {
+          "rowKey": "RK",
+          "familyName": "A",
+          "qualifier": "C",
+          "timestampMicros": "98",
+          "value": "value-VAL_2"
+        }
+      ]
     }
   ]
 }

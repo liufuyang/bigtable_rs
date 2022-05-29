@@ -118,6 +118,7 @@ type Result<T> = std::result::Result<T, Error>;
 type BigtableClientIntercepted = BigtableClient<InterceptedService<Channel, BTInterceptor>>;
 
 /// A data structure for returning the read content of a cell in a row.
+#[derive(Debug)]
 pub struct RowCell {
     pub family_name: String,
     pub qualifier: Vec<u8>,
@@ -140,6 +141,9 @@ pub enum Error {
 
     #[error("Transport error: {0}")]
     TransportError(tonic::transport::Error),
+
+    #[error("Chunk error")]
+    ChunkError(String),
 
     #[error("Row not found")]
     RowNotFound,
