@@ -15,7 +15,7 @@
 //! async fn main() -> Result<(), Box<dyn Error>> {
 //!     env_logger::init();
 //!
-//!     let project_id = "project-id";
+//!     let project_id = "project-1";
 //!     let instance_name = "instance-1";
 //!     let table_name = "table-1";
 //!     let channel_size = 4;
@@ -233,8 +233,8 @@ impl BigTableConnection {
                     access_token: Arc::new(None),
                     channel: Channel::balance_list(endpoints.into_iter()),
                     table_prefix: Arc::new(format!(
-                        "projects/emulator/instances/{}/tables/",
-                        instance_name
+                        "projects/{}/instances/{}/tables/",
+                        project_id, instance_name
                     )),
                     timeout: Arc::new(timeout),
                 })

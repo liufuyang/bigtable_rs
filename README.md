@@ -150,7 +150,7 @@ To start develop or test the example above, start a test bigtable instance local
 Then run the example
 
 ```
-BIGTABLE_EMULATOR_HOST=localhost:8086;RUST_LOG=bigtable_rs=trace cargo run --bin simple_read
+BIGTABLE_EMULATOR_HOST=localhost:8086 RUST_LOG=bigtable_rs=trace cargo run --bin simple_read
 ```
 
 If you see error `Error: AccessTokenError("GOOGLE_APPLICATION_CREDENTIALS environment variable not found")`
