@@ -162,6 +162,7 @@ pub fn decode_read_rows_response_to_vec(
                 // `row_key`, as it will be re-read from the beginning.
                 row_key = None;
                 row_data = vec![];
+                start_new_row = false;
             }
         }
     }

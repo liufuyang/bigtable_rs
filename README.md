@@ -173,3 +173,8 @@ git submodule init
 git submodule update
 ```
 Then checkout `bigtable_rs/src/build.rs` to update Google protos
+
+Running tests:
+```
+cargo test -- --nocapture
+```
