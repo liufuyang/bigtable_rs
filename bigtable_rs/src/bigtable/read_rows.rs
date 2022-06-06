@@ -3,6 +3,7 @@ use crate::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
 use crate::google::bigtable::v2::read_rows_response::CellChunk;
 use crate::google::bigtable::v2::ReadRowsResponse;
 use log::trace;
+use std::collections::HashSet;
 use std::time::{Duration, Instant};
 use tonic::Streaming;
 
@@ -49,6 +50,8 @@ pub fn decode_read_rows_response_to_vec(
     let mut committed_row_cell_count = 0usize;
     let mut start_new_row = false; // Marker for starting a new row. A commit will set this as false
 
+    let mut key_set: HashSet<Vec<u8>> = HashSet::new();
+
     // TODO: Moving tests from copy.json to temp.json and update the logic below to let tests all pass in the end...
 
     if chunks.is_empty() {
@@ -74,6 +77,15 @@ pub fn decode_read_rows_response_to_vec(
                 start_new_row = true;
             }
             row_key = Some(chunk.row_key);
+        } else {
+            // row_key is empty
+            if !start_new_row {
+                rows.truncate(committed_row_cell_count);
+                rows.push(Err(Error::ChunkError(
+                    "Invalid - new row missing row key".to_owned(),
+                )));
+                return rows;
+            }
         }
 
         // when starting a new cell with new family name, then a qualifier must exist
@@ -131,6 +143,16 @@ pub fn decode_read_rows_response_to_vec(
                     row_data = vec![];
                 }
                 if flag {
+                    if let Some(row_key) = row_key.clone() {
+                        let no_duplicated_key = key_set.insert(row_key);
+                        if !no_duplicated_key {
+                            rows.truncate(committed_row_cell_count);
+                            rows.push(Err(Error::ChunkError(
+                                "Invalid - duplicate row key".to_owned(),
+                            )));
+                            return rows;
+                        }
+                    }
                     committed_row_cell_count = rows.len();
                     start_new_row = false;
                 }
