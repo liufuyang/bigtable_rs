@@ -47,6 +47,7 @@ pub fn decode_read_rows_response_to_vec(
 
     let mut start_new_cell = false;
     let mut committed_row_cell_count = 0usize;
+    let mut start_new_row = false; // Marker for starting a new row. A commit will set this as false
 
     // TODO: Moving tests from copy.json to temp.json and update the logic below to let tests all pass in the end...
 
@@ -61,6 +62,17 @@ pub fn decode_read_rows_response_to_vec(
 
         // Starting a new row?
         if !chunk.row_key.is_empty() {
+            if row_key.is_none() || row_key.take().unwrap() != chunk.row_key {
+                // a new key comes, start_new_row should be false at this time
+                if start_new_row {
+                    rows.truncate(committed_row_cell_count);
+                    rows.push(Err(Error::ChunkError(
+                        "Invalid - no commit before key changes".to_owned(),
+                    )));
+                    return rows;
+                }
+                start_new_row = true;
+            }
             row_key = Some(chunk.row_key);
         }
 
@@ -120,6 +132,7 @@ pub fn decode_read_rows_response_to_vec(
                 }
                 if flag {
                     committed_row_cell_count = rows.len();
+                    start_new_row = false;
                 }
             }
             Some(RowStatus::ResetRow(_)) => {
@@ -133,6 +146,14 @@ pub fn decode_read_rows_response_to_vec(
 
     if committed_row_cell_count == 0 {
         return vec![Err(Error::ChunkError("No rows committed".to_owned()))];
+    }
+
+    if start_new_row {
+        rows.truncate(committed_row_cell_count);
+        rows.push(Err(Error::ChunkError(
+            "Invalid - last row missing commit".to_owned(),
+        )));
+        return rows;
     }
 
     return rows;

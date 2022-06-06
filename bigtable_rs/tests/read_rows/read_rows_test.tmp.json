@@ -719,6 +719,73 @@
           "error": true
         }
       ]
+    },
+    {
+      "description": "invalid - no commit after first row",
+      "chunks": [
+        {
+          "rowKey": "UktfMQ==",
+          "familyName": "A",
+          "qualifier": "Qw==",
+          "timestampMicros": "100",
+          "value": "dmFsdWUtVkFM",
+          "rowStatus": {
+            "commitRow": false
+          }
+        },
+        {
+          "rowKey": "UktfMg==",
+          "familyName": "A",
+          "qualifier": "Qw==",
+          "timestampMicros": "100",
+          "value": "dmFsdWUtVkFM",
+          "rowStatus": {
+            "commitRow": true
+          }
+        }
+      ],
+      "results": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "description": "invalid - last row missing commit",
+      "chunks": [
+        {
+          "rowKey": "UktfMQ==",
+          "familyName": "A",
+          "qualifier": "Qw==",
+          "timestampMicros": "100",
+          "value": "dmFsdWUtVkFM",
+          "rowStatus": {
+            "commitRow": true
+          }
+        },
+        {
+          "rowKey": "UktfMg==",
+          "familyName": "A",
+          "qualifier": "Qw==",
+          "timestampMicros": "100",
+          "value": "dmFsdWUtVkFM",
+          "rowStatus": {
+            "commitRow": false
+          }
+        }
+      ],
+      "results": [
+        {
+          "rowKey": "RK_1",
+          "familyName": "A",
+          "qualifier": "C",
+          "timestampMicros": "100",
+          "value": "value-VAL"
+        },
+        {
+          "error": true
+        }
+      ]
     }
   ]
 }
