@@ -44,6 +44,11 @@ pub fn decode_read_rows_response_to_vec(
     let mut cell_name = None;
     let mut cell_timestamp = 0;
     let mut cell_value = vec![];
+    // If this CellChunk is part of a chunked cell value and this is
+    // not the final chunk of that cell, value_size will be set to the
+    // total length of the cell value.  The client can use this size
+    // to pre-allocate memory to hold the full cell value.
+    let mut cell_value_size: usize;
     let mut cell_labels = vec![];
 
     let mut start_new_cell = false;
@@ -51,8 +56,7 @@ pub fn decode_read_rows_response_to_vec(
     let mut start_new_row = false; // Marker for starting a new row. A commit will set this as false
 
     let mut key_set: HashSet<Vec<u8>> = HashSet::new();
-
-    // TODO: Moving tests from copy.json to temp.json and update the logic below to let tests all pass in the end...
+    let mut chunk_value_is_empty: bool;
 
     if chunks.is_empty() {
         return rows;
@@ -102,7 +106,12 @@ pub fn decode_read_rows_response_to_vec(
 
         // start a new cell with the existing cell_name or new cell_name (chunk.qualifier)
         if (start_new_cell && cell_name.is_some()) || chunk.qualifier.is_some() {
-            cell_value = Vec::with_capacity(chunk.value_size as usize);
+            if chunk.value_size == 0 {
+                cell_value_size = chunk.value.len();
+            } else {
+                cell_value_size = chunk.value_size as usize;
+            }
+            cell_value = Vec::with_capacity(cell_value_size);
             // when a new cell with the same qualifier starts, we need to reuse the old cell_name and cell_family_name
             cell_family_name = chunk.family_name.or(cell_family_name);
             cell_name = chunk.qualifier.or(cell_name);
@@ -111,7 +120,9 @@ pub fn decode_read_rows_response_to_vec(
             start_new_cell = false;
         }
 
+        chunk_value_is_empty = chunk.value.is_empty();
         cell_value.append(&mut chunk.value);
+
         // last chunk for the cell?
         if chunk.value_size == 0 {
             // Close up the cell
@@ -153,6 +164,15 @@ pub fn decode_read_rows_response_to_vec(
                             return rows;
                         }
                     }
+                    if chunk.value_size != 0 {
+                        // meaning chunk is not ended yet
+                        rows.truncate(committed_row_cell_count);
+                        rows.push(Err(Error::ChunkError(
+                            "Invalid - commit with chunk not ended".to_owned(),
+                        )));
+                        return rows;
+                    }
+
                     committed_row_cell_count = rows.len();
                     start_new_row = false;
                 }
@@ -163,11 +183,20 @@ pub fn decode_read_rows_response_to_vec(
                 row_key = None;
                 row_data = vec![];
                 start_new_row = false;
+                rows.truncate(committed_row_cell_count);
+
+                if !chunk_value_is_empty {
+                    rows.truncate(committed_row_cell_count);
+                    rows.push(Err(Error::ChunkError(
+                        "Invalid - reset with chunk".to_owned(),
+                    )));
+                    return rows;
+                }
             }
         }
     }
 
-    if committed_row_cell_count == 0 {
+    if start_new_row && committed_row_cell_count == 0 {
         return vec![Err(Error::ChunkError("No rows committed".to_owned()))];
     }
 

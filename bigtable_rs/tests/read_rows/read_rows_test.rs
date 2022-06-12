@@ -31,8 +31,8 @@ fn tmp_test_1() {
 
 #[test]
 fn read_rows_test_from_json_can_all_pass() {
-    let file = fs::File::open("tests/read_rows/read_rows_test.tmp.json")
-        .expect("file should open read only");
+    let file =
+        fs::File::open("tests/read_rows/read_rows_test.json").expect("file should open read only");
 
     let jd = &mut serde_json::Deserializer::from_reader(file);
     let result: Result<TestFile, _> = serde_path_to_error::deserialize(jd);
@@ -50,7 +50,7 @@ fn read_rows_test_from_json_can_all_pass() {
         println!("{} Testing: {}", test_id, rrt.description);
 
         let actual_result_has_error = decode_read_rows_results.iter().any(|ar| {
-            println!("{:?}", ar); // TODO - remove print
+            println!("{:?}", ar);
             ar.is_err()
         });
         let expect_result_has_error = expect_read_row_test_result_has_error(&rrt);
