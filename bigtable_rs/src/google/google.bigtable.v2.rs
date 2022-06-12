@@ -1,5 +1,8 @@
 /// Specifies the complete (requested) contents of a single row of a table.
 /// Rows which exceed 256MiB in size cannot be read in full.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Row {
     /// The unique key which identifies this row within its table. This is the same
@@ -14,6 +17,9 @@ pub struct Row {
 }
 /// Specifies (some of) the contents of a single row/column family intersection
 /// of a table.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Family {
     /// The unique key which identifies this family within its row. This is the
@@ -30,6 +36,9 @@ pub struct Family {
 }
 /// Specifies (some of) the contents of a single row/column intersection of a
 /// table.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Column {
     /// The unique key which identifies this column within its family. This is the
@@ -44,6 +53,9 @@ pub struct Column {
     pub cells: ::prost::alloc::vec::Vec<Cell>,
 }
 /// Specifies (some of) the contents of a single row/column/timestamp of a table.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Cell {
     /// The cell's stored timestamp, which also uniquely identifies it within
@@ -64,6 +76,9 @@ pub struct Cell {
     pub labels: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Specifies a contiguous range of rows.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowRange {
     /// The row key at which to start the range.
@@ -79,6 +94,9 @@ pub struct RowRange {
 pub mod row_range {
     /// The row key at which to start the range.
     /// If neither field is set, interpreted as the empty string, inclusive.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum StartKey {
         /// Used when giving an inclusive lower bound for the range.
@@ -90,6 +108,9 @@ pub mod row_range {
     }
     /// The row key at which to end the range.
     /// If neither field is set, interpreted as the infinite row key, exclusive.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum EndKey {
         /// Used when giving an exclusive upper bound for the range.
@@ -101,6 +122,9 @@ pub mod row_range {
     }
 }
 /// Specifies a non-contiguous set of rows.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowSet {
     /// Single rows included in the set.
@@ -114,6 +138,9 @@ pub struct RowSet {
 /// The range spans from &lt;column_family&gt;:&lt;start_qualifier&gt; to
 /// &lt;column_family&gt;:&lt;end_qualifier&gt;, where both bounds can be either
 /// inclusive or exclusive.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ColumnRange {
     /// The name of the column family within which this range falls.
@@ -132,6 +159,9 @@ pub struct ColumnRange {
 pub mod column_range {
     /// The column qualifier at which to start the range (within `column_family`).
     /// If neither field is set, interpreted as the empty string, inclusive.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum StartQualifier {
         /// Used when giving an inclusive lower bound for the range.
@@ -143,6 +173,9 @@ pub mod column_range {
     }
     /// The column qualifier at which to end the range (within `column_family`).
     /// If neither field is set, interpreted as the infinite string, exclusive.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum EndQualifier {
         /// Used when giving an inclusive upper bound for the range.
@@ -154,6 +187,9 @@ pub mod column_range {
     }
 }
 /// Specified a contiguous range of microsecond timestamps.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TimestampRange {
     /// Inclusive lower bound. If left empty, interpreted as 0.
@@ -164,6 +200,9 @@ pub struct TimestampRange {
     pub end_timestamp_micros: i64,
 }
 /// Specifies a contiguous range of raw byte values.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ValueRange {
     /// The value at which to start the range.
@@ -179,6 +218,9 @@ pub struct ValueRange {
 pub mod value_range {
     /// The value at which to start the range.
     /// If neither field is set, interpreted as the empty string, inclusive.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum StartValue {
         /// Used when giving an inclusive lower bound for the range.
@@ -190,6 +232,9 @@ pub mod value_range {
     }
     /// The value at which to end the range.
     /// If neither field is set, interpreted as the infinite string, exclusive.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum EndValue {
         /// Used when giving an inclusive upper bound for the range.
@@ -233,6 +278,9 @@ pub mod value_range {
 /// The total serialized size of a RowFilter message must not
 /// exceed 4096 bytes, and RowFilters may not be nested within each other
 /// (in Chains or Interleaves) to a depth of more than 20.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowFilter {
     /// Which of the possible RowFilter types to apply. If none are set, this
@@ -246,6 +294,9 @@ pub struct RowFilter {
 /// Nested message and enum types in `RowFilter`.
 pub mod row_filter {
     /// A RowFilter which sends rows through several RowFilters in sequence.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Chain {
         /// The elements of "filters" are chained together to process the input row:
@@ -256,6 +307,9 @@ pub mod row_filter {
     }
     /// A RowFilter which sends each row to each of several component
     /// RowFilters and interleaves the results.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Interleave {
         /// The elements of "filters" all process a copy of the input row, and the
@@ -295,6 +349,9 @@ pub mod row_filter {
     /// true and false filters, which may lead to inconsistent or unexpected
     /// results. Additionally, Condition filters have poor performance, especially
     /// when filters are set for the false condition.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Condition {
         /// If `predicate_filter` outputs any cells, then `true_filter` will be
@@ -313,6 +370,9 @@ pub mod row_filter {
     }
     /// Which of the possible RowFilter types to apply. If none are set, this
     /// RowFilter returns all cells in the input row.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Filter {
         /// Applies several RowFilters to the data in sequence, progressively
@@ -374,10 +434,10 @@ pub mod row_filter {
         ///                         A,A,1,w,labels:\[foo\]
         ///                         A,B,2,x,labels:\[foo\]  // could be switched
         ///                         A,B,2,x               // could be switched
-        /// ```
         ///
         /// Despite being excluded by the qualifier filter, a copy of every cell
         /// that reaches the sink is present in the final result.
+        /// ```
         ///
         /// As with an \[Interleave][google.bigtable.v2.RowFilter.Interleave\],
         /// duplicate cells are possible, and appear in an unspecified mutual order.
@@ -482,6 +542,9 @@ pub mod row_filter {
     }
 }
 /// Specifies a particular change to be made to the contents of a row.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Mutation {
     /// Which of the possible Mutation types to apply.
@@ -491,6 +554,9 @@ pub struct Mutation {
 /// Nested message and enum types in `Mutation`.
 pub mod mutation {
     /// A Mutation which sets the value of the specified cell.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct SetCell {
         /// The name of the family into which new data should be written.
@@ -514,6 +580,9 @@ pub mod mutation {
     }
     /// A Mutation which deletes cells from the specified column, optionally
     /// restricting the deletions to a given timestamp range.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct DeleteFromColumn {
         /// The name of the family from which cells should be deleted.
@@ -529,6 +598,9 @@ pub mod mutation {
         pub time_range: ::core::option::Option<super::TimestampRange>,
     }
     /// A Mutation which deletes all cells from the specified column family.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct DeleteFromFamily {
         /// The name of the family from which cells should be deleted.
@@ -537,9 +609,15 @@ pub mod mutation {
         pub family_name: ::prost::alloc::string::String,
     }
     /// A Mutation which deletes all cells from the containing row.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct DeleteFromRow {}
     /// Which of the possible Mutation types to apply.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Mutation {
         /// Set a cell's value.
@@ -558,6 +636,9 @@ pub mod mutation {
 }
 /// Specifies an atomic read/modify/write operation on the latest value of the
 /// specified column.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadModifyWriteRule {
     /// The name of the family to which the read/modify/write should be applied.
@@ -578,6 +659,9 @@ pub struct ReadModifyWriteRule {
 pub mod read_modify_write_rule {
     /// The rule used to determine the column's new latest value from its current
     /// latest value.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Rule {
         /// Rule specifying that `append_value` be appended to the existing value.
@@ -594,6 +678,9 @@ pub mod read_modify_write_rule {
     }
 }
 /// Request message for Bigtable.ReadRows.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsRequest {
     /// Required. The unique name of the table from which to read.
@@ -618,6 +705,9 @@ pub struct ReadRowsRequest {
     pub rows_limit: i64,
 }
 /// Response message for Bigtable.ReadRows.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsResponse {
     /// A collection of a row's contents as part of the read request.
@@ -637,6 +727,9 @@ pub struct ReadRowsResponse {
 pub mod read_rows_response {
     /// Specifies a piece of a row's contents returned as part of the read
     /// response stream.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct CellChunk {
         /// The row key for this chunk of data.  If the row key is empty,
@@ -644,6 +737,8 @@ pub mod read_rows_response {
         /// CellChunk in the response stream, even if that CellChunk was in a
         /// previous ReadRowsResponse message.
         #[prost(bytes = "vec", tag = "1")]
+        #[serde_as(as = "serde_with::base64::Base64")]
+        #[serde(default)]
         pub row_key: ::prost::alloc::vec::Vec<u8>,
         /// The column family name for this chunk of data.  If this message
         /// is not present this CellChunk is a continuation of the same column
@@ -659,6 +754,8 @@ pub mod read_rows_response {
         /// clients must check for the presence of this message, not just
         /// for `qualifier.value` being non-empty.
         #[prost(message, optional, tag = "3")]
+        #[serde_as(as = "Option<serde_with::base64::Base64>")]
+        #[serde(default)]
         pub qualifier: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
         /// The cell's stored timestamp, which also uniquely identifies it
         /// within its column.  Values are always expressed in
@@ -669,11 +766,14 @@ pub mod read_rows_response {
         /// 1000.  Timestamps are only set in the first CellChunk per cell
         /// (for cells split into multiple chunks).
         #[prost(int64, tag = "4")]
+        #[serde(default)]
+        #[serde_as(as = "serde_with::DisplayFromStr")]
         pub timestamp_micros: i64,
         /// Labels applied to the cell by a
         /// \[RowFilter][google.bigtable.v2.RowFilter\].  Labels are only set
         /// on the first CellChunk per cell.
         #[prost(string, repeated, tag = "5")]
+        #[serde(default)]
         pub labels: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
         /// The value stored in the cell.  Cell values can be split across
         /// multiple CellChunks.  In that case only the value field will be
@@ -681,12 +781,15 @@ pub mod read_rows_response {
         /// will only be present in the first CellChunk, even if the first
         /// CellChunk came in a previous ReadRowsResponse.
         #[prost(bytes = "vec", tag = "6")]
+        #[serde_as(as = "serde_with::base64::Base64")]
+        #[serde(default)]
         pub value: ::prost::alloc::vec::Vec<u8>,
         /// If this CellChunk is part of a chunked cell value and this is
         /// not the final chunk of that cell, value_size will be set to the
         /// total length of the cell value.  The client can use this size
         /// to pre-allocate memory to hold the full cell value.
         #[prost(int32, tag = "7")]
+        #[serde(default)]
         pub value_size: i32,
         /// Signals to the client concerning previous CellChunks received.
         #[prost(oneof = "cell_chunk::RowStatus", tags = "8, 9")]
@@ -695,6 +798,9 @@ pub mod read_rows_response {
     /// Nested message and enum types in `CellChunk`.
     pub mod cell_chunk {
         /// Signals to the client concerning previous CellChunks received.
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, ::prost::Oneof)]
         pub enum RowStatus {
             /// Indicates that the client should drop all previous chunks for
@@ -709,6 +815,9 @@ pub mod read_rows_response {
     }
 }
 /// Request message for Bigtable.SampleRowKeys.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SampleRowKeysRequest {
     /// Required. The unique name of the table from which to sample row keys.
@@ -722,6 +831,9 @@ pub struct SampleRowKeysRequest {
     pub app_profile_id: ::prost::alloc::string::String,
 }
 /// Response message for Bigtable.SampleRowKeys.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SampleRowKeysResponse {
     /// Sorted streamed sequence of sample row keys in the table. The table might
@@ -741,6 +853,9 @@ pub struct SampleRowKeysResponse {
     pub offset_bytes: i64,
 }
 /// Request message for Bigtable.MutateRow.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowRequest {
     /// Required. The unique name of the table to which the mutation should be applied.
@@ -762,9 +877,15 @@ pub struct MutateRowRequest {
     pub mutations: ::prost::alloc::vec::Vec<Mutation>,
 }
 /// Response message for Bigtable.MutateRow.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowResponse {}
 /// Request message for BigtableService.MutateRows.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowsRequest {
     /// Required. The unique name of the table to which the mutations should be applied.
@@ -785,6 +906,9 @@ pub struct MutateRowsRequest {
 /// Nested message and enum types in `MutateRowsRequest`.
 pub mod mutate_rows_request {
     /// A mutation for a given row.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Entry {
         /// The key of the row to which the `mutations` should be applied.
@@ -799,6 +923,9 @@ pub mod mutate_rows_request {
     }
 }
 /// Response message for BigtableService.MutateRows.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowsResponse {
     /// One or more results for Entries from the batch request.
@@ -808,6 +935,9 @@ pub struct MutateRowsResponse {
 /// Nested message and enum types in `MutateRowsResponse`.
 pub mod mutate_rows_response {
     /// The result of applying a passed mutation in the original request.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Entry {
         /// The index into the original request's `entries` list of the Entry
@@ -823,6 +953,9 @@ pub mod mutate_rows_response {
     }
 }
 /// Request message for Bigtable.CheckAndMutateRow.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CheckAndMutateRowRequest {
     /// Required. The unique name of the table to which the conditional mutation should be
@@ -860,6 +993,9 @@ pub struct CheckAndMutateRowRequest {
     pub false_mutations: ::prost::alloc::vec::Vec<Mutation>,
 }
 /// Response message for Bigtable.CheckAndMutateRow.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CheckAndMutateRowResponse {
     /// Whether or not the request's `predicate_filter` yielded any results for
@@ -868,6 +1004,9 @@ pub struct CheckAndMutateRowResponse {
     pub predicate_matched: bool,
 }
 /// Request message for Bigtable.ReadModifyWriteRow.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadModifyWriteRowRequest {
     /// Required. The unique name of the table to which the read/modify/write rules should be
@@ -890,6 +1029,9 @@ pub struct ReadModifyWriteRowRequest {
     pub rules: ::prost::alloc::vec::Vec<ReadModifyWriteRule>,
 }
 /// Response message for Bigtable.ReadModifyWriteRow.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadModifyWriteRowResponse {
     /// A Row containing the new contents of all cells modified by the request.

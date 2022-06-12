@@ -86,26 +86,30 @@
 //! }
 //! ```
 
-use crate::google::bigtable::v2::{
-    bigtable_client::BigtableClient, read_rows_response::cell_chunk::RowStatus, MutateRowRequest,
-    MutateRowResponse, MutateRowsRequest, MutateRowsResponse, ReadRowsRequest, ReadRowsResponse,
-    RowRange, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
-};
-
-use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
-use crate::{
-    access_token::{AccessToken, Scope},
-    root_ca_certificate,
-    util::get_end_key,
-};
-use log::{info, trace, warn};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use log::{info, warn};
 use thiserror::Error;
 use tonic::service::interceptor::InterceptedService;
 use tonic::service::Interceptor;
 use tonic::transport::Endpoint;
 use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response, Status};
+
+use crate::bigtable::read_rows::decode_read_rows_response;
+use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
+use crate::google::bigtable::v2::{
+    bigtable_client::BigtableClient, MutateRowRequest, MutateRowResponse, MutateRowsRequest,
+    MutateRowsResponse, ReadRowsRequest, RowRange, RowSet, SampleRowKeysRequest,
+    SampleRowKeysResponse,
+};
+use crate::{
+    access_token::{AccessToken, Scope},
+    root_ca_certificate,
+    util::get_end_key,
+};
+
+pub mod read_rows;
 
 /// An alias for Vec<u8> as row key
 type RowKey = Vec<u8>;
@@ -114,11 +118,13 @@ type Result<T> = std::result::Result<T, Error>;
 type BigtableClientIntercepted = BigtableClient<InterceptedService<Channel, BTInterceptor>>;
 
 /// A data structure for returning the read content of a cell in a row.
+#[derive(Debug)]
 pub struct RowCell {
     pub family_name: String,
     pub qualifier: Vec<u8>,
     pub value: Vec<u8>,
     pub timestamp_micros: i64,
+    pub labels: Vec<String>,
 }
 
 /// Error types the client may have
@@ -135,6 +141,9 @@ pub enum Error {
 
     #[error("Transport error: {0}")]
     TransportError(tonic::transport::Error),
+
+    #[error("Chunk error")]
+    ChunkError(String),
 
     #[error("Row not found")]
     RowNotFound,
@@ -337,7 +346,7 @@ impl BigTable {
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
         self.refresh_access_token().await;
         let response = self.client.read_rows(request).await?.into_inner();
-        self.decode_read_rows_response(response).await
+        decode_read_rows_response(self.timeout.as_ref(), response).await
     }
 
     /// Provide `read_rows_with_prefix` method to allow using a prefix as key
@@ -356,7 +365,7 @@ impl BigTable {
             }],
         });
         let response = self.client.read_rows(request).await?.into_inner();
-        self.decode_read_rows_response(response).await
+        decode_read_rows_response(self.timeout.as_ref(), response).await
     }
 
     /// Wrapped `sample_row_keys` method
@@ -406,93 +415,6 @@ impl BigTable {
     /// Provide a convenient method to get full table, which can be used for building requests
     pub fn get_full_table_name(&self, table_name: &str) -> String {
         [&self.table_prefix, table_name].concat()
-    }
-
-    /// As each `CellChunk` could be only part of a cell, this method reorganize multiple `CellChunk`
-    /// from multiple `ReadRowsResponse` into a `Vec<(RowKey, Vec<RowCell>)>`.
-    async fn decode_read_rows_response(
-        &self,
-        mut rrr: Streaming<ReadRowsResponse>,
-    ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
-        let mut rows: Vec<(RowKey, Vec<RowCell>)> = vec![];
-
-        let mut row_key = None;
-        let mut row_data: Vec<RowCell> = vec![];
-
-        let mut cell_family_name = None;
-        let mut cell_name = None;
-        let mut cell_timestamp = 0;
-        let mut cell_value = vec![];
-        let mut start_new_cell = false;
-
-        let started = Instant::now();
-
-        while let Some(res) = rrr.message().await? {
-            if let Some(timeout) = self.timeout.as_ref() {
-                if Instant::now().duration_since(started) > *timeout {
-                    return Err(Error::TimeoutError(timeout.as_secs()));
-                }
-            }
-            for (i, mut chunk) in res.chunks.into_iter().enumerate() {
-                // The comments for `read_rows_response::CellChunk` provide essential details for
-                // understanding how the below decoding works...
-                trace!("chunk {}: {:?}", i, chunk.value);
-
-                // Starting a new row?
-                if !chunk.row_key.is_empty() {
-                    row_key = Some(chunk.row_key);
-                }
-
-                // start a new cell with the existing cell_name or new cell_name (chunk.qualifier)
-                if (start_new_cell && cell_name.is_some()) || chunk.qualifier.is_some() {
-                    cell_value = Vec::with_capacity(chunk.value_size as usize);
-                    // when a new cell with the same qualifier starts, we need to reuse the old cell_name and cell_family_name
-                    cell_name = chunk.qualifier.or(cell_name);
-                    cell_family_name = chunk.family_name.or(cell_family_name);
-                    cell_timestamp = chunk.timestamp_micros;
-                    start_new_cell = false;
-                }
-
-                cell_value.append(&mut chunk.value);
-                // last chunk for the cell?
-                if chunk.value_size == 0 {
-                    // Close up the cell
-                    if cell_name.is_some() {
-                        let row_cell = RowCell {
-                            family_name: cell_family_name.clone().unwrap_or("".to_owned()),
-                            qualifier: cell_name.clone().unwrap(), // checked above
-                            value: cell_value,
-                            timestamp_micros: cell_timestamp,
-                        };
-                        cell_value = vec![]; // borrow checker
-                        row_data.push(row_cell);
-                    }
-                    // make sure we start a new cell in case the qualifier doesn't change
-                    start_new_cell = true;
-                }
-
-                // End of a row?
-                match chunk.row_status {
-                    None => {
-                        // more for this row, don't push to row_data or rows vector, let the next
-                        // chunk close up those vectors.
-                    }
-                    Some(RowStatus::CommitRow(_)) => {
-                        if let Some(row_key) = row_key.take() {
-                            rows.push((row_key, row_data));
-                            row_data = vec![];
-                        }
-                    }
-                    Some(RowStatus::ResetRow(_)) => {
-                        // ResetRow indicates that the client should drop all previous chunks for
-                        // `row_key`, as it will be re-read from the beginning.
-                        row_key = None;
-                        row_data = vec![];
-                    }
-                }
-            }
-        }
-        Ok(rows)
     }
 }
 
