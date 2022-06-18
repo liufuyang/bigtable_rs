@@ -21,7 +21,7 @@ prost-wkt-types = "0.3.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_with = { version = "1.13.0", features = ["base64"] }
 # end of above part
-goauth = "0.12.0"
+goauth = "0.13.0"
 smpl_jwt = "0.7.0"
 log = "0.4.13"
 thiserror = "1.0.23"
