@@ -14,7 +14,7 @@ readme = "../README.md"
 [dependencies]
 # tonic, prost, and prost-types are need for build generated rs files
 tonic = { version = "0.7.2", features = ["tls", "transport"] }
-prost = "0.10.3"
+prost = "0.11.0"
 prost-types = "0.10.1"
 prost-wkt = "0.3.1"
 prost-wkt-types = "0.3.1"
