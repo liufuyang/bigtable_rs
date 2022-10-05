@@ -20,6 +20,10 @@ jobs:
         with:
           rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@master
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install rustfmt
         run: rustup component add rustfmt
       - name: Check fmt
