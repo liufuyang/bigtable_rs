@@ -705,6 +705,8 @@ pub struct ReadIteratorStats {
 /// it interacts with different systems over its lifetime, e.g. how long the
 /// request took to execute within a frontend server.
 #[serde_with::serde_as]
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestLatencyStats {
     /// The latency measured by the frontend server handling this request, from
@@ -718,10 +720,12 @@ pub struct RequestLatencyStats {
     /// needs to be sent in the response before the latency measurement including
     /// that transmission is finalized.
     #[prost(message, optional, tag="1")]
-    pub frontend_server_latency: ::core::option::Option<::prost_types::Duration>,
+    pub frontend_server_latency: ::core::option::Option<super::super::protobuf::Duration>,
 }
 /// ReadEfficiencyStats captures information about the efficiency of a read.
 #[serde_with::serde_as]
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadEfficiencyStats {
     /// Iteration stats describe how efficient the read is, e.g. comparing
@@ -737,6 +741,8 @@ pub struct ReadEfficiencyStats {
 }
 /// AllReadStats captures all known information about a read.
 #[serde_with::serde_as]
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AllReadStats {
     /// Iteration stats describe how efficient the read is, e.g. comparing
@@ -755,6 +761,8 @@ pub struct AllReadStats {
 /// Currently, there are the following supported methods:
 ///    * google.bigtable.v2.ReadRows
 #[serde_with::serde_as]
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestStats {
     /// Information pertaining to each request type received. The type is chosen
@@ -771,6 +779,8 @@ pub mod request_stats {
     ///
     /// See the messages above for additional context.
     #[serde_with::serde_as]
+    #[derive(serde::Serialize,serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Stats {
         /// Available with the
@@ -855,6 +865,8 @@ pub mod read_rows_request {
 }
 /// Response message for Bigtable.ReadRows.
 #[serde_with::serde_as]
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsResponse {
     /// A collection of a row's contents as part of the read request.
@@ -916,7 +928,7 @@ pub mod read_rows_response {
         /// explicitly for the presence of this message, not just for
         /// `family_name.value` being non-empty.
         #[prost(message, optional, tag="2")]
-        pub family_name: ::core::option::Option<::prost::alloc::string::String>,
+        pub family_name: ::core::option::Option<super::super::super::protobuf::StringValue>,
         /// The column qualifier for this chunk of data.  If this message
         /// is not present, this CellChunk is a continuation of the same column
         /// as the previous CellChunk.  Column qualifiers may be empty so
@@ -925,7 +937,7 @@ pub mod read_rows_response {
         #[prost(message, optional, tag="3")]
         #[serde_as(as = "Option<serde_with::base64::Base64>")]
         #[serde(default)]
-        pub qualifier: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+        pub qualifier: ::core::option::Option<super::super::super::protobuf::BytesValue>,
         /// The cell's stored timestamp, which also uniquely identifies it
         /// within its column.  Values are always expressed in
         /// microseconds, but individual tables may set a coarser
