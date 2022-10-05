@@ -95,6 +95,7 @@ use tonic::service::interceptor::InterceptedService;
 use tonic::service::Interceptor;
 use tonic::transport::Endpoint;
 use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response, Status};
+use tower::ServiceBuilder;
 
 use crate::bigtable::read_rows::decode_read_rows_response;
 use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
@@ -310,12 +311,13 @@ impl BigTableConnection {
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
     /// the created new clients can be cheaply cloned and thus can be send to different threads
     pub fn client(&self) -> BigTable {
-        let client = BigtableClient::with_interceptor(
-            self.channel.clone(),
-            BTInterceptor {
-                access_token: self.access_token.as_ref().clone(),
-            },
-        );
+        let interceptor = BTInterceptor {
+            access_token: self.access_token.as_ref().clone(),
+        };
+        let channel = ServiceBuilder::new()
+            .layer(tonic::service::interceptor(interceptor))
+            .service(self.channel.clone());
+        let client = BigtableClient::new(channel);
 
         BigTable {
             access_token: self.access_token.clone(),
