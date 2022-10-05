@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let channel_size = 4;
     let timeout = Duration::from_secs(10);
 
-    let key: String = "new-key-1".to_owned();
+    let key: String = "key8".to_owned();
 
     // make a bigtable client
     let connection = bigtable::BigTableConnection::new(
