@@ -63,13 +63,16 @@ impl Service<Request<BoxBody>> for AuthSvc {
                 }
                 Some(token_future) => {
                     let token = token_future.await?;
-                    let token = token.as_str().parse::<HeaderValue>()?;
+                    let token = token.as_str().parse::<String>()?;
+                    let bearer_header =
+                        HeaderValue::from_str(format!("Bearer {}", token.as_str()).as_str())
+                            .unwrap();
                     debug!(
                         "auth intercepting with scope {:?} and attaching token's head {}",
                         scopes,
                         std::str::from_utf8(&token.as_bytes()[..5]).unwrap_or("")
                     );
-                    request.headers_mut().insert("authorization", token);
+                    request.headers_mut().insert("authorization", bearer_header);
                     let response = inner.call(request).await?;
                     Ok(response)
                 }
