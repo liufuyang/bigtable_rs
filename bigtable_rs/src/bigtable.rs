@@ -112,7 +112,6 @@ pub mod read_rows;
 type RowKey = Vec<u8>;
 /// A convenient Result type
 type Result<T> = std::result::Result<T, Error>;
-type BigtableClientIntercepted = BigtableClient<AuthSvc>;
 
 /// A data structure for returning the read content of a cell in a row.
 #[derive(Debug)]
@@ -185,9 +184,7 @@ impl std::convert::From<tonic::Status> for Error {
 /// For initiate a Bigtable connection, then a `Bigtable` client can be made from it.
 #[derive(Clone)]
 pub struct BigTableConnection {
-    authentication_manager: Option<Arc<AuthenticationManager>>,
-    scopes: String,
-    channel: tonic::transport::Channel,
+    client: BigtableClient<AuthSvc>,
     table_prefix: Arc<String>,
     timeout: Arc<Option<Duration>>,
 }
@@ -215,16 +212,10 @@ impl BigTableConnection {
     pub async fn new(
         project_id: &str,
         instance_name: &str,
-        read_only: bool,
+        is_read_only: bool,
         channel_size: usize,
         timeout: Option<Duration>,
     ) -> Result<Self> {
-        let scopes = if read_only {
-            "https://www.googleapis.com/auth/bigtable.data.readonly".to_string()
-        } else {
-            "https://www.googleapis.com/auth/bigtable.data".to_string()
-        };
-
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
                 info!("Connecting to bigtable emulator at {}", endpoint);
@@ -246,9 +237,7 @@ impl BigTableConnection {
                     .collect();
 
                 Ok(Self {
-                    authentication_manager: None,
-                    scopes,
-                    channel: Channel::balance_list(endpoints.into_iter()),
+                    client: create_client(endpoints, None, is_read_only),
                     table_prefix: Arc::new(format!(
                         "projects/{}/instances/{}/tables/",
                         project_id, instance_name
@@ -297,10 +286,9 @@ impl BigTableConnection {
                     })
                     .collect();
 
+                let auth_manager = Some(Arc::new(authentication_manager));
                 Ok(Self {
-                    authentication_manager: Some(Arc::new(authentication_manager)),
-                    scopes,
-                    channel: Channel::balance_list(endpoints.into_iter()),
+                    client: create_client(endpoints, auth_manager, is_read_only),
                     table_prefix: Arc::new(table_prefix),
                     timeout: Arc::new(timeout),
                 })
@@ -308,31 +296,58 @@ impl BigTableConnection {
         }
     }
 
-    /// Create a new BigTable client.
+    /// Create a new BigTable client by cloning needed properties.
     ///
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
     /// the created new clients can be cheaply cloned and thus can be send to different threads
     pub fn client(&self) -> BigTable {
-        let channel = ServiceBuilder::new()
-            .layer_fn(|c| AuthSvc::new(c, self.authentication_manager.clone(), self.scopes.clone()))
-            .service(self.channel.clone());
-        let client = BigtableClient::new(channel);
-
         BigTable {
-            client,
+            client: self.client.clone(),
             table_prefix: self.table_prefix.clone(),
             timeout: self.timeout.clone(),
         }
     }
 }
 
+/// Helper function to create a BigtableClient<AuthSvc>
+fn create_client(
+    endpoints: Vec<Endpoint>,
+    authentication_manager: Option<Arc<AuthenticationManager>>,
+    read_only: bool,
+) -> BigtableClient<AuthSvc> {
+    let scopes = if read_only {
+        "https://www.googleapis.com/auth/bigtable.data.readonly".to_string()
+    } else {
+        "https://www.googleapis.com/auth/bigtable.data".to_string()
+    };
+    let channel = Channel::balance_list(endpoints.into_iter());
+    let auth_svc = ServiceBuilder::new()
+        .layer_fn(|c| AuthSvc::new(c, authentication_manager.clone(), scopes.clone()))
+        .service(channel);
+    return BigtableClient::new(auth_svc);
+}
+
 /// The core struct for Bigtable client, witch wraps a gPRC client defined by Bigtable proto.
-/// In order easy share this struct in multiple thread, we only store references here, besides the
-/// `BigtableClient` as it wraps a tonic Channel and cloning on is cheap.
+/// In order easy share this struct in multiple thread, we only store cloneable references here.
+/// `BigtableClient<AuthSvc>` is a type alias of `BigtableClient` and it wraps a tonic Channel.
+/// Cloning on `Bigtable` is cheap.
+///
+/// Bigtable can be created via `bigtable::BigTableConnection::new()` and cloned
+/// ```rust,no_run
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///   use bigtable_rs::bigtable;
+///   let connection = bigtable::BigTableConnection::new("p-id", "i-id", true, 1, None).await?;
+///   let bt_client = connection.client();
+///   // Cheap to clone clients and used in other places.
+///   let bt_client2 = bt_client.clone();
+///   Ok(())
+/// }
+/// ```
 #[derive(Clone)]
 pub struct BigTable {
-    client: BigtableClientIntercepted,
     // clone is cheap with Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
+    client: BigtableClient<AuthSvc>,
     table_prefix: Arc<String>,
     timeout: Arc<Option<Duration>>,
 }
@@ -394,7 +409,7 @@ impl BigTable {
 
     /// Provide a convenient method to get the inner `BigtableClient` so user can use any methods
     /// defined from the Bigtable V2 gRPC API
-    pub fn get_client(&mut self) -> &mut BigtableClientIntercepted {
+    pub fn get_client(&mut self) -> &mut BigtableClient<AuthSvc> {
         &mut self.client
     }
 
