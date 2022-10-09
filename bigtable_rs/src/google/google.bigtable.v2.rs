@@ -276,7 +276,7 @@ pub mod value_range {
 /// RowFilter.Chain and RowFilter.Interleave documentation.
 ///
 /// The total serialized size of a RowFilter message must not
-/// exceed 4096 bytes, and RowFilters may not be nested within each other
+/// exceed 20480 bytes, and RowFilters may not be nested within each other
 /// (in Chains or Interleaves) to a depth of more than 20.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -319,23 +319,23 @@ pub mod row_filter {
         /// Consider the following example, with three filters:
         ///
         /// ```text
-        ///                                  input row
-        ///                                      |
-        ///            -----------------------------------------------------
-        ///            |                         |                         |
-        ///           f(0)                      f(1)                      f(2)
-        ///            |                         |                         |
-        ///     1: foo,bar,10,x             foo,bar,10,z              far,bar,7,a
-        ///     2: foo,blah,11,z            far,blah,5,x              far,blah,5,x
-        ///            |                         |                         |
-        ///            -----------------------------------------------------
-        ///                                      |
-        ///     1:                      foo,bar,10,z   // could have switched with #2
-        ///     2:                      foo,bar,10,x   // could have switched with #1
-        ///     3:                      foo,blah,11,z
-        ///     4:                      far,bar,7,a
-        ///     5:                      far,blah,5,x   // identical to #6
-        ///     6:                      far,blah,5,x   // identical to #5
+        ///                                   input row
+        ///                                       |
+        ///             -----------------------------------------------------
+        ///             |                         |                         |
+        ///            f(0)                      f(1)                      f(2)
+        ///             |                         |                         |
+        ///      1: foo,bar,10,x             foo,bar,10,z              far,bar,7,a
+        ///      2: foo,blah,11,z            far,blah,5,x              far,blah,5,x
+        ///             |                         |                         |
+        ///             -----------------------------------------------------
+        ///                                       |
+        ///      1:                      foo,bar,10,z   // could have switched with #2
+        ///      2:                      foo,bar,10,x   // could have switched with #1
+        ///      3:                      foo,blah,11,z
+        ///      4:                      far,bar,7,a
+        ///      5:                      far,blah,5,x   // identical to #6
+        ///      6:                      far,blah,5,x   // identical to #5
         /// ```
         ///
         /// All interleaved filters are executed atomically.
@@ -393,51 +393,51 @@ pub mod row_filter {
         /// following example:
         ///
         /// ```text
-        ///     Chain(
-        ///       FamilyRegex("A"),
-        ///       Interleave(
-        ///         All(),
-        ///         Chain(Label("foo"), Sink())
-        ///       ),
-        ///       QualifierRegex("B")
-        ///     )
+        ///      Chain(
+        ///        FamilyRegex("A"),
+        ///        Interleave(
+        ///          All(),
+        ///          Chain(Label("foo"), Sink())
+        ///        ),
+        ///        QualifierRegex("B")
+        ///      )
         ///
-        ///                         A,A,1,w
-        ///                         A,B,2,x
-        ///                         B,B,4,z
-        ///                            |
-        ///                     FamilyRegex("A")
-        ///                            |
-        ///                         A,A,1,w
-        ///                         A,B,2,x
-        ///                            |
-        ///               +------------+-------------+
-        ///               |                          |
-        ///             All()                    Label(foo)
-        ///               |                          |
-        ///            A,A,1,w              A,A,1,w,labels:\[foo\]
-        ///            A,B,2,x              A,B,2,x,labels:\[foo\]
-        ///               |                          |
-        ///               |                        Sink() --------------+
-        ///               |                          |                  |
-        ///               +------------+      x------+          A,A,1,w,labels:\[foo\]
-        ///                            |                        A,B,2,x,labels:\[foo\]
-        ///                         A,A,1,w                             |
-        ///                         A,B,2,x                             |
-        ///                            |                                |
-        ///                    QualifierRegex("B")                      |
-        ///                            |                                |
-        ///                         A,B,2,x                             |
-        ///                            |                                |
-        ///                            +--------------------------------+
-        ///                            |
-        ///                         A,A,1,w,labels:\[foo\]
-        ///                         A,B,2,x,labels:\[foo\]  // could be switched
-        ///                         A,B,2,x               // could be switched
+        ///                          A,A,1,w
+        ///                          A,B,2,x
+        ///                          B,B,4,z
+        ///                             |
+        ///                      FamilyRegex("A")
+        ///                             |
+        ///                          A,A,1,w
+        ///                          A,B,2,x
+        ///                             |
+        ///                +------------+-------------+
+        ///                |                          |
+        ///              All()                    Label(foo)
+        ///                |                          |
+        ///             A,A,1,w              A,A,1,w,labels:\[foo\]
+        ///             A,B,2,x              A,B,2,x,labels:\[foo\]
+        ///                |                          |
+        ///                |                        Sink() --------------+
+        ///                |                          |                  |
+        ///                +------------+      x------+          A,A,1,w,labels:\[foo\]
+        ///                             |                        A,B,2,x,labels:\[foo\]
+        ///                          A,A,1,w                             |
+        ///                          A,B,2,x                             |
+        ///                             |                                |
+        ///                     QualifierRegex("B")                      |
+        ///                             |                                |
+        ///                          A,B,2,x                             |
+        ///                             |                                |
+        ///                             +--------------------------------+
+        ///                             |
+        ///                          A,A,1,w,labels:\[foo\]
+        ///                          A,B,2,x,labels:\[foo\]  // could be switched
+        ///                          A,B,2,x               // could be switched
         ///
+        /// ```
         /// Despite being excluded by the qualifier filter, a copy of every cell
         /// that reaches the sink is present in the final result.
-        /// ```
         ///
         /// As with an \[Interleave][google.bigtable.v2.RowFilter.Interleave\],
         /// duplicate cells are possible, and appear in an unspecified mutual order.
@@ -677,6 +677,119 @@ pub mod read_modify_write_rule {
         IncrementAmount(i64),
     }
 }
+//
+// Messages related to RequestStats, part of the Slow Queries feature, that can
+// help understand the performance of requests.
+
+/// ReadIteratorStats captures information about the iteration of rows or cells
+/// over the course of a read, e.g. how many results were scanned in a read
+/// operation versus the results returned.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadIteratorStats {
+    /// The rows seen (scanned) as part of the request. This includes the count of
+    /// rows returned, as captured below.
+    #[prost(int64, tag = "1")]
+    pub rows_seen_count: i64,
+    /// The rows returned as part of the request.
+    #[prost(int64, tag = "2")]
+    pub rows_returned_count: i64,
+    /// The cells seen (scanned) as part of the request. This includes the count of
+    /// cells returned, as captured below.
+    #[prost(int64, tag = "3")]
+    pub cells_seen_count: i64,
+    /// The cells returned as part of the request.
+    #[prost(int64, tag = "4")]
+    pub cells_returned_count: i64,
+    /// The deletes seen as part of the request.
+    #[prost(int64, tag = "5")]
+    pub deletes_seen_count: i64,
+}
+/// RequestLatencyStats provides a measurement of the latency of the request as
+/// it interacts with different systems over its lifetime, e.g. how long the
+/// request took to execute within a frontend server.
+#[serde_with::serde_as]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestLatencyStats {
+    /// The latency measured by the frontend server handling this request, from
+    /// when the request was received, to when this value is sent back in the
+    /// response. For more context on the component that is measuring this latency,
+    /// see: <https://cloud.google.com/bigtable/docs/overview>
+    ///
+    /// Note: This value may be slightly shorter than the value reported into
+    /// aggregate latency metrics in Monitoring for this request
+    /// (<https://cloud.google.com/bigtable/docs/monitoring-instance>) as this value
+    /// needs to be sent in the response before the latency measurement including
+    /// that transmission is finalized.
+    #[prost(message, optional, tag = "1")]
+    pub frontend_server_latency: ::core::option::Option<::prost_types::Duration>,
+}
+/// ReadEfficiencyStats captures information about the efficiency of a read.
+#[serde_with::serde_as]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadEfficiencyStats {
+    /// Iteration stats describe how efficient the read is, e.g. comparing
+    /// rows seen vs. rows returned or cells seen vs cells returned can provide an
+    /// indication of read efficiency (the higher the ratio of seen to retuned the
+    /// better).
+    #[prost(message, optional, tag = "1")]
+    pub read_iterator_stats: ::core::option::Option<ReadIteratorStats>,
+    /// Request latency stats describe the time taken to complete a request, from
+    /// the server side.
+    #[prost(message, optional, tag = "2")]
+    pub request_latency_stats: ::core::option::Option<RequestLatencyStats>,
+}
+/// AllReadStats captures all known information about a read.
+#[serde_with::serde_as]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AllReadStats {
+    /// Iteration stats describe how efficient the read is, e.g. comparing
+    /// rows seen vs. rows returned or cells seen vs cells returned can provide an
+    /// indication of read efficiency (the higher the ratio of seen to retuned the
+    /// better).
+    #[prost(message, optional, tag = "1")]
+    pub read_iterator_stats: ::core::option::Option<ReadIteratorStats>,
+    /// Request latency stats describe the time taken to complete a request, from
+    /// the server side.
+    #[prost(message, optional, tag = "2")]
+    pub request_latency_stats: ::core::option::Option<RequestLatencyStats>,
+}
+/// RequestStats is the container for additional information pertaining to a
+/// single request, helpful for evaluating the performance of the sent request.
+/// Currently, there are the following supported methods:
+///    * google.bigtable.v2.ReadRows
+#[serde_with::serde_as]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestStats {
+    /// Information pertaining to each request type received. The type is chosen
+    /// based on the requested view.
+    ///
+    /// See the messages above for additional context.
+    #[prost(oneof = "request_stats::Stats", tags = "1, 2")]
+    pub stats: ::core::option::Option<request_stats::Stats>,
+}
+/// Nested message and enum types in `RequestStats`.
+pub mod request_stats {
+    /// Information pertaining to each request type received. The type is chosen
+    /// based on the requested view.
+    ///
+    /// See the messages above for additional context.
+    #[serde_with::serde_as]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Stats {
+        /// Available with the
+        /// ReadRowsRequest.RequestStatsView.REQUEST_STATS_EFFICIENCY view, see
+        /// package google.bigtable.v2.
+        #[prost(message, tag = "1")]
+        ReadEfficiencyStats(super::ReadEfficiencyStats),
+        /// Available with the ReadRowsRequest.RequestStatsView.REQUEST_STATS_FULL
+        /// view, see package google.bigtable.v2.
+        #[prost(message, tag = "2")]
+        AllReadStats(super::AllReadStats),
+    }
+}
 /// Request message for Bigtable.ReadRows.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -688,26 +801,66 @@ pub struct ReadRowsRequest {
     /// `projects/<project>/instances/<instance>/tables/<table>`.
     #[prost(string, tag = "1")]
     pub table_name: ::prost::alloc::string::String,
-    /// This value specifies routing for replication. If not specified, the
-    /// "default" application profile will be used.
+    /// This value specifies routing for replication. This API only accepts the
+    /// empty value of app_profile_id.
     #[prost(string, tag = "5")]
     pub app_profile_id: ::prost::alloc::string::String,
-    /// The row keys and/or ranges to read. If not specified, reads from all rows.
+    /// The row keys and/or ranges to read sequentially. If not specified, reads
+    /// from all rows.
     #[prost(message, optional, tag = "2")]
     pub rows: ::core::option::Option<RowSet>,
     /// The filter to apply to the contents of the specified row(s). If unset,
     /// reads the entirety of each row.
     #[prost(message, optional, tag = "3")]
     pub filter: ::core::option::Option<RowFilter>,
-    /// The read will terminate after committing to N rows' worth of results. The
+    /// The read will stop after committing to N rows' worth of results. The
     /// default (zero) is to return all results.
     #[prost(int64, tag = "4")]
     pub rows_limit: i64,
+    /// The view into RequestStats, as described above.
+    #[prost(enumeration = "read_rows_request::RequestStatsView", tag = "6")]
+    pub request_stats_view: i32,
+}
+/// Nested message and enum types in `ReadRowsRequest`.
+pub mod read_rows_request {
+    ///
+    /// The desired view into RequestStats that should be returned in the response.
+    ///
+    /// See also: RequestStats message.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum RequestStatsView {
+        /// The default / unset value. The API will default to the NONE option below.
+        Unspecified = 0,
+        /// Do not include any RequestStats in the response. This will leave the
+        /// RequestStats embedded message unset in the response.
+        RequestStatsNone = 1,
+        /// Include stats related to the efficiency of the read.
+        RequestStatsEfficiency = 2,
+        /// Include the full set of available RequestStats in the response,
+        /// applicable to this read.
+        RequestStatsFull = 3,
+    }
+    impl RequestStatsView {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                RequestStatsView::Unspecified => "REQUEST_STATS_VIEW_UNSPECIFIED",
+                RequestStatsView::RequestStatsNone => "REQUEST_STATS_NONE",
+                RequestStatsView::RequestStatsEfficiency => "REQUEST_STATS_EFFICIENCY",
+                RequestStatsView::RequestStatsFull => "REQUEST_STATS_FULL",
+            }
+        }
+    }
 }
 /// Response message for Bigtable.ReadRows.
 #[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsResponse {
     /// A collection of a row's contents as part of the read request.
@@ -722,6 +875,28 @@ pub struct ReadRowsResponse {
     /// key, allowing the client to skip that work on a retry.
     #[prost(bytes = "vec", tag = "2")]
     pub last_scanned_row_key: ::prost::alloc::vec::Vec<u8>,
+    ///
+    /// If requested, provide enhanced query performance statistics. The semantics
+    /// dictate:
+    ///    * request_stats is empty on every (streamed) response, except
+    ///    * request_stats has non-empty information after all chunks have been
+    ///      streamed, where the ReadRowsResponse message only contains
+    ///      request_stats.
+    ///        * For example, if a read request would have returned an empty
+    ///          response instead a single ReadRowsResponse is streamed with empty
+    ///          chunks and request_stats filled.
+    ///
+    /// Visually, response messages will stream as follows:
+    ///     ... -> {chunks: \[...\]} -> {chunks: [], request_stats: {...}}
+    ///    \______________________/  \________________________________/
+    ///        Primary response         Trailer of RequestStats info
+    ///
+    /// Or if the read did not return any values:
+    ///    {chunks: [], request_stats: {...}}
+    ///    \________________________________/
+    ///       Trailer of RequestStats info
+    #[prost(message, optional, tag = "3")]
+    pub request_stats: ::core::option::Option<RequestStats>,
 }
 /// Nested message and enum types in `ReadRowsResponse`.
 pub mod read_rows_response {
@@ -858,8 +1033,8 @@ pub struct SampleRowKeysResponse {
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowRequest {
-    /// Required. The unique name of the table to which the mutation should be applied.
-    /// Values are of the form
+    /// Required. The unique name of the table to which the mutation should be
+    /// applied. Values are of the form
     /// `projects/<project>/instances/<instance>/tables/<table>`.
     #[prost(string, tag = "1")]
     pub table_name: ::prost::alloc::string::String,
@@ -870,9 +1045,9 @@ pub struct MutateRowRequest {
     /// Required. The key of the row to which the mutation should be applied.
     #[prost(bytes = "vec", tag = "2")]
     pub row_key: ::prost::alloc::vec::Vec<u8>,
-    /// Required. Changes to be atomically applied to the specified row. Entries are applied
-    /// in order, meaning that earlier mutations can be masked by later ones.
-    /// Must contain at least one entry and at most 100000.
+    /// Required. Changes to be atomically applied to the specified row. Entries
+    /// are applied in order, meaning that earlier mutations can be masked by later
+    /// ones. Must contain at least one entry and at most 100000.
     #[prost(message, repeated, tag = "3")]
     pub mutations: ::prost::alloc::vec::Vec<Mutation>,
 }
@@ -888,7 +1063,8 @@ pub struct MutateRowResponse {}
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowsRequest {
-    /// Required. The unique name of the table to which the mutations should be applied.
+    /// Required. The unique name of the table to which the mutations should be
+    /// applied.
     #[prost(string, tag = "1")]
     pub table_name: ::prost::alloc::string::String,
     /// This value specifies routing for replication. If not specified, the
@@ -914,10 +1090,9 @@ pub mod mutate_rows_request {
         /// The key of the row to which the `mutations` should be applied.
         #[prost(bytes = "vec", tag = "1")]
         pub row_key: ::prost::alloc::vec::Vec<u8>,
-        /// Required. Changes to be atomically applied to the specified row. Mutations are
-        /// applied in order, meaning that earlier mutations can be masked by
-        /// later ones.
-        /// You must specify at least one mutation.
+        /// Required. Changes to be atomically applied to the specified row.
+        /// Mutations are applied in order, meaning that earlier mutations can be
+        /// masked by later ones. You must specify at least one mutation.
         #[prost(message, repeated, tag = "2")]
         pub mutations: ::prost::alloc::vec::Vec<super::Mutation>,
     }
@@ -958,9 +1133,8 @@ pub mod mutate_rows_response {
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CheckAndMutateRowRequest {
-    /// Required. The unique name of the table to which the conditional mutation should be
-    /// applied.
-    /// Values are of the form
+    /// Required. The unique name of the table to which the conditional mutation
+    /// should be applied. Values are of the form
     /// `projects/<project>/instances/<instance>/tables/<table>`.
     #[prost(string, tag = "1")]
     pub table_name: ::prost::alloc::string::String,
@@ -968,7 +1142,8 @@ pub struct CheckAndMutateRowRequest {
     /// "default" application profile will be used.
     #[prost(string, tag = "7")]
     pub app_profile_id: ::prost::alloc::string::String,
-    /// Required. The key of the row to which the conditional mutation should be applied.
+    /// Required. The key of the row to which the conditional mutation should be
+    /// applied.
     #[prost(bytes = "vec", tag = "2")]
     pub row_key: ::prost::alloc::vec::Vec<u8>,
     /// The filter to be applied to the contents of the specified row. Depending
@@ -1003,15 +1178,36 @@ pub struct CheckAndMutateRowResponse {
     #[prost(bool, tag = "1")]
     pub predicate_matched: bool,
 }
+/// Request message for client connection keep-alive and warming.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PingAndWarmRequest {
+    /// Required. The unique name of the instance to check permissions for as well
+    /// as respond. Values are of the form
+    /// `projects/<project>/instances/<instance>`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// This value specifies routing for replication. If not specified, the
+    /// "default" application profile will be used.
+    #[prost(string, tag = "2")]
+    pub app_profile_id: ::prost::alloc::string::String,
+}
+/// Response message for Bigtable.PingAndWarm connection keepalive and warming.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PingAndWarmResponse {}
 /// Request message for Bigtable.ReadModifyWriteRow.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadModifyWriteRowRequest {
-    /// Required. The unique name of the table to which the read/modify/write rules should be
-    /// applied.
-    /// Values are of the form
+    /// Required. The unique name of the table to which the read/modify/write rules
+    /// should be applied. Values are of the form
     /// `projects/<project>/instances/<instance>/tables/<table>`.
     #[prost(string, tag = "1")]
     pub table_name: ::prost::alloc::string::String,
@@ -1019,12 +1215,13 @@ pub struct ReadModifyWriteRowRequest {
     /// "default" application profile will be used.
     #[prost(string, tag = "4")]
     pub app_profile_id: ::prost::alloc::string::String,
-    /// Required. The key of the row to which the read/modify/write rules should be applied.
+    /// Required. The key of the row to which the read/modify/write rules should be
+    /// applied.
     #[prost(bytes = "vec", tag = "2")]
     pub row_key: ::prost::alloc::vec::Vec<u8>,
-    /// Required. Rules specifying how the specified row's contents are to be transformed
-    /// into writes. Entries are applied in order, meaning that earlier rules will
-    /// affect the results of later ones.
+    /// Required. Rules specifying how the specified row's contents are to be
+    /// transformed into writes. Entries are applied in order, meaning that earlier
+    /// rules will affect the results of later ones.
     #[prost(message, repeated, tag = "3")]
     pub rules: ::prost::alloc::vec::Vec<ReadModifyWriteRule>,
 }
@@ -1041,6 +1238,7 @@ pub struct ReadModifyWriteRowResponse {
 /// Generated client implementations.
 pub mod bigtable_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
     /// Service for reading from and writing to existing Bigtable tables.
     #[derive(Debug, Clone)]
@@ -1069,6 +1267,10 @@ pub mod bigtable_client {
             let inner = tonic::client::Grpc::new(inner);
             Self { inner }
         }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
@@ -1087,19 +1289,19 @@ pub mod bigtable_client {
         {
             BigtableClient::new(InterceptedService::new(inner, interceptor))
         }
-        /// Compress requests with `gzip`.
+        /// Compress requests with the given encoding.
         ///
         /// This requires the server to support it otherwise it might respond with an
         /// error.
         #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.inner = self.inner.send_gzip();
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
             self
         }
-        /// Enable decompressing responses with `gzip`.
+        /// Enable decompressing responses.
         #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.inner = self.inner.accept_gzip();
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
             self
         }
         /// Streams back the contents of all requested rows in key order, optionally
@@ -1204,6 +1406,23 @@ pub mod bigtable_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/google.bigtable.v2.Bigtable/CheckAndMutateRow",
             );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// Warm up associated instance metadata for this connection.
+        /// This call is not required but may be useful for connection keep-alive.
+        pub async fn ping_and_warm(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PingAndWarmRequest>,
+        ) -> Result<tonic::Response<super::PingAndWarmResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/PingAndWarm");
             self.inner.unary(request.into_request(), path, codec).await
         }
         /// Modifies a row atomically on the server. The method reads the latest

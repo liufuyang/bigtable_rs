@@ -89,13 +89,14 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use log::{info, warn};
+use gcp_auth::AuthenticationManager;
+use log::info;
 use thiserror::Error;
-use tonic::service::interceptor::InterceptedService;
-use tonic::service::Interceptor;
 use tonic::transport::Endpoint;
-use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response, Status};
+use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response};
+use tower::ServiceBuilder;
 
+use crate::auth_service::AuthSvc;
 use crate::bigtable::read_rows::decode_read_rows_response;
 use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
 use crate::google::bigtable::v2::{
@@ -103,11 +104,7 @@ use crate::google::bigtable::v2::{
     MutateRowsResponse, ReadRowsRequest, RowRange, RowSet, SampleRowKeysRequest,
     SampleRowKeysResponse,
 };
-use crate::{
-    access_token::{AccessToken, Scope},
-    root_ca_certificate,
-    util::get_end_key,
-};
+use crate::{root_ca_certificate, util::get_end_key};
 
 pub mod read_rows;
 
@@ -115,7 +112,7 @@ pub mod read_rows;
 type RowKey = Vec<u8>;
 /// A convenient Result type
 type Result<T> = std::result::Result<T, Error>;
-type BigtableClientIntercepted = BigtableClient<InterceptedService<Channel, BTInterceptor>>;
+type BigtableClientIntercepted = BigtableClient<AuthSvc>;
 
 /// A data structure for returning the read content of a cell in a row.
 #[derive(Debug)]
@@ -162,6 +159,9 @@ pub enum Error {
 
     #[error("Timeout error after {0} seconds")]
     TimeoutError(u64),
+
+    #[error("GCPAuthError error: {0}")]
+    GCPAuthError(#[from] gcp_auth::Error),
 }
 
 impl std::convert::From<std::io::Error> for Error {
@@ -185,7 +185,8 @@ impl std::convert::From<tonic::Status> for Error {
 /// For initiate a Bigtable connection, then a `Bigtable` client can be made from it.
 #[derive(Clone)]
 pub struct BigTableConnection {
-    access_token: Arc<Option<AccessToken>>,
+    authentication_manager: Option<Arc<AuthenticationManager>>,
+    scopes: String,
     channel: tonic::transport::Channel,
     table_prefix: Arc<String>,
     timeout: Arc<Option<Duration>>,
@@ -218,6 +219,12 @@ impl BigTableConnection {
         channel_size: usize,
         timeout: Option<Duration>,
     ) -> Result<Self> {
+        let scopes = if read_only {
+            "https://www.googleapis.com/auth/bigtable.data.readonly".to_string()
+        } else {
+            "https://www.googleapis.com/auth/bigtable.data".to_string()
+        };
+
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
                 info!("Connecting to bigtable emulator at {}", endpoint);
@@ -239,7 +246,8 @@ impl BigTableConnection {
                     .collect();
 
                 Ok(Self {
-                    access_token: Arc::new(None),
+                    authentication_manager: None,
+                    scopes,
                     channel: Channel::balance_list(endpoints.into_iter()),
                     table_prefix: Arc::new(format!(
                         "projects/{}/instances/{}/tables/",
@@ -250,13 +258,7 @@ impl BigTableConnection {
             }
 
             Err(_) => {
-                let access_token = AccessToken::new(if read_only {
-                    Scope::BigTableDataReadOnly
-                } else {
-                    Scope::BigTableData
-                })
-                .await
-                .map_err(Error::AccessTokenError)?;
+                let authentication_manager = AuthenticationManager::new().await?;
 
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
@@ -296,7 +298,8 @@ impl BigTableConnection {
                     .collect();
 
                 Ok(Self {
-                    access_token: Arc::new(Some(access_token)),
+                    authentication_manager: Some(Arc::new(authentication_manager)),
+                    scopes,
                     channel: Channel::balance_list(endpoints.into_iter()),
                     table_prefix: Arc::new(table_prefix),
                     timeout: Arc::new(timeout),
@@ -310,15 +313,12 @@ impl BigTableConnection {
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
     /// the created new clients can be cheaply cloned and thus can be send to different threads
     pub fn client(&self) -> BigTable {
-        let client = BigtableClient::with_interceptor(
-            self.channel.clone(),
-            BTInterceptor {
-                access_token: self.access_token.as_ref().clone(),
-            },
-        );
+        let channel = ServiceBuilder::new()
+            .layer_fn(|c| AuthSvc::new(c, self.authentication_manager.clone(), self.scopes.clone()))
+            .service(self.channel.clone());
+        let client = BigtableClient::new(channel);
 
         BigTable {
-            access_token: self.access_token.clone(),
             client,
             table_prefix: self.table_prefix.clone(),
             timeout: self.timeout.clone(),
@@ -331,7 +331,6 @@ impl BigTableConnection {
 /// `BigtableClient` as it wraps a tonic Channel and cloning on is cheap.
 #[derive(Clone)]
 pub struct BigTable {
-    access_token: Arc<Option<AccessToken>>,
     client: BigtableClientIntercepted,
     // clone is cheap with Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
     table_prefix: Arc<String>,
@@ -344,7 +343,6 @@ impl BigTable {
         &mut self,
         request: ReadRowsRequest,
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
-        self.refresh_access_token().await;
         let response = self.client.read_rows(request).await?.into_inner();
         decode_read_rows_response(self.timeout.as_ref(), response).await
     }
@@ -355,7 +353,6 @@ impl BigTable {
         mut request: ReadRowsRequest,
         prefix: Vec<u8>,
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
-        self.refresh_access_token().await;
         let end_key = get_end_key(prefix.as_ref()).map(|end_key| EndKey::EndKeyOpen(end_key));
         request.rows = Some(RowSet {
             row_keys: vec![], // use this field to put keys for reading specific rows
@@ -373,7 +370,6 @@ impl BigTable {
         &mut self,
         request: SampleRowKeysRequest,
     ) -> Result<Streaming<SampleRowKeysResponse>> {
-        self.refresh_access_token().await;
         let response = self.client.sample_row_keys(request).await?.into_inner();
         Ok(response)
     }
@@ -383,7 +379,6 @@ impl BigTable {
         &mut self,
         request: MutateRowRequest,
     ) -> Result<Response<MutateRowResponse>> {
-        self.refresh_access_token().await;
         let response = self.client.mutate_row(request).await?;
         Ok(response)
     }
@@ -393,7 +388,6 @@ impl BigTable {
         &mut self,
         request: MutateRowsRequest,
     ) -> Result<Streaming<MutateRowsResponse>> {
-        self.refresh_access_token().await;
         let response = self.client.mutate_rows(request).await?.into_inner();
         Ok(response)
     }
@@ -404,44 +398,8 @@ impl BigTable {
         &mut self.client
     }
 
-    /// Only needed to call this if you interact with the internal `BigtableClient` directly.
-    /// Call this method to ensure the access token refreshed.
-    pub async fn refresh_access_token(&self) {
-        if let Some(ref access_token) = self.access_token.as_ref() {
-            access_token.refresh().await;
-        }
-    }
-
     /// Provide a convenient method to get full table, which can be used for building requests
     pub fn get_full_table_name(&self, table_name: &str) -> String {
         [&self.table_prefix, table_name].concat()
-    }
-}
-
-#[derive(Clone)]
-pub struct BTInterceptor {
-    access_token: Option<AccessToken>,
-}
-
-impl Interceptor for BTInterceptor {
-    fn call(
-        &mut self,
-        mut request: tonic::Request<()>,
-    ) -> std::result::Result<tonic::Request<()>, Status> {
-        if let Some(token) = self.access_token.as_ref() {
-            match token.get().as_str().parse() {
-                Ok(authorization_header) => {
-                    request
-                        .metadata_mut()
-                        .insert("authorization", authorization_header);
-                }
-                Err(err) => {
-                    warn!("Failed to set authorization header: {}", err);
-                }
-            }
-            Ok(request)
-        } else {
-            Ok(request)
-        }
     }
 }

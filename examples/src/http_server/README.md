@@ -23,5 +23,5 @@ Then from another terminal, test out the service:
 curl localhost:3030/key1
 
 # write a key
-curl -H "Content-Type: application/json" -X POST localhost:3030/key1 -d '{ "value": "value1 is awesome"}'
+curl -H "Content-Type: application/json" -X POST localhost:3030/key1 -d '{ "value": "a new value for key1"}'
 ```

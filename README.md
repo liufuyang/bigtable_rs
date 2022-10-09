@@ -1,32 +1,43 @@
 # bigtable_rs
 
 A simple Rust library for working
-with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2).
+with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2)
+.
 
 ![ci_badge](https://github.com/liufuyang/bigtable_rs/workflows/bigtable_rs%20CI/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/bigtable_rs)](https://crates.io/crates/bigtable_rs)
 [![Documentation](https://docs.rs/bigtable_rs/badge.svg)](https://docs.rs/bigtable_rs)
 [![Crates.io](https://img.shields.io/crates/l/bigtable_rs)](LICENSE)
 
-## Disclaimer - might not be ready for production use yet
+## Disclaimer - might be ready for production use
 
-This library is not production ready but it works with simple examples. Any contribution or help is highly appreciated.
+This library might be production ready. Any contribution or help is highly appreciated.
 
 I had the idea to build a client like this and got some input from others
 see [here](https://github.com/durch/rust-bigtable/issues/4)
-and this is basically done by porting code from [here](
+and porting code from [here](
 https://github.com/solana-labs/solana/tree/master/storage-bigtable)
-(thanks to [@mvines](https://github.com/mvines)). Will try working on it to make it more useful.
+(thanks to [@mvines](https://github.com/mvines)).
+
+Code for [read_rows parsing](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/src/bigtable/read_rows.rs#L36-L212) logic
+is [tested](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/tests/read_rows/read_rows_test.rs)
+by [porting](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/tests/read_rows/read_rows_test.json)
+Google's Java client
+[tests code](https://github.com/googleapis/java-bigtable/blob/main/google-cloud-bigtable/src/test/java/com/google/cloud/bigtable/data/v2/stub/readrows/ReadRowsMergingAcceptanceTest.java)
+with [json test cases](https://github.com/googleapis/conformance-tests/blob/main/bigtable/v2/readrows.json) as raw
+input.
 
 ## Introduction
 
-Current idea is to make this library very light weighted and you assemble requests based
+Current idea is to make this library very light weighted, and you assemble requests based
 on [Google Bigtable V2 protobuf schema](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto)
 and send the requests via [tonic gRPC over HTTP/2](https://github.com/hyperium/tonic). So the user have the flexibility
 of creating any type of Bigtable request and use this client to talk to Bigtable service.
 
 Compiled Bigtable API proto as Rust code is also included in the repo here so users don't need to compile from proto
 again.
+
+The returned row values from Bigtable is parsed by this library.
 
 Supported interfaces towards Bigtable:
 
@@ -36,22 +47,27 @@ Supported interfaces towards Bigtable:
 * [MutateRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L90)
 
 For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble the request you need to
-interact with Bigtable service.
+interact with Bigtable service via building the Protobuf messages (already complied as rs files and included here).
 
-Also support connection authenticated via Google service account key `json` file
-(by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
+[gcp_auth](https://github.com/hrvolapeter/gcp_auth) is used, which
+supports:
+
+* Application Default Credentials
+* Connection authenticated via Google service account key `json` file
+  (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
+* Default service account by retrieving a token from the gcloud metadata server
 
 You can use the library as follow:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.1.6"
+bigtable_rs = "0.2.0"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
-env_logger = "0.8.2"
+env_logger = "0.9.1"
 ```
 
-Documentation is on [crate.io](https://docs.rs/bigtable_rs/0.1.3/bigtable_rs/)
-The following example showing how to do a key range scan
+Documentation is on [crate.io](https://docs.rs/bigtable_rs/0.1.3/bigtable_rs/).
+See [examples](./examples) folders for more examples. The following example showing how to do a key range scan
 
 ```rust
 use bigtable_rs::bigtable;
@@ -137,7 +153,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 ```
 
-To start develop or test the example above, start a test bigtable instance locally first:
+---
+
+## Play with example code
+
+To start develop or test the example code above,
+install [cbt](https://cloud.google.com/bigtable/docs/cbt-overview) tool if you haven't,
+then start a test Bigtable instance locally and insert some test data like this:
 
 ```
 # at one terminal, start a bigtable insatnce locally
@@ -147,34 +169,42 @@ To start develop or test the example above, start a test bigtable instance local
 . start_load_table_local.sh
 ```
 
-Then run the example
+Then run an example with this command:
 
 ```
 BIGTABLE_EMULATOR_HOST=localhost:8086 RUST_LOG=bigtable_rs=trace cargo run --bin simple_read
 ```
 
-If you see error `Error: AccessTokenError("GOOGLE_APPLICATION_CREDENTIALS environment variable not found")`
-, then remember to set environment parameter `BIGTABLE_EMULATOR_HOST=localhost:8086`
-so to let the examples connect onto the emulator.
+If you see error related to google authentication or gcp project not found,
+then remember to set environment parameter `BIGTABLE_EMULATOR_HOST=localhost:8086`
+so to let the example's client connect onto the local emulator.
 
 To run it against real Bigtable instance:
 
 ```
-GOOGLE_APPLICATION_CREDENTIALS=./service_account_key.json cargo run --bin simple_read
+GOOGLE_APPLICATION_CREDENTIALS=<path_to_key>/service_account_key.json cargo run --bin simple_read
+```
+Or if you want to use your `gcloud auth login` auth then simply run the client without any special env settings:
+```
+cargo run --bin simple_read
 ```
 
 See `examples` folders for more examples.
 
-## To develop
+## Development
+
 Clone this repo, then checkout the submodules if necesary
+
 ```
 cd googleapis
 git submodule init
 git submodule update
 ```
+
 Then checkout `bigtable_rs/src/build.rs` to update Google protos
 
 Running tests:
+
 ```
 cargo test -- --nocapture
 ```
