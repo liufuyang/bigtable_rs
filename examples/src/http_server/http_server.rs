@@ -1,3 +1,12 @@
+use std::time::Duration;
+
+use log::info;
+use serde::{Deserialize, Serialize};
+use warp::http::Response;
+use warp::http::StatusCode;
+use warp::reply::with_status;
+use warp::{Filter as WarpFilter, Rejection, Reply};
+
 use bigtable_rs::bigtable::{BigTable, BigTableConnection};
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
 use bigtable_rs::google::bigtable::v2::row_filter::Chain;
@@ -5,15 +14,13 @@ use bigtable_rs::google::bigtable::v2::row_filter::Filter;
 use bigtable_rs::google::bigtable::v2::{
     mutation, MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
-use log::info;
-use serde::{Deserialize, Serialize};
-use std::time::Duration;
-use warp::http::Response;
-use warp::http::StatusCode;
-use warp::reply::with_status;
-use warp::{Filter as WarpFilter, Rejection, Reply};
 
+// More info about bigtable schema design see here: https://cloud.google.com/bigtable/docs/schema-design
+const PROJECT_ID: &str = "project-1";
+const INSTANCE_NAME: &str = "instance-1";
 const TABLE_NAME: &str = "table-1";
+const FAMILY_NAME: &str = "cf1";
+const QUALIFIER_NAME: &str = "c1"; // a.k.a cell name
 
 #[derive(Deserialize, Serialize, Clone)]
 struct Value {
@@ -25,14 +32,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
     let port = 3030;
 
-    let project_id = "project-id";
-    let instance_name = "instance-1";
     let channel_size = 4;
     let timeout = Duration::from_secs(10);
 
     // make a bigtable client
     let connection: BigTableConnection =
-        BigTableConnection::new(project_id, instance_name, true, channel_size, Some(timeout))
+        BigTableConnection::new(PROJECT_ID, INSTANCE_NAME, true, channel_size, Some(timeout))
             .await?;
     let bigtable = connection.client();
 
@@ -70,8 +75,8 @@ async fn post_handler(
         row_key: key.into_bytes(),
         mutations: vec![Mutation {
             mutation: Some(mutation::Mutation::SetCell(SetCell {
-                family_name: "cf1".to_owned(),
-                column_qualifier: "c1".to_owned().into_bytes(),
+                family_name: FAMILY_NAME.to_owned(),
+                column_qualifier: QUALIFIER_NAME.to_owned().into_bytes(),
                 timestamp_micros: -1, // IMPORTANT: Don't leave it empty. Use -1 for current Bigtable server time.
                 value: value.value.into_bytes(),
             })),
@@ -105,10 +110,12 @@ async fn get_handler(key: String, mut bigtable: BigTable) -> Result<Box<dyn Repl
             filter: Some(Filter::Chain(Chain {
                 filters: vec![
                     RowFilter {
-                        filter: Some(Filter::FamilyNameRegexFilter("cf1".to_owned())),
+                        filter: Some(Filter::FamilyNameRegexFilter(FAMILY_NAME.to_owned())),
                     },
                     RowFilter {
-                        filter: Some(Filter::ColumnQualifierRegexFilter("c1".as_bytes().to_vec())),
+                        filter: Some(Filter::ColumnQualifierRegexFilter(
+                            QUALIFIER_NAME.as_bytes().to_vec(),
+                        )),
                     },
                     RowFilter {
                         filter: Some(Filter::CellsPerColumnLimitFilter(1)),
