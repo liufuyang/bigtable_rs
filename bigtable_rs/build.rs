@@ -65,9 +65,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         ".google.cloud.conformance.bigtable.v2.ReadRowsTest.Result.timestamp_micros",
     //         "#[serde_as(as = \"serde_with::DisplayFromStr\")]",
     //     )
-    //     .extern_path(".google.protobuf.Any", "::prost_wkt_types::Any")
-    //     .extern_path(".google.protobuf.Timestamp", "::prost_wkt_types::Timestamp")
-    //     .extern_path(".google.protobuf.Value", "::prost_wkt_types::Value")
     //     .extern_path(
     //         ".google.protobuf.BytesValue",
     //         "::prost::alloc::vec::Vec<u8>",
@@ -76,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         ".google.protobuf.StringValue",
     //         "::prost::alloc::string::String",
     //     )
-    //     .extern_path(".google.protobuf.Duration", "::prost_wkt_types::Duration")
+    //     .extern_path(".google.protobuf", "::prost_wkt_types")
     //     .file_descriptor_set_path(&descriptor_file)
     //     .compile(
     //         &[
