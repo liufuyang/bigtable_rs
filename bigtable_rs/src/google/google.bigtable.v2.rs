@@ -677,10 +677,6 @@ pub mod read_modify_write_rule {
         IncrementAmount(i64),
     }
 }
-//
-// Messages related to RequestStats, part of the Slow Queries feature, that can
-// help understand the performance of requests.
-
 /// ReadIteratorStats captures information about the iteration of rows or cells
 /// over the course of a read, e.g. how many results were scanned in a read
 /// operation versus the results returned.
@@ -711,6 +707,8 @@ pub struct ReadIteratorStats {
 /// it interacts with different systems over its lifetime, e.g. how long the
 /// request took to execute within a frontend server.
 #[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestLatencyStats {
     /// The latency measured by the frontend server handling this request, from
@@ -724,10 +722,12 @@ pub struct RequestLatencyStats {
     /// needs to be sent in the response before the latency measurement including
     /// that transmission is finalized.
     #[prost(message, optional, tag = "1")]
-    pub frontend_server_latency: ::core::option::Option<::prost_types::Duration>,
+    pub frontend_server_latency: ::core::option::Option<::prost_wkt_types::Duration>,
 }
 /// ReadEfficiencyStats captures information about the efficiency of a read.
 #[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadEfficiencyStats {
     /// Iteration stats describe how efficient the read is, e.g. comparing
@@ -743,6 +743,8 @@ pub struct ReadEfficiencyStats {
 }
 /// AllReadStats captures all known information about a read.
 #[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AllReadStats {
     /// Iteration stats describe how efficient the read is, e.g. comparing
@@ -761,6 +763,8 @@ pub struct AllReadStats {
 /// Currently, there are the following supported methods:
 ///    * google.bigtable.v2.ReadRows
 #[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestStats {
     /// Information pertaining to each request type received. The type is chosen
@@ -777,6 +781,8 @@ pub mod request_stats {
     ///
     /// See the messages above for additional context.
     #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Stats {
         /// Available with the
@@ -861,6 +867,8 @@ pub mod read_rows_request {
 }
 /// Response message for Bigtable.ReadRows.
 #[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsResponse {
     /// A collection of a row's contents as part of the read request.
