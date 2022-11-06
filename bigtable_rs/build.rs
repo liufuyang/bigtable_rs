@@ -1,6 +1,7 @@
 /// Reference:
 /// https://github.com/fdeantoni/prost-wkt
 /// https://github.com/hyperium/tonic/tree/master/tonic-build
+/// https://github.com/tokio-rs/prost/issues/672
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Uncomment the code below and cargo build again, when updating google protos
 
@@ -12,6 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // tonic_build::configure()
     //     .build_server(false)
     //     .out_dir("src/google")
+    //     .compile_well_known_types(true)
     //     .type_attribute(".", "#[serde_with::serde_as]")
     //     .type_attribute(".", "#[derive(serde::Serialize,serde::Deserialize)]")
     //     .type_attribute(".", "#[serde(rename_all = \"camelCase\")]")
@@ -63,7 +65,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         ".google.cloud.conformance.bigtable.v2.ReadRowsTest.Result.timestamp_micros",
     //         "#[serde_as(as = \"serde_with::DisplayFromStr\")]",
     //     )
-    //     .extern_path(".google.protobuf.Any", "::prost_wkt_types::Any")
+    //     .extern_path(
+    //         ".google.protobuf.BytesValue",
+    //         "::prost::alloc::vec::Vec<u8>",
+    //     )
+    //     .extern_path(
+    //         ".google.protobuf.StringValue",
+    //         "::prost::alloc::string::String",
+    //     )
+    //     .extern_path(".google.protobuf", "::prost_wkt_types")
     //     .file_descriptor_set_path(&descriptor_file)
     //     .compile(
     //         &[
