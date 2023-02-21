@@ -57,11 +57,11 @@ supports:
   (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
 * Default service account by retrieving a token from the gcloud metadata server
 
-You can use the library as follow:
+You can use the library as follows:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.2.3"
+bigtable_rs = "0.2.4"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.9.1"
 ```
