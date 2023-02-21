@@ -35,4 +35,4 @@ serde_path_to_error = "0.1.8"
 
 [build-dependencies]
 tonic-build = "0.8.2"
-prost-wkt-build = "0.3.3"
+prost-wkt-build = "0.4.0"
