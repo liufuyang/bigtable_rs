@@ -208,3 +208,13 @@ Running tests:
 ```
 cargo test -- --nocapture
 ```
+
+```
+rustup component add llvm-tools-preview
+cargo install grcov
+mkdir -p target/coverage/html
+
+CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' RUSTDOCFLAGS='-Cinstrument-coverage' cargo test
+
+grcov . --binary-path ./target/debug/deps/ -s . -t html --branch --ignore-not-existing --ignore '../*' --ignore "/*" --ignore "bigtable_rs/src/google/*" --keep-only "bigtable_rs/src/*" -o target/coverage/html
+```
