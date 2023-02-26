@@ -7,26 +7,69 @@ on:
   pull_request:
     branches:
       - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest] # todo: support windows-latest after knowing how to solve openssl issues
-        rust: [stable]
+        rust: [1.67.1]
 
     steps:
+      # cache cargo build
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo binaries
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      # rust build
       - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: ${{ matrix.rust }}
+          components: 'rustfmt, llvm-tools-preview'
       - uses: actions/checkout@master
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install rustfmt
-        run: rustup component add rustfmt
       - name: Check fmt
         run: cargo fmt -- --check
       - name: Run tests
-        run: cargo test # --verbose
+        run: cargo test --verbose
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Cinstrument-coverage'
+          RUSTDOCFLAGS: '-Cinstrument-coverage'
+      - name: Install grcov
+        run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
+      - name: Run grcov
+        run: grcov . --binary-path target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore '../**' --ignore '/*' --ignore 'bigtable_rs/src/google/*' --keep-only 'bigtable_rs/src/*' -o coverage.lcov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.lcov
+          flags: rust
+          fail_ci_if_error: false # optional (default = false)
