@@ -22,7 +22,7 @@ prost-types = "0.11.6"
 prost-wkt = "0.4.0"
 prost-wkt-types = "0.4.0"
 serde = { version = "1.0.145", features = ["derive"] }
-serde_with = { version = "2.0.1", features = ["base64"] }
+serde_with = { version = "3.2.0", features = ["base64"] }
 # end of above part
 gcp_auth = "0.8.0"
 log = "0.4.13"
