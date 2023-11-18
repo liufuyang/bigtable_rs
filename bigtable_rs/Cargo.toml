@@ -1,7 +1,7 @@
 [package]
 name = "bigtable_rs"
 description = "A very simple Google Bigtable client lib in Rust"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["Fuyang Liu <liufuyang@users.noreply.github.com>"]
 edition = "2021"
 license = "MIT"
@@ -13,7 +13,7 @@ readme = "../README.md"
 
 [dependencies]
 # tonic, prost, and prost-types are need for build generated rs files
-http = "0.2.8"
+http = "0.2.11"
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
 tonic = { version = "0.10.1", features = ["tls", "transport"] }
 tower = { version = "0.4" }
@@ -21,12 +21,12 @@ prost = "0.12.2"
 prost-types = "0.12.2"
 prost-wkt = "0.5.0"
 prost-wkt-types = "0.5.0"
-serde = { version = "1.0.145", features = ["derive"] }
+serde = { version = "1.0.192", features = ["derive"] }
 serde_with = { version = "3.4.0", features = ["base64"] }
 # end of above part
 gcp_auth = "0.9.0"
-log = "0.4.13"
-thiserror = "1.0.37"
+log = "0.4.20"
+thiserror = "1.0.50"
 
 [dev-dependencies]
 env_logger = "0.10.0"
