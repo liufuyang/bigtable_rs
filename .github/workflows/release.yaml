@@ -1,0 +1,119 @@
+---
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    # Only run release if rs file changed under bigtable_rs folder
+    paths:
+      - 'bigtable_rs/src/**.rs'
+
+# Only allow one release workflow to execute at a time, since each release
+# workflow uses shared resources (git tags, package registries)
+concurrency:
+  group: ${{ github.workflow }}
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  get-next-version:
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macOS-latest ] # todo: support windows-latest after knowing how to solve openssl issues
+
+    steps:
+      # cache cargo build
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo binaries
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      # rust build
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: 'rustfmt, llvm-tools-preview'
+      - uses: actions/checkout@master
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check fmt
+        run: cargo fmt -- --check
+      - name: Run tests
+        run: cargo test --verbose
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Cinstrument-coverage'
+          RUSTDOCFLAGS: '-Cinstrument-coverage'
+
+  ############## Release jobs below ################
+
+  release:
+    runs-on: ubuntu-latest
+    name: Release
+    if: needs.get-next-version.outputs.new-release-published == 'true'
+    needs:
+      - get-next-version
+      - test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          # Fetch all history and tags for calculating next semantic version
+          fetch-depth: 0
+
+      # cache cargo build
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo binaries
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          ci: false
+          dry_run: true
+          working_directory: ./bigtable_rs
+          extra_plugins: |
+            @semantic-release-cargo/semantic-release-cargo@2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
