@@ -3,6 +3,7 @@
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileDescriptorSet {
     #[prost(message, repeated, tag = "1")]
@@ -12,6 +13,7 @@ pub struct FileDescriptorSet {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileDescriptorProto {
     /// file name, relative to root of source tree
@@ -56,6 +58,7 @@ pub struct FileDescriptorProto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -86,6 +89,7 @@ pub mod descriptor_proto {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
+    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ExtensionRange {
         /// Inclusive.
@@ -103,6 +107,7 @@ pub mod descriptor_proto {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
+    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ReservedRange {
         /// Inclusive.
@@ -116,6 +121,7 @@ pub mod descriptor_proto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExtensionRangeOptions {
     /// The parser stores options it doesn't recognize here. See above.
@@ -126,6 +132,7 @@ pub struct ExtensionRangeOptions {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FieldDescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -270,6 +277,30 @@ pub mod field_descriptor_proto {
                 Type::Sint64 => "TYPE_SINT64",
             }
         }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_DOUBLE" => Some(Self::Double),
+                "TYPE_FLOAT" => Some(Self::Float),
+                "TYPE_INT64" => Some(Self::Int64),
+                "TYPE_UINT64" => Some(Self::Uint64),
+                "TYPE_INT32" => Some(Self::Int32),
+                "TYPE_FIXED64" => Some(Self::Fixed64),
+                "TYPE_FIXED32" => Some(Self::Fixed32),
+                "TYPE_BOOL" => Some(Self::Bool),
+                "TYPE_STRING" => Some(Self::String),
+                "TYPE_GROUP" => Some(Self::Group),
+                "TYPE_MESSAGE" => Some(Self::Message),
+                "TYPE_BYTES" => Some(Self::Bytes),
+                "TYPE_UINT32" => Some(Self::Uint32),
+                "TYPE_ENUM" => Some(Self::Enum),
+                "TYPE_SFIXED32" => Some(Self::Sfixed32),
+                "TYPE_SFIXED64" => Some(Self::Sfixed64),
+                "TYPE_SINT32" => Some(Self::Sint32),
+                "TYPE_SINT64" => Some(Self::Sint64),
+                _ => None,
+            }
+        }
     }
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -304,12 +335,22 @@ pub mod field_descriptor_proto {
                 Label::Repeated => "LABEL_REPEATED",
             }
         }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "LABEL_OPTIONAL" => Some(Self::Optional),
+                "LABEL_REQUIRED" => Some(Self::Required),
+                "LABEL_REPEATED" => Some(Self::Repeated),
+                _ => None,
+            }
+        }
     }
 }
 /// Describes a oneof.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OneofDescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -321,6 +362,7 @@ pub struct OneofDescriptorProto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EnumDescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -352,6 +394,7 @@ pub mod enum_descriptor_proto {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
+    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct EnumReservedRange {
         /// Inclusive.
@@ -366,6 +409,7 @@ pub mod enum_descriptor_proto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EnumValueDescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -379,6 +423,7 @@ pub struct EnumValueDescriptorProto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ServiceDescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -392,6 +437,7 @@ pub struct ServiceDescriptorProto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MethodDescriptorProto {
     #[prost(string, optional, tag = "1")]
@@ -414,6 +460,7 @@ pub struct MethodDescriptorProto {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileOptions {
     /// Sets the Java package where classes generated from this .proto will be
@@ -458,9 +505,10 @@ pub struct FileOptions {
     pub optimize_for: ::core::option::Option<i32>,
     /// Sets the Go package where structs generated from this .proto will be
     /// placed. If omitted, the Go package will be derived from the following:
-    ///    - The basename of the package import path, if provided.
-    ///    - Otherwise, the package statement in the .proto file, if present.
-    ///    - Otherwise, the basename of the .proto file, without extension.
+    ///
+    /// * The basename of the package import path, if provided.
+    /// * Otherwise, the package statement in the .proto file, if present.
+    /// * Otherwise, the basename of the .proto file, without extension.
     #[prost(string, optional, tag = "11")]
     pub go_package: ::core::option::Option<::prost::alloc::string::String>,
     /// Should generic services be generated in each language?  "Generic" services
@@ -568,11 +616,21 @@ pub mod file_options {
                 OptimizeMode::LiteRuntime => "LITE_RUNTIME",
             }
         }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "SPEED" => Some(Self::Speed),
+                "CODE_SIZE" => Some(Self::CodeSize),
+                "LITE_RUNTIME" => Some(Self::LiteRuntime),
+                _ => None,
+            }
+        }
     }
 }
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageOptions {
     /// Set true to use the old proto1 MessageSet wire format for extensions.
@@ -581,10 +639,10 @@ pub struct MessageOptions {
     /// efficient, has fewer features, and is more complicated.
     ///
     /// The message must be defined exactly as follows:
-    ///    message Foo {
-    ///      option message_set_wire_format = true;
-    ///      extensions 4 to max;
-    ///    }
+    /// message Foo {
+    /// option message_set_wire_format = true;
+    /// extensions 4 to max;
+    /// }
     /// Note that the message cannot have any defined fields; MessageSets only
     /// have extensions.
     ///
@@ -610,14 +668,14 @@ pub struct MessageOptions {
     /// maps field.
     ///
     /// For maps fields:
-    ///      map<KeyType, ValueType> map_field = 1;
+    /// map\<KeyType, ValueType> map_field = 1;
     /// The parsed descriptor looks like:
-    ///      message MapFieldEntry {
-    ///          option map_entry = true;
-    ///          optional KeyType key = 1;
-    ///          optional ValueType value = 2;
-    ///      }
-    ///      repeated MapFieldEntry map_field = 1;
+    /// message MapFieldEntry {
+    /// option map_entry = true;
+    /// optional KeyType key = 1;
+    /// optional ValueType value = 2;
+    /// }
+    /// repeated MapFieldEntry map_field = 1;
     ///
     /// Implementations may choose not to generate the map_entry=true message, but
     /// use a native map in the target language to hold the keys and values.
@@ -636,6 +694,7 @@ pub struct MessageOptions {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FieldOptions {
     /// The ctype option instructs the C++ code generator to use a different
@@ -690,7 +749,6 @@ pub struct FieldOptions {
     /// interface is not affected by this option; const methods remain safe to
     /// call from multiple threads concurrently, while non-const methods continue
     /// to require exclusive access.
-    ///
     ///
     /// Note that implementations may choose not to check required fields within
     /// a lazy sub-message.  That is, calling IsInitialized() on the outer message
@@ -752,6 +810,15 @@ pub mod field_options {
                 CType::StringPiece => "STRING_PIECE",
             }
         }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STRING" => Some(Self::String),
+                "CORD" => Some(Self::Cord),
+                "STRING_PIECE" => Some(Self::StringPiece),
+                _ => None,
+            }
+        }
     }
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -788,11 +855,21 @@ pub mod field_options {
                 JsType::JsNumber => "JS_NUMBER",
             }
         }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "JS_NORMAL" => Some(Self::JsNormal),
+                "JS_STRING" => Some(Self::JsString),
+                "JS_NUMBER" => Some(Self::JsNumber),
+                _ => None,
+            }
+        }
     }
 }
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OneofOptions {
     /// The parser stores options it doesn't recognize here. See above.
@@ -802,6 +879,7 @@ pub struct OneofOptions {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EnumOptions {
     /// Set this option to true to allow mapping different tag names to the same
@@ -821,6 +899,7 @@ pub struct EnumOptions {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EnumValueOptions {
     /// Is this enum value deprecated?
@@ -836,6 +915,7 @@ pub struct EnumValueOptions {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ServiceOptions {
     /// Is this service deprecated?
@@ -851,6 +931,7 @@ pub struct ServiceOptions {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MethodOptions {
     /// Is this method deprecated?
@@ -909,6 +990,15 @@ pub mod method_options {
                 IdempotencyLevel::Idempotent => "IDEMPOTENT",
             }
         }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "IDEMPOTENCY_UNKNOWN" => Some(Self::IdempotencyUnknown),
+                "NO_SIDE_EFFECTS" => Some(Self::NoSideEffects),
+                "IDEMPOTENT" => Some(Self::Idempotent),
+                _ => None,
+            }
+        }
     }
 }
 /// A message representing a option the parser does not recognize. This only
@@ -920,6 +1010,7 @@ pub mod method_options {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UninterpretedOption {
     #[prost(message, repeated, tag = "2")]
@@ -944,11 +1035,12 @@ pub mod uninterpreted_option {
     /// The name of the uninterpreted option.  Each string represents a segment in
     /// a dot-separated name.  is_extension is true iff a segment represents an
     /// extension (denoted with parentheses in options specs in .proto files).
-    /// E.g.,{ ["foo", false], ["bar.baz", true], ["qux", false] } represents
+    /// E.g.,{ \["foo", false\], \["bar.baz", true\], \["qux", false\] } represents
     /// "foo.(bar.baz).qux".
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
+    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct NamePart {
         #[prost(string, required, tag = "1")]
@@ -962,6 +1054,7 @@ pub mod uninterpreted_option {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SourceCodeInfo {
     /// A Location identifies a piece of source code in a .proto file which
@@ -970,43 +1063,44 @@ pub struct SourceCodeInfo {
     /// tools.
     ///
     /// For example, say we have a file like:
-    ///    message Foo {
-    ///      optional string foo = 1;
-    ///    }
+    /// message Foo {
+    /// optional string foo = 1;
+    /// }
     /// Let's look at just the field definition:
-    ///    optional string foo = 1;
-    ///    ^       ^^     ^^  ^  ^^^
-    ///    a       bc     de  f  ghi
+    /// optional string foo = 1;
+    /// ^       ^^     ^^  ^  ^^^
+    /// a       bc     de  f  ghi
     /// We have the following locations:
-    ///    span   path               represents
-    ///    [a,i)  [ 4, 0, 2, 0 ]     The whole field definition.
-    ///    [a,b)  [ 4, 0, 2, 0, 4 ]  The label (optional).
-    ///    [c,d)  [ 4, 0, 2, 0, 5 ]  The type (string).
-    ///    [e,f)  [ 4, 0, 2, 0, 1 ]  The name (foo).
-    ///    [g,h)  [ 4, 0, 2, 0, 3 ]  The number (1).
+    /// span   path               represents
+    /// \[a,i)  \[ 4, 0, 2, 0 \]     The whole field definition.
+    /// \[a,b)  \[ 4, 0, 2, 0, 4 \]  The label (optional).
+    /// \[c,d)  \[ 4, 0, 2, 0, 5 \]  The type (string).
+    /// \[e,f)  \[ 4, 0, 2, 0, 1 \]  The name (foo).
+    /// \[g,h)  \[ 4, 0, 2, 0, 3 \]  The number (1).
     ///
     /// Notes:
-    /// - A location may refer to a repeated field itself (i.e. not to any
-    ///    particular index within it).  This is used whenever a set of elements are
-    ///    logically enclosed in a single code segment.  For example, an entire
-    ///    extend block (possibly containing multiple extension definitions) will
-    ///    have an outer location whose path refers to the "extensions" repeated
-    ///    field without an index.
-    /// - Multiple locations may have the same path.  This happens when a single
-    ///    logical declaration is spread out across multiple places.  The most
-    ///    obvious example is the "extend" block again -- there may be multiple
-    ///    extend blocks in the same scope, each of which will have the same path.
-    /// - A location's span is not always a subset of its parent's span.  For
-    ///    example, the "extendee" of an extension declaration appears at the
-    ///    beginning of the "extend" block and is shared by all extensions within
-    ///    the block.
-    /// - Just because a location's span is a subset of some other location's span
-    ///    does not mean that it is a descendant.  For example, a "group" defines
-    ///    both a type and a field in a single declaration.  Thus, the locations
-    ///    corresponding to the type and field and their components will overlap.
-    /// - Code which tries to interpret locations should probably be designed to
-    ///    ignore those that it doesn't understand, as more types of locations could
-    ///    be recorded in the future.
+    ///
+    /// * A location may refer to a repeated field itself (i.e. not to any
+    ///   particular index within it).  This is used whenever a set of elements are
+    ///   logically enclosed in a single code segment.  For example, an entire
+    ///   extend block (possibly containing multiple extension definitions) will
+    ///   have an outer location whose path refers to the "extensions" repeated
+    ///   field without an index.
+    /// * Multiple locations may have the same path.  This happens when a single
+    ///   logical declaration is spread out across multiple places.  The most
+    ///   obvious example is the "extend" block again -- there may be multiple
+    ///   extend blocks in the same scope, each of which will have the same path.
+    /// * A location's span is not always a subset of its parent's span.  For
+    ///   example, the "extendee" of an extension declaration appears at the
+    ///   beginning of the "extend" block and is shared by all extensions within
+    ///   the block.
+    /// * Just because a location's span is a subset of some other location's span
+    ///   does not mean that it is a descendant.  For example, a "group" defines
+    ///   both a type and a field in a single declaration.  Thus, the locations
+    ///   corresponding to the type and field and their components will overlap.
+    /// * Code which tries to interpret locations should probably be designed to
+    ///   ignore those that it doesn't understand, as more types of locations could
+    ///   be recorded in the future.
     #[prost(message, repeated, tag = "1")]
     pub location: ::prost::alloc::vec::Vec<source_code_info::Location>,
 }
@@ -1015,6 +1109,7 @@ pub mod source_code_info {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
+    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Location {
         /// Identifies which part of the FileDescriptorProto was defined at this
@@ -1023,21 +1118,21 @@ pub mod source_code_info {
         /// Each element is a field number or an index.  They form a path from
         /// the root FileDescriptorProto to the place where the definition.  For
         /// example, this path:
-        ///    [ 4, 3, 2, 7, 1 ]
+        /// \[ 4, 3, 2, 7, 1 \]
         /// refers to:
-        ///    file.message_type(3)  // 4, 3
-        ///        .field(7)         // 2, 7
-        ///        .name()           // 1
+        /// file.message_type(3)  // 4, 3
+        /// .field(7)         // 2, 7
+        /// .name()           // 1
         /// This is because FileDescriptorProto.message_type has field number 4:
-        ///    repeated DescriptorProto message_type = 4;
+        /// repeated DescriptorProto message_type = 4;
         /// and DescriptorProto.field has field number 2:
-        ///    repeated FieldDescriptorProto field = 2;
+        /// repeated FieldDescriptorProto field = 2;
         /// and FieldDescriptorProto.name has field number 1:
-        ///    optional string name = 1;
+        /// optional string name = 1;
         ///
         /// Thus, the above path gives the location of a field name.  If we removed
         /// the last element:
-        ///    [ 4, 3, 2, 7 ]
+        /// \[ 4, 3, 2, 7 \]
         /// this path refers to the whole field declaration (from the beginning
         /// of the label to the terminating semicolon).
         #[prost(int32, repeated, tag = "1")]
@@ -1068,34 +1163,34 @@ pub mod source_code_info {
         ///
         /// Examples:
         ///
-        ///    optional int32 foo = 1;  // Comment attached to foo.
-        ///    // Comment attached to bar.
-        ///    optional int32 bar = 2;
+        /// optional int32 foo = 1;  // Comment attached to foo.
+        /// // Comment attached to bar.
+        /// optional int32 bar = 2;
         ///
-        ///    optional string baz = 3;
-        ///    // Comment attached to baz.
-        ///    // Another line attached to baz.
+        /// optional string baz = 3;
+        /// // Comment attached to baz.
+        /// // Another line attached to baz.
         ///
-        ///    // Comment attached to qux.
-        ///    //
-        ///    // Another line attached to qux.
-        ///    optional double qux = 4;
+        /// // Comment attached to qux.
+        /// //
+        /// // Another line attached to qux.
+        /// optional double qux = 4;
         ///
-        ///    // Detached comment for corge. This is not leading or trailing comments
-        ///    // to qux or corge because there are blank lines separating it from
-        ///    // both.
+        /// // Detached comment for corge. This is not leading or trailing comments
+        /// // to qux or corge because there are blank lines separating it from
+        /// // both.
         ///
-        ///    // Detached comment for corge paragraph 2.
+        /// // Detached comment for corge paragraph 2.
         ///
-        ///    optional string corge = 5;
-        ///    /* Block comment attached
-        ///     * to corge.  Leading asterisks
-        ///     * will be removed. */
-        ///    /* Block comment attached to
-        ///     * grault. */
-        ///    optional int32 grault = 6;
+        /// optional string corge = 5;
+        /// /\* Block comment attached
+        /// \* to corge.  Leading asterisks
+        /// \* will be removed. */
+        /// /* Block comment attached to
+        /// \* grault. \*/
+        /// optional int32 grault = 6;
         ///
-        ///    // ignored detached comments.
+        /// // ignored detached comments.
         #[prost(string, optional, tag = "3")]
         pub leading_comments: ::core::option::Option<::prost::alloc::string::String>,
         #[prost(string, optional, tag = "4")]
@@ -1112,6 +1207,7 @@ pub mod source_code_info {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GeneratedCodeInfo {
     /// An Annotation connects some span of text in generated code to an element
@@ -1124,6 +1220,7 @@ pub mod generated_code_info {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
+    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Annotation {
         /// Identifies the element in the original source .proto file. This field
@@ -1155,43 +1252,49 @@ pub mod generated_code_info {
 ///
 /// Example 1: Compute Duration from two Timestamps in pseudo code.
 ///
-///      Timestamp start = ...;
-///      Timestamp end = ...;
-///      Duration duration = ...;
+/// ```text
+/// Timestamp start = ...;
+/// Timestamp end = ...;
+/// Duration duration = ...;
 ///
-///      duration.seconds = end.seconds - start.seconds;
-///      duration.nanos = end.nanos - start.nanos;
+/// duration.seconds = end.seconds - start.seconds;
+/// duration.nanos = end.nanos - start.nanos;
 ///
-///      if (duration.seconds < 0 && duration.nanos > 0) {
-///        duration.seconds += 1;
-///        duration.nanos -= 1000000000;
-///      } else if (duration.seconds > 0 && duration.nanos < 0) {
-///        duration.seconds -= 1;
-///        duration.nanos += 1000000000;
-///      }
+/// if (duration.seconds < 0 && duration.nanos > 0) {
+///    duration.seconds += 1;
+///    duration.nanos -= 1000000000;
+/// } else if (duration.seconds > 0 && duration.nanos < 0) {
+///    duration.seconds -= 1;
+///    duration.nanos += 1000000000;
+/// }
+/// ```
 ///
 /// Example 2: Compute Timestamp from Timestamp + Duration in pseudo code.
 ///
-///      Timestamp start = ...;
-///      Duration duration = ...;
-///      Timestamp end = ...;
+/// ```text
+/// Timestamp start = ...;
+/// Duration duration = ...;
+/// Timestamp end = ...;
 ///
-///      end.seconds = start.seconds + duration.seconds;
-///      end.nanos = start.nanos + duration.nanos;
+/// end.seconds = start.seconds + duration.seconds;
+/// end.nanos = start.nanos + duration.nanos;
 ///
-///      if (end.nanos < 0) {
-///        end.seconds -= 1;
-///        end.nanos += 1000000000;
-///      } else if (end.nanos >= 1000000000) {
-///        end.seconds += 1;
-///        end.nanos -= 1000000000;
-///      }
+/// if (end.nanos < 0) {
+///    end.seconds -= 1;
+///    end.nanos += 1000000000;
+/// } else if (end.nanos >= 1000000000) {
+///    end.seconds += 1;
+///    end.nanos -= 1000000000;
+/// }
+/// ```
 ///
 /// Example 3: Compute Duration from datetime.timedelta in Python.
 ///
-///      td = datetime.timedelta(days=3, minutes=10)
-///      duration = Duration()
-///      duration.FromTimedelta(td)
+/// ```text
+/// td = datetime.timedelta(days=3, minutes=10)
+/// duration = Duration()
+/// duration.FromTimedelta(td)
+/// ```
 ///
 /// # JSON Mapping
 ///
@@ -1202,11 +1305,10 @@ pub mod generated_code_info {
 /// encoded in JSON format as "3s", while 3 seconds and 1 nanosecond should
 /// be expressed in JSON format as "3.000000001s", and 3 seconds and 1
 /// microsecond should be expressed in JSON format as "3.000001s".
-///
-///
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Duration {
     /// Signed seconds of the span of time. Must be from -315,576,000,000
@@ -1229,6 +1331,7 @@ pub struct Duration {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DoubleValue {
     /// The double value.
@@ -1241,6 +1344,7 @@ pub struct DoubleValue {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FloatValue {
     /// The float value.
@@ -1253,6 +1357,7 @@ pub struct FloatValue {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Int64Value {
     /// The int64 value.
@@ -1265,6 +1370,7 @@ pub struct Int64Value {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UInt64Value {
     /// The uint64 value.
@@ -1277,6 +1383,7 @@ pub struct UInt64Value {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Int32Value {
     /// The int32 value.
@@ -1289,6 +1396,7 @@ pub struct Int32Value {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UInt32Value {
     /// The uint32 value.
@@ -1301,6 +1409,7 @@ pub struct UInt32Value {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct BoolValue {
     /// The bool value.
@@ -1315,45 +1424,53 @@ pub struct BoolValue {
 ///
 /// Example 1: Pack and unpack a message in C++.
 ///
-///      Foo foo = ...;
-///      Any any;
-///      any.PackFrom(foo);
-///      ...
-///      if (any.UnpackTo(&foo)) {
-///        ...
-///      }
+/// ```text
+/// Foo foo = ...;
+/// Any any;
+/// any.PackFrom(foo);
+/// ...
+/// if (any.UnpackTo(&foo)) {
+///    ...
+/// }
+/// ```
 ///
 /// Example 2: Pack and unpack a message in Java.
 ///
-///      Foo foo = ...;
-///      Any any = Any.pack(foo);
-///      ...
-///      if (any.is(Foo.class)) {
-///        foo = any.unpack(Foo.class);
-///      }
+/// ```text
+/// Foo foo = ...;
+/// Any any = Any.pack(foo);
+/// ...
+/// if (any.is(Foo.class)) {
+///    foo = any.unpack(Foo.class);
+/// }
+/// ```
 ///
-///   Example 3: Pack and unpack a message in Python.
+/// Example 3: Pack and unpack a message in Python.
 ///
-///      foo = Foo(...)
-///      any = Any()
-///      any.Pack(foo)
-///      ...
-///      if any.Is(Foo.DESCRIPTOR):
-///        any.Unpack(foo)
-///        ...
+/// ```text
+/// foo = Foo(...)
+/// any = Any()
+/// any.Pack(foo)
+/// ...
+/// if any.Is(Foo.DESCRIPTOR):
+///    any.Unpack(foo)
+///    ...
+/// ```
 ///
-///   Example 4: Pack and unpack a message in Go
+/// Example 4: Pack and unpack a message in Go
 ///
-///       foo := &pb.Foo{...}
-///       any, err := anypb.New(foo)
-///       if err != nil {
-///         ...
-///       }
-///       ...
-///       foo := &pb.Foo{}
-///       if err := any.UnmarshalTo(foo); err != nil {
-///         ...
-///       }
+/// ```text
+///   foo := &pb.Foo{...}
+///   any, err := anypb.New(foo)
+///   if err != nil {
+///     ...
+///   }
+///   ...
+///   foo := &pb.Foo{}
+///   if err := any.UnmarshalTo(foo); err != nil {
+///     ...
+///   }
+/// ```
 ///
 /// The pack methods provided by protobuf library will by default use
 /// 'type.googleapis.com/full.type.name' as the type URL and the unpack
@@ -1361,38 +1478,41 @@ pub struct BoolValue {
 /// in the type URL, for example "foo.bar.com/x/y.z" will yield type
 /// name "y.z".
 ///
+/// # JSON
 ///
-/// JSON
-/// ====
 /// The JSON representation of an `Any` value uses the regular
 /// representation of the deserialized, embedded message, with an
 /// additional field `@type` which contains the type URL. Example:
 ///
-///      package google.profile;
-///      message Person {
-///        string first_name = 1;
-///        string last_name = 2;
-///      }
+/// ```text
+/// package google.profile;
+/// message Person {
+///    string first_name = 1;
+///    string last_name = 2;
+/// }
 ///
-///      {
-///        "@type": "type.googleapis.com/google.profile.Person",
-///        "firstName": <string>,
-///        "lastName": <string>
-///      }
+/// {
+///    "@type": "type.googleapis.com/google.profile.Person",
+///    "firstName": <string>,
+///    "lastName": <string>
+/// }
+/// ```
 ///
 /// If the embedded message type is well-known and has a custom JSON
 /// representation, that representation will be embedded adding a field
 /// `value` which holds the custom JSON in addition to the `@type`
-/// field. Example (for message \[google.protobuf.Duration][\]):
+/// field. Example (for message \[google.protobuf.Duration\]\[\]):
 ///
-///      {
-///        "@type": "type.googleapis.com/google.protobuf.Duration",
-///        "value": "1.212s"
-///      }
-///
+/// ```text
+/// {
+///    "@type": "type.googleapis.com/google.protobuf.Duration",
+///    "value": "1.212s"
+/// }
+/// ```
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Any {
     /// A URL/resource name that uniquely identifies the type of the serialized
@@ -1408,13 +1528,13 @@ pub struct Any {
     /// server that maps type URLs to message definitions as follows:
     ///
     /// * If no scheme is provided, `https` is assumed.
-    /// * An HTTP GET on the URL must yield a \[google.protobuf.Type][\]
-    ///    value in binary format, or produce an error.
+    /// * An HTTP GET on the URL must yield a \[google.protobuf.Type\]\[\]
+    ///   value in binary format, or produce an error.
     /// * Applications are allowed to cache lookup results based on the
-    ///    URL, or have them precompiled into a binary to avoid any
-    ///    lookup. Therefore, binary compatibility needs to be preserved
-    ///    on changes to types. (Use versioned type names to manage
-    ///    breaking changes.)
+    ///   URL, or have them precompiled into a binary to avoid any
+    ///   lookup. Therefore, binary compatibility needs to be preserved
+    ///   on changes to types. (Use versioned type names to manage
+    ///   breaking changes.)
     ///
     /// Note: this functionality is not currently available in the official
     /// protobuf release, and it is not used for type URLs beginning with
@@ -1422,7 +1542,6 @@ pub struct Any {
     ///
     /// Schemes other than `http`, `https` (or the empty scheme) might be
     /// used with implementation specific semantics.
-    ///
     #[prost(string, tag = "1")]
     pub type_url: ::prost::alloc::string::String,
     /// Must be a valid serialized protocol buffer of the above specified type.

@@ -48,7 +48,10 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: 'rustfmt, llvm-tools-preview'
-      - uses: actions/checkout@master
+      - name: Checkout repository
+        uses: actions/checkout@master
+        with:
+          submodules: 'true'
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
