@@ -89,7 +89,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use gcp_auth::AuthenticationManager;
+use gcp_auth::{AuthenticationManager, CustomServiceAccount};
 use log::info;
 use thiserror::Error;
 use tonic::transport::Endpoint;
@@ -215,6 +215,7 @@ impl BigTableConnection {
         is_read_only: bool,
         channel_size: usize,
         timeout: Option<Duration>,
+        credential_path: Option<&str>,
     ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
@@ -247,8 +248,13 @@ impl BigTableConnection {
             }
 
             Err(_) => {
-                let authentication_manager = AuthenticationManager::new().await?;
 
+                let authentication_manager = if credential_path.is_some(){
+                    AuthenticationManager::from(CustomServiceAccount::from_file(credential_path.unwrap()).unwrap())
+                }else{
+                    AuthenticationManager::new().await?
+                };
+                
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
                     project_id, instance_name
