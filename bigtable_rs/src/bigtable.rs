@@ -247,7 +247,6 @@ impl BigTableConnection {
             }
 
             Err(_) => {
-
                 let authentication_manager = AuthenticationManager::new().await?;
 
                 let table_prefix = format!(
