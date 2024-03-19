@@ -86,6 +86,7 @@
 //! }
 //! ```
 
+use core::time;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -248,64 +249,19 @@ impl BigTableConnection {
 
             Err(_) => {
                 let authentication_manager = AuthenticationManager::new().await?;
-
-                let table_prefix = format!(
-                    "projects/{}/instances/{}/tables/",
-                    project_id, instance_name
-                );
-
-                let endpoints: Result<Vec<Endpoint>> = vec![0; channel_size.max(1)]
-                    .iter()
-                    .map(move |_| {
-                        Channel::from_static("https://bigtable.googleapis.com")
-                            .tls_config(
-                                ClientTlsConfig::new()
-                                    .ca_certificate(
-                                        root_ca_certificate::load()
-                                            .map_err(Error::CertificateError)
-                                            .expect("root certificate error"),
-                                    )
-                                    .domain_name("bigtable.googleapis.com"),
-                            )
-                            .map_err(Error::TransportError)
-                    })
-                    .collect();
-
-                let endpoints: Vec<Endpoint> = endpoints?
-                    .into_iter()
-                    .map(|ep| {
-                        ep.http2_keep_alive_interval(Duration::from_secs(60))
-                            .keep_alive_while_idle(true)
-                    })
-                    .map(|ep| {
-                        if let Some(timeout) = timeout {
-                            ep.timeout(timeout)
-                        } else {
-                            ep
-                        }
-                    })
-                    .collect();
-
-                let auth_manager = Some(Arc::new(authentication_manager));
-                Ok(Self {
-                    client: create_client(endpoints, auth_manager, is_read_only),
-                    table_prefix: Arc::new(table_prefix),
-                    timeout: Arc::new(timeout),
-                })
+                Self::new_with_auth_manager(project_id, instance_name, is_read_only, channel_size, timeout, authentication_manager).await
             }
         }
     }
 
-    pub async fn new_with_path(
+    pub async fn new_with_auth_manager(
         project_id: &str,
         instance_name: &str,
         is_read_only: bool,
         channel_size: usize,
         timeout: Option<Duration>,
-        credential_path: &str,
-    ) -> Result<Self> {
-        let authentication_manager = AuthenticationManager::from(CustomServiceAccount::from_file(credential_path)?);
-        
+        authentication_manager: AuthenticationManager,
+    ) -> Result<Self> {        
         let table_prefix = format!(
             "projects/{}/instances/{}/tables/",
             project_id, instance_name
