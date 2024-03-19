@@ -90,7 +90,7 @@ use core::time;
 use std::sync::Arc;
 use std::time::Duration;
 
-use gcp_auth::{AuthenticationManager, CustomServiceAccount};
+use gcp_auth::AuthenticationManager;
 use log::info;
 use thiserror::Error;
 use tonic::transport::Endpoint;
