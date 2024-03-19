@@ -216,16 +216,28 @@ impl BigTableConnection {
         channel_size: usize,
         timeout: Option<Duration>,
     ) -> Result<Self> {
-        let authentication_manager = AuthenticationManager::new().await?;
-        Self::new_with_auth_manager(
-            project_id,
-            instance_name,
-            is_read_only,
-            channel_size,
-            timeout,
-            authentication_manager,
-        )
-        .await
+        match std::env::var("BIGTABLE_EMULATOR_HOST") {
+            Ok(endpoint) => Self::new_with_emulator(
+                endpoint.as_str(),
+                project_id,
+                instance_name,
+                is_read_only,
+                channel_size,
+                timeout,
+            ),
+
+            Err(_) => {
+                let authentication_manager = AuthenticationManager::new().await?;
+                Self::new_with_auth_manager(
+                    project_id,
+                    instance_name,
+                    is_read_only,
+                    channel_size,
+                    timeout,
+                    authentication_manager,
+                )
+            }
+        }
     }
     /// Establish a connection to the BigTable instance named `instance_name`.  If read-only access
     /// is required, the `read_only` flag should be used to reduce the requested OAuth2 scope.
@@ -245,7 +257,7 @@ impl BigTableConnection {
     /// https://docs.rs/tokio/latest/tokio/attr.main.html, but it might be a very different case for
     /// different applications.
     ///
-    pub async fn new_with_auth_manager(
+    pub fn new_with_auth_manager(
         project_id: &str,
         instance_name: &str,
         is_read_only: bool,
@@ -254,34 +266,14 @@ impl BigTableConnection {
         authentication_manager: AuthenticationManager,
     ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
-            Ok(endpoint) => {
-                info!("Connecting to bigtable emulator at {}", endpoint);
-                let endpoints: Vec<Endpoint> = vec![0; channel_size.max(1)]
-                    .iter()
-                    .map(move |_| {
-                        Channel::from_shared(format!("http://{}", endpoint))
-                            .expect("Invalid connection emulator uri")
-                            .http2_keep_alive_interval(Duration::from_secs(60))
-                            .keep_alive_while_idle(true)
-                    })
-                    .map(|ep| {
-                        if let Some(timeout) = timeout {
-                            ep.timeout(timeout)
-                        } else {
-                            ep
-                        }
-                    })
-                    .collect();
-
-                Ok(Self {
-                    client: create_client(endpoints, None, is_read_only),
-                    table_prefix: Arc::new(format!(
-                        "projects/{}/instances/{}/tables/",
-                        project_id, instance_name
-                    )),
-                    timeout: Arc::new(timeout),
-                })
-            }
+            Ok(endpoint) => Self::new_with_emulator(
+                endpoint.as_str(),
+                project_id,
+                instance_name,
+                is_read_only,
+                channel_size,
+                timeout,
+            ),
 
             Err(_) => {
                 let table_prefix = format!(
@@ -329,6 +321,42 @@ impl BigTableConnection {
                 })
             }
         }
+    }
+
+    fn new_with_emulator(
+        emulator_endpoint: &str,
+        project_id: &str,
+        instance_name: &str,
+        is_read_only: bool,
+        channel_size: usize,
+        timeout: Option<Duration>,
+    ) -> Result<Self> {
+        info!("Connecting to bigtable emulator at {}", emulator_endpoint);
+        let endpoints: Vec<Endpoint> = vec![0; channel_size.max(1)]
+            .iter()
+            .map(move |_| {
+                Channel::from_shared(format!("http://{}", emulator_endpoint))
+                    .expect("Invalid connection emulator uri")
+                    .http2_keep_alive_interval(Duration::from_secs(60))
+                    .keep_alive_while_idle(true)
+            })
+            .map(|ep| {
+                if let Some(timeout) = timeout {
+                    ep.timeout(timeout)
+                } else {
+                    ep
+                }
+            })
+            .collect();
+
+        Ok(Self {
+            client: create_client(endpoints, None, is_read_only),
+            table_prefix: Arc::new(format!(
+                "projects/{}/instances/{}/tables/",
+                project_id, instance_name
+            )),
+            timeout: Arc::new(timeout),
+        })
     }
 
     /// Create a new BigTable client by cloning needed properties.
