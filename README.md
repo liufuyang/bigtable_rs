@@ -19,7 +19,9 @@ and porting code from [here](
 https://github.com/solana-labs/solana/tree/master/storage-bigtable)
 (thanks to [@mvines](https://github.com/mvines)).
 
-Code for [read_rows parsing](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/src/bigtable/read_rows.rs#L36-L212) logic
+Code
+for [read_rows parsing](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/src/bigtable/read_rows.rs#L36-L212)
+logic
 is [tested](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/tests/read_rows/read_rows_test.rs)
 by [porting](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/tests/read_rows/read_rows_test.json)
 Google's Java client
@@ -61,9 +63,9 @@ You can use the library as follows:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.2.6"
+bigtable_rs = "0.2.7"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
-env_logger = "0.9.1"
+env_logger = "0.11.1"
 ```
 
 Documentation is on [crate.io](https://docs.rs/bigtable_rs/0.1.3/bigtable_rs/).
@@ -184,7 +186,9 @@ To run it against real Bigtable instance:
 ```
 GOOGLE_APPLICATION_CREDENTIALS=<path_to_key>/service_account_key.json cargo run --bin simple_read
 ```
+
 Or if you want to use your `gcloud auth login` auth then simply run the client without any special env settings:
+
 ```
 cargo run --bin simple_read
 ```
