@@ -104,6 +104,7 @@ use crate::google::bigtable::v2::{
     MutateRowsResponse, ReadRowsRequest, RowRange, RowSet, SampleRowKeysRequest,
     SampleRowKeysResponse,
 };
+use crate::google::bigtable::v2::{CheckAndMutateRowRequest, CheckAndMutateRowResponse};
 use crate::{root_ca_certificate, util::get_end_key};
 
 pub mod read_rows;
@@ -388,6 +389,19 @@ pub struct BigTable {
 }
 
 impl BigTable {
+    /// Wrapped `check_and_mutate_row` method
+    pub async fn check_and_mutate_row(
+        &mut self,
+        request: CheckAndMutateRowRequest,
+    ) -> Result<CheckAndMutateRowResponse> {
+        let response = self
+            .client
+            .check_and_mutate_row(request)
+            .await?
+            .into_inner();
+        Ok(response)
+    }
+
     /// Wrapped `read_rows` method
     pub async fn read_rows(
         &mut self,
