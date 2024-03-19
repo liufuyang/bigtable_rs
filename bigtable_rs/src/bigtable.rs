@@ -216,6 +216,43 @@ impl BigTableConnection {
         channel_size: usize,
         timeout: Option<Duration>,
     ) -> Result<Self> {
+        let authentication_manager = AuthenticationManager::new().await?;
+        Self::new_with_auth_manager(
+            project_id,
+            instance_name,
+            is_read_only,
+            channel_size,
+            timeout,
+            authentication_manager,
+        )
+        .await
+    }
+    /// Establish a connection to the BigTable instance named `instance_name`.  If read-only access
+    /// is required, the `read_only` flag should be used to reduce the requested OAuth2 scope.
+    ///
+    /// The `authentication_manager` variable will be used to determine the
+    /// program name that contains the BigTable instance in addition to access credentials.
+    ///
+    ///
+    /// `channel_size` defines the number of connections (or channels) established to Bigtable
+    /// service, and the requests are load balanced onto all the channels. You must therefore
+    /// make sure all of these connections are open when a new request is to be sent.
+    /// Idle connections are automatically closed in "a few minutes". Therefore it is important to
+    /// make sure you have a high enough QPS to send at least one request through all the
+    /// connections (in every service host) every minute. If not, you should consider decreasing the
+    /// channel size. If you are not sure what value to pick and your load is low, just start with 1.
+    /// The recommended value could be 2 x the thread count in your tokio environment see info here
+    /// https://docs.rs/tokio/latest/tokio/attr.main.html, but it might be a very different case for
+    /// different applications.
+    ///
+    pub async fn new_with_auth_manager(
+        project_id: &str,
+        instance_name: &str,
+        is_read_only: bool,
+        channel_size: usize,
+        timeout: Option<Duration>,
+        authentication_manager: AuthenticationManager,
+    ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
                 info!("Connecting to bigtable emulator at {}", endpoint);
@@ -247,8 +284,6 @@ impl BigTableConnection {
             }
 
             Err(_) => {
-                let authentication_manager = AuthenticationManager::new().await?;
-
                 let table_prefix = format!(
                     "projects/{}/instances/{}/tables/",
                     project_id, instance_name
