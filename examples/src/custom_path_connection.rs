@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let key: String = "key3".to_owned();
 
-    let json_path:&str = "path/to/json";
+    let json_path: &str = "path/to/json";
     // make a bigtable client
     let connection = bigtable::BigTableConnection::new_with_auth_manager(
         project_id,
@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         false,
         channel_size,
         Some(timeout),
-        AuthenticationManager::from(CustomServiceAccount::from_file(json_path).unwrap())
+        AuthenticationManager::from(CustomServiceAccount::from_file(json_path).unwrap()),
     )
     .await?;
     let mut bigtable = connection.client();

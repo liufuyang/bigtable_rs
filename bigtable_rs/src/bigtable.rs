@@ -217,7 +217,15 @@ impl BigTableConnection {
         timeout: Option<Duration>,
     ) -> Result<Self> {
         let authentication_manager = AuthenticationManager::new().await?;
-        Self::new_with_auth_manager(project_id, instance_name, is_read_only, channel_size, timeout, authentication_manager).await
+        Self::new_with_auth_manager(
+            project_id,
+            instance_name,
+            is_read_only,
+            channel_size,
+            timeout,
+            authentication_manager,
+        )
+        .await
     }
     /// Establish a connection to the BigTable instance named `instance_name`.  If read-only access
     /// is required, the `read_only` flag should be used to reduce the requested OAuth2 scope.
@@ -244,7 +252,7 @@ impl BigTableConnection {
         channel_size: usize,
         timeout: Option<Duration>,
         authentication_manager: AuthenticationManager,
-    ) -> Result<Self> {      
+    ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => {
                 info!("Connecting to bigtable emulator at {}", endpoint);
@@ -280,7 +288,7 @@ impl BigTableConnection {
                     "projects/{}/instances/{}/tables/",
                     project_id, instance_name
                 );
-        
+
                 let endpoints: Result<Vec<Endpoint>> = vec![0; channel_size.max(1)]
                     .iter()
                     .map(move |_| {
@@ -297,7 +305,7 @@ impl BigTableConnection {
                             .map_err(Error::TransportError)
                     })
                     .collect();
-        
+
                 let endpoints: Vec<Endpoint> = endpoints?
                     .into_iter()
                     .map(|ep| {
@@ -312,7 +320,7 @@ impl BigTableConnection {
                         }
                     })
                     .collect();
-        
+
                 let auth_manager = Some(Arc::new(authentication_manager));
                 Ok(Self {
                     client: create_client(endpoints, auth_manager, is_read_only),
@@ -320,7 +328,7 @@ impl BigTableConnection {
                     timeout: Arc::new(timeout),
                 })
             }
-        }  
+        }
     }
 
     /// Create a new BigTable client by cloning needed properties.
