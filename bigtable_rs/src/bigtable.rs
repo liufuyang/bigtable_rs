@@ -327,8 +327,8 @@ fn create_client(
     return BigtableClient::new(auth_svc);
 }
 
-/// The core struct for Bigtable client, witch wraps a gPRC client defined by Bigtable proto.
-/// In order easy share this struct in multiple thread, we only store cloneable references here.
+/// The core struct for Bigtable client, which wraps a gPRC client defined by Bigtable proto.
+/// In order to easily use this struct in multiple threads, we only store cloneable references here.
 /// `BigtableClient<AuthSvc>` is a type alias of `BigtableClient` and it wraps a tonic Channel.
 /// Cloning on `Bigtable` is cheap.
 ///
