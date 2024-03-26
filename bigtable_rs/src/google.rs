@@ -18,4 +18,4 @@ pub mod cloud {
 }
 
 #[path = "google/google.rpc.rs"]
-mod rpc;
+pub mod rpc;
