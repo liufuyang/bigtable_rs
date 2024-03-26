@@ -24,7 +24,7 @@ prost-wkt-types = "0.5.0"
 serde = { version = "1.0.192", features = ["derive"] }
 serde_with = { version = "3.4.0", features = ["base64"] }
 # end of above part
-gcp_auth = "0.10.0"
+gcp_auth = "0.11.0"
 log = "0.4.20"
 thiserror = "1.0.50"
 
