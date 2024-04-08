@@ -340,30 +340,28 @@ impl BigTableConnection {
     ) -> Result<Self> {
         info!("Connecting to bigtable emulator at {}", emulator_endpoint);
 
+        // configures the endpoint with the specified parameters
+        fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint {
+            let endpoint = endpoint
+                .http2_keep_alive_interval(Duration::from_secs(60))
+                .keep_alive_while_idle(true);
+
+            if let Some(timeout) = timeout {
+                endpoint.timeout(timeout)
+            } else {
+                endpoint
+            }
+        }
+
         // Parse emulator_endpoint. Officially, it's only host:port,
         // but unix:///path/to/unix.sock also works in the Go SDK at least.
         // Having the emulator listen on unix domain sockets without ip2unix is
         // covered in https://github.com/googleapis/google-cloud-go/pull/9665.
-
-        let endpoint = if emulator_endpoint.starts_with("unix://") {
-            // the URL doesn't matter, we use a custom connector later.
-            Endpoint::from_static("http://[::]:50051")
-        } else {
-            Channel::from_shared(format!("http://{}", emulator_endpoint))
-                .expect("invalid connection emulator uri")
-        };
-
-        let endpoint = endpoint
-            .http2_keep_alive_interval(Duration::from_secs(60))
-            .keep_alive_while_idle(true);
-
-        let endpoint = if let Some(timeout) = timeout {
-            endpoint.timeout(timeout)
-        } else {
-            endpoint
-        };
-
         let channel = if let Some(path) = emulator_endpoint.strip_prefix("unix://") {
+            // the URL doesn't matter, we use a custom connector.
+            let endpoint = Endpoint::from_static("http://[::]:50051");
+            let endpoint = configure_endpoint(endpoint, timeout);
+
             let path: String = path.to_string();
             let connector = tower::service_fn({
                 move |_: tonic::transport::Uri| UnixStream::connect(path.clone())
@@ -371,6 +369,10 @@ impl BigTableConnection {
 
             endpoint.connect_with_connector_lazy(connector)
         } else {
+            let endpoint = Channel::from_shared(format!("http://{}", emulator_endpoint))
+                .expect("invalid connection emulator uri");
+            let endpoint = configure_endpoint(endpoint, timeout);
+
             endpoint.connect_lazy()
         };
 
