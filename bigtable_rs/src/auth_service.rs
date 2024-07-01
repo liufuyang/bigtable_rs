@@ -3,7 +3,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-use gcp_auth::AuthenticationManager;
+use gcp_auth::TokenProvider;
 use http::{HeaderValue, Request, Response};
 use log::debug;
 use tonic::body::BoxBody;
@@ -14,19 +14,19 @@ use tower::Service;
 #[derive(Clone)]
 pub struct AuthSvc {
     inner: Channel,
-    authentication_manager: Option<Arc<AuthenticationManager>>,
+    token_provider: Option<Arc<dyn TokenProvider>>,
     scopes: String,
 }
 
 impl AuthSvc {
     pub fn new(
         inner: Channel,
-        authentication_manager: Option<Arc<AuthenticationManager>>,
+        authentication_manager: Option<Arc<dyn TokenProvider>>,
         scopes: String,
     ) -> Self {
         AuthSvc {
             inner,
-            authentication_manager,
+            token_provider: authentication_manager,
             scopes,
         }
     }
@@ -48,12 +48,12 @@ impl Service<Request<BoxBody>> for AuthSvc {
         // for details on why this is necessary
         let clone = self.inner.clone();
         let mut inner = std::mem::replace(&mut self.inner, clone);
-        let authentication_manager = self.authentication_manager.clone();
+        let token_provider = self.token_provider.clone();
         let scopes = self.scopes.clone();
 
         Box::pin(async move {
             let scopes = &[scopes.as_ref()];
-            let token_f_opt = authentication_manager.as_ref().map(|m| m.get_token(scopes));
+            let token_f_opt = token_provider.as_ref().map(|m| m.token(scopes));
 
             return match token_f_opt {
                 None => {
