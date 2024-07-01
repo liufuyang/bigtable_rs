@@ -6,8 +6,9 @@ use bigtable_rs::google::bigtable::v2::{
     MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
 use env_logger;
-use gcp_auth::{AuthenticationManager, CustomServiceAccount};
+use gcp_auth::CustomServiceAccount;
 use std::error::Error;
+use std::sync::Arc;
 use std::time::Duration;
 
 #[tokio::main]
@@ -24,13 +25,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let json_path: &str = "examples/src/custom_path_fake_key.json";
     // make a bigtable client
-    let connection = bigtable::BigTableConnection::new_with_auth_manager(
+    let connection = bigtable::BigTableConnection::new_with_token_provider(
         project_id,
         instance_name,
         false,
         channel_size,
         Some(timeout),
-        AuthenticationManager::from(CustomServiceAccount::from_file(json_path).unwrap()),
+        Arc::new(CustomServiceAccount::from_file(json_path).unwrap()),
     )?;
     let mut bigtable = connection.client();
 

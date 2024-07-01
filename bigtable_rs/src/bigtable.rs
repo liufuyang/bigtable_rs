@@ -89,7 +89,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use gcp_auth::AuthenticationManager;
+use gcp_auth::TokenProvider;
 use log::info;
 use thiserror::Error;
 use tokio::net::UnixStream;
@@ -228,14 +228,14 @@ impl BigTableConnection {
             ),
 
             Err(_) => {
-                let authentication_manager = AuthenticationManager::new().await?;
-                Self::new_with_auth_manager(
+                let token_provider = gcp_auth::provider().await?;
+                Self::new_with_token_provider(
                     project_id,
                     instance_name,
                     is_read_only,
                     channel_size,
                     timeout,
-                    authentication_manager,
+                    token_provider,
                 )
             }
         }
@@ -258,13 +258,13 @@ impl BigTableConnection {
     /// https://docs.rs/tokio/latest/tokio/attr.main.html, but it might be a very different case for
     /// different applications.
     ///
-    pub fn new_with_auth_manager(
+    pub fn new_with_token_provider(
         project_id: &str,
         instance_name: &str,
         is_read_only: bool,
         channel_size: usize,
         timeout: Option<Duration>,
-        authentication_manager: AuthenticationManager,
+        token_provider: Arc<dyn TokenProvider>,
     ) -> Result<Self> {
         match std::env::var("BIGTABLE_EMULATOR_HOST") {
             Ok(endpoint) => Self::new_with_emulator(
@@ -316,9 +316,9 @@ impl BigTableConnection {
                 // construct a channel, by balancing over all endpoints.
                 let channel = Channel::balance_list(endpoints.into_iter());
 
-                let auth_manager = Some(Arc::new(authentication_manager));
+                let token_provider = Some(token_provider);
                 Ok(Self {
-                    client: create_client(channel, auth_manager, is_read_only),
+                    client: create_client(channel, token_provider, is_read_only),
                     table_prefix: Arc::new(table_prefix),
                     timeout: Arc::new(timeout),
                 })
@@ -403,7 +403,7 @@ impl BigTableConnection {
 /// from a channel.
 fn create_client(
     channel: Channel,
-    authentication_manager: Option<Arc<AuthenticationManager>>,
+    token_provider: Option<Arc<dyn TokenProvider>>,
     read_only: bool,
 ) -> BigtableClient<AuthSvc> {
     let scopes = if read_only {
@@ -413,7 +413,7 @@ fn create_client(
     };
 
     let auth_svc = ServiceBuilder::new()
-        .layer_fn(|c| AuthSvc::new(c, authentication_manager.clone(), scopes.to_string()))
+        .layer_fn(|c| AuthSvc::new(c, token_provider.clone(), scopes.to_string()))
         .service(channel);
     return BigtableClient::new(auth_svc);
 }
