@@ -17,7 +17,7 @@ http = "0.2.11"
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
 tonic = { version = "0.11.0", features = ["tls", "transport"] }
 tower = { version = "0.4" }
-prost = "0.12.2"
+prost = "0.13.0"
 prost-types = "0.12.2"
 prost-wkt = "0.5.0"
 prost-wkt-types = "0.5.0"
