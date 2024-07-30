@@ -7,7 +7,6 @@ use gcp_auth::TokenProvider;
 use http::{HeaderValue, Request, Response};
 use log::debug;
 use tonic::body::BoxBody;
-use tonic::transport::Body;
 use tonic::transport::Channel;
 use tower::Service;
 
@@ -33,7 +32,7 @@ impl AuthSvc {
 }
 
 impl Service<Request<BoxBody>> for AuthSvc {
-    type Response = Response<Body>;
+    type Response = Response<BoxBody>;
     type Error = Box<dyn std::error::Error + Send + Sync>;
     #[allow(clippy::type_complexity)]
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;

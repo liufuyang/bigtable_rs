@@ -364,7 +364,13 @@ impl BigTableConnection {
 
             let path: String = path.to_string();
             let connector = tower::service_fn({
-                move |_: tonic::transport::Uri| UnixStream::connect(path.clone())
+                move |_: tonic::transport::Uri| {
+                    let path = path.clone();
+                    async move {
+                        let stream = UnixStream::connect(path).await?;
+                        Ok::<_, std::io::Error>(hyper_util::rt::TokioIo::new(stream))
+                    }
+                }
             });
 
             endpoint.connect_with_connector_lazy(connector)
