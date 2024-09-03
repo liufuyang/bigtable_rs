@@ -65,7 +65,7 @@ jobs:
         with:
           fail-if-not-clean: true # optional
           push-if-not-clean: false # optional
-          request-changes-if-not-clean: true # optional
+          request-changes-if-not-clean: false # optional
       - name: Run tests
         run: cargo test --verbose
         env:
