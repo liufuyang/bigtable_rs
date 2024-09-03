@@ -2,6 +2,8 @@
 /// https://github.com/fdeantoni/prost-wkt
 /// https://github.com/hyperium/tonic/tree/master/tonic-build
 /// https://github.com/tokio-rs/prost/issues/672
+use std::process::Command;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use prost_wkt_build::{FileDescriptorSet, Message};
     use std::{env, path::PathBuf};
@@ -85,5 +87,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let descriptor = FileDescriptorSet::decode(&descriptor_bytes[..]).unwrap();
     prost_wkt_build::add_serde(out, descriptor);
 
+    Command::new("cargo")
+        .arg("fmt")
+        .output()
+        .expect("failed to execute cargo fmt");
     Ok(())
 }
