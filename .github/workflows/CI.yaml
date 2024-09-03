@@ -64,6 +64,12 @@ jobs:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Cinstrument-coverage'
           RUSTDOCFLAGS: '-Cinstrument-coverage'
+      - name: Check git status clean
+        uses: CatChen/check-git-status-action@v1
+        with:
+          fail-if-not-clean: true # optional
+          push-if-not-clean: false # optional
+          request-changes-if-not-clean: true # optional
       - name: Install grcov
         run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
       - name: Run grcov
