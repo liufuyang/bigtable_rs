@@ -63,7 +63,7 @@ You can use the library as follows:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.2.10"
+bigtable_rs = "0.2.11"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.11.1"
 ```
@@ -197,15 +197,17 @@ See `examples` folders for more examples.
 
 ## Development
 
-Clone this repo, then checkout the submodules if necesary
+Clone this repo (and checkout the submodules if rebuilding of the
+Googleapis proto is needed), and run `cargo build`.
 
 ```
-cd googleapis
-git submodule init
-git submodule update
+cargo build
+
+# Or set BUILD_BIGTABLE_RS_GOOGLE_PROTO=true to enable rebuild of google protos
+# BUILD_BIGTABLE_RS_GOOGLE_PROTO=true cargo build
 ```
 
-Then checkout `bigtable_rs/src/build.rs` to update Google protos
+See `bigtable_rs/src/build.rs` for more details.
 
 Running tests:
 
