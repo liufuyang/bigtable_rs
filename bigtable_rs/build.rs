@@ -16,7 +16,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => return Ok(()),
     }
 
-    println!("cargo:warning=Running build.rs to generate and format Google API Bigtable proto rs files.");
+    println!(
+        "cargo:warning=Running build.rs to generate and format Google API Bigtable proto rs files."
+    );
 
     use prost_wkt_build::{FileDescriptorSet, Message};
     use std::{env, path::PathBuf};

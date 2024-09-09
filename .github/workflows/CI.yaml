@@ -1,6 +1,6 @@
 name: bigtable_rs CI
 
-on: 
+on:
   push:
     branches:
       - main
@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest] # todo: support windows-latest after knowing how to solve openssl issues
+        os: [ ubuntu-latest, macOS-latest ] # todo: support windows-latest after knowing how to solve openssl issues
 
     steps:
       # cache cargo build
@@ -60,6 +60,8 @@ jobs:
         run: cargo fmt -- --check
       - name: Cargo build
         run: cargo build
+        env:
+          BUILD_BIGTABLE_RS_GOOGLE_PROTO: 'true'
       - name: Check git status clean
         uses: CatChen/check-git-status-action@v1
         with:
