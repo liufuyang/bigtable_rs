@@ -5,7 +5,6 @@
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Http {
     /// A list of HTTP configuration rules that apply to individual API methods.
@@ -310,7 +309,6 @@ pub struct Http {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HttpRule {
     /// Selects a method to which this rule applies.
@@ -354,7 +352,6 @@ pub mod http_rule {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Pattern {
         /// Maps to HTTP GET. Used for listing and getting information about
@@ -385,7 +382,6 @@ pub mod http_rule {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CustomHttpPattern {
     /// The name of this custom HTTP verb.
@@ -477,7 +473,6 @@ impl LaunchStage {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommonLanguageSettings {
     /// Link to automatically generated reference documentation.  Example:
@@ -493,7 +488,6 @@ pub struct CommonLanguageSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ClientLibrarySettings {
     /// Version of the API to apply these settings to. This is the full protobuf
@@ -539,7 +533,6 @@ pub struct ClientLibrarySettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Publishing {
     /// A list of API method settings, e.g. the behavior for methods that use the
@@ -587,7 +580,6 @@ pub struct Publishing {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct JavaSettings {
     /// The package name to use in Java. Clobbers the java_package option
@@ -630,7 +622,6 @@ pub struct JavaSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CppSettings {
     /// Some settings.
@@ -641,7 +632,6 @@ pub struct CppSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PhpSettings {
     /// Some settings.
@@ -652,7 +642,6 @@ pub struct PhpSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PythonSettings {
     /// Some settings.
@@ -663,7 +652,6 @@ pub struct PythonSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NodeSettings {
     /// Some settings.
@@ -674,7 +662,6 @@ pub struct NodeSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DotnetSettings {
     /// Some settings.
@@ -723,7 +710,6 @@ pub struct DotnetSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RubySettings {
     /// Some settings.
@@ -734,7 +720,6 @@ pub struct RubySettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GoSettings {
     /// Some settings.
@@ -745,7 +730,6 @@ pub struct GoSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MethodSettings {
     /// The fully qualified name of the method, for which the options below apply.
@@ -782,7 +766,6 @@ pub mod method_settings {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct LongRunning {
         /// Initial delay after which the first poll request will be made.
@@ -1054,7 +1037,6 @@ impl FieldBehavior {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResourceDescriptor {
     /// The resource type. It must be in the format of
@@ -1245,7 +1227,6 @@ pub mod resource_descriptor {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResourceReference {
     /// The resource type that the annotated field references.
@@ -1704,7 +1685,6 @@ pub struct ResourceReference {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RoutingRule {
     /// A collection of Routing Parameter specifications.
@@ -1720,7 +1700,6 @@ pub struct RoutingRule {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RoutingParameter {
     /// A request field to extract the header key-value pair from.
