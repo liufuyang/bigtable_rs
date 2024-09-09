@@ -85,5 +85,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let descriptor = FileDescriptorSet::decode(&descriptor_bytes[..]).unwrap();
     prost_wkt_build::add_serde(out, descriptor);
 
+    std::process::Command::new("cargo")
+        .arg("fmt")
+        .output()
+        .expect("Running `cargo fmt` failed");
+
     Ok(())
 }
