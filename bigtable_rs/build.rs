@@ -3,6 +3,21 @@
 /// https://github.com/hyperium/tonic/tree/master/tonic-build
 /// https://github.com/tokio-rs/prost/issues/672
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Conditionally run this build.rs so we do not need protoc dependency
+    // for normal build process.
+    // Set up env parameter BUILD_BIGTABLE_RS_GOOGLE_PROTO=true
+    // whenever we need to update the generated google proto files
+    match std::env::var("BUILD_BIGTABLE_RS_GOOGLE_PROTO") {
+        Ok(var) => {
+            if var != "true" {
+                return Ok(());
+            }
+        }
+        Err(_) => return Ok(()),
+    }
+
+    println!("cargo:warning=Running build.rs to generate and format Google API Bigtable proto rs files.");
+
     use prost_wkt_build::{FileDescriptorSet, Message};
     use std::{env, path::PathBuf};
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
