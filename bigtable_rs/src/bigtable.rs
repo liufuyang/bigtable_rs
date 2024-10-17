@@ -403,6 +403,14 @@ impl BigTableConnection {
             timeout: self.timeout.clone(),
         }
     }
+
+    /// Provide a convenient method to update the inner `BigtableClient` so a newly configured client can be set
+    pub fn configure_inner_client(
+        &mut self,
+        config_fn: fn(BigtableClient<AuthSvc>) -> BigtableClient<AuthSvc>,
+    ) {
+        self.client = config_fn(self.client.clone());
+    }
 }
 
 /// Helper function to create a BigtableClient<AuthSvc>
@@ -521,6 +529,14 @@ impl BigTable {
     /// defined from the Bigtable V2 gRPC API
     pub fn get_client(&mut self) -> &mut BigtableClient<AuthSvc> {
         &mut self.client
+    }
+
+    /// Provide a convenient method to update the inner `BigtableClient` config
+    pub fn configure_inner_client(
+        &mut self,
+        config_fn: fn(BigtableClient<AuthSvc>) -> BigtableClient<AuthSvc>,
+    ) {
+        self.client = config_fn(self.client.clone());
     }
 
     /// Provide a convenient method to get full table, which can be used for building requests
