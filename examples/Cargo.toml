@@ -26,6 +26,10 @@ name = "custom_path_connection"
 path = "src/custom_path_connection.rs"
 
 [[bin]]
+name = "configure_inner_client"
+path = "src/configure_inner_client.rs"
+
+[[bin]]
 name = "prefix"
 path = "src/prefix.rs"
 
