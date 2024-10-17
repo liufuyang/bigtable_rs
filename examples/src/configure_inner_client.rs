@@ -1,10 +1,4 @@
 use bigtable_rs::bigtable;
-use bigtable_rs::google::bigtable::v2::mutation;
-use bigtable_rs::google::bigtable::v2::mutation::SetCell;
-use bigtable_rs::google::bigtable::v2::row_filter::Filter;
-use bigtable_rs::google::bigtable::v2::{
-    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
-};
 use env_logger;
 use gcp_auth::CustomServiceAccount;
 use std::error::Error;
