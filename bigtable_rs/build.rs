@@ -90,7 +90,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .extern_path(".google.protobuf", "::prost_wkt_types")
         .file_descriptor_set_path(&descriptor_file)
-        .compile(
+        .compile_protos(
             &[
                 "../googleapis/google/bigtable/v2/bigtable.proto",
                 "../googleapis/test/bigtable_test.proto", // only works with fork https://github.com/liufuyang/googleapis

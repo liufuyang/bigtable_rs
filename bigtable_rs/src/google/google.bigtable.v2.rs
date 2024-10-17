@@ -893,9 +893,9 @@ pub mod read_rows_request {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                RequestStatsView::Unspecified => "REQUEST_STATS_VIEW_UNSPECIFIED",
-                RequestStatsView::RequestStatsNone => "REQUEST_STATS_NONE",
-                RequestStatsView::RequestStatsFull => "REQUEST_STATS_FULL",
+                Self::Unspecified => "REQUEST_STATS_VIEW_UNSPECIFIED",
+                Self::RequestStatsNone => "REQUEST_STATS_NONE",
+                Self::RequestStatsFull => "REQUEST_STATS_FULL",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1546,10 +1546,10 @@ pub mod read_change_stream_response {
             /// (if the ProtoBuf definition does not change) and safe for programmatic use.
             pub fn as_str_name(&self) -> &'static str {
                 match self {
-                    Type::Unspecified => "TYPE_UNSPECIFIED",
-                    Type::User => "USER",
-                    Type::GarbageCollection => "GARBAGE_COLLECTION",
-                    Type::Continuation => "CONTINUATION",
+                    Self::Unspecified => "TYPE_UNSPECIFIED",
+                    Self::User => "USER",
+                    Self::GarbageCollection => "GARBAGE_COLLECTION",
+                    Self::Continuation => "CONTINUATION",
                 }
             }
             /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1641,7 +1641,13 @@ pub mod read_change_stream_response {
 }
 /// Generated client implementations.
 pub mod bigtable_client {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value
+    )]
     use tonic::codegen::http::Uri;
     use tonic::codegen::*;
     /// Service for reading from and writing to existing Bigtable tables.
@@ -1737,10 +1743,7 @@ pub mod bigtable_client {
             tonic::Status,
         > {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path =
@@ -1762,10 +1765,7 @@ pub mod bigtable_client {
             tonic::Status,
         > {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path =
@@ -1784,10 +1784,7 @@ pub mod bigtable_client {
             request: impl tonic::IntoRequest<super::MutateRowRequest>,
         ) -> std::result::Result<tonic::Response<super::MutateRowResponse>, tonic::Status> {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path =
@@ -1808,10 +1805,7 @@ pub mod bigtable_client {
             tonic::Status,
         > {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path =
@@ -1828,10 +1822,7 @@ pub mod bigtable_client {
         ) -> std::result::Result<tonic::Response<super::CheckAndMutateRowResponse>, tonic::Status>
         {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
@@ -1852,10 +1843,7 @@ pub mod bigtable_client {
         ) -> std::result::Result<tonic::Response<super::PingAndWarmResponse>, tonic::Status>
         {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path =
@@ -1878,10 +1866,7 @@ pub mod bigtable_client {
         ) -> std::result::Result<tonic::Response<super::ReadModifyWriteRowResponse>, tonic::Status>
         {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
@@ -1908,10 +1893,7 @@ pub mod bigtable_client {
             tonic::Status,
         > {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
@@ -1936,10 +1918,7 @@ pub mod bigtable_client {
             tonic::Status,
         > {
             self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
