@@ -99,14 +99,12 @@ use tower::ServiceBuilder;
 
 use crate::auth_service::AuthSvc;
 use crate::bigtable::read_rows::decode_read_rows_response;
-use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
 use crate::google::bigtable::v2::{
     bigtable_client::BigtableClient, MutateRowRequest, MutateRowResponse, MutateRowsRequest,
-    MutateRowsResponse, ReadRowsRequest, RowRange, RowSet, SampleRowKeysRequest,
-    SampleRowKeysResponse,
+    MutateRowsResponse, ReadRowsRequest, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
 };
 use crate::google::bigtable::v2::{CheckAndMutateRowRequest, CheckAndMutateRowResponse};
-use crate::{root_ca_certificate, util::get_end_key_for_prefix};
+use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 
 pub mod read_rows;
 
@@ -486,14 +484,10 @@ impl BigTable {
         mut request: ReadRowsRequest,
         prefix: Vec<u8>,
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
-        let end_key =
-            get_end_key_for_prefix(prefix.as_ref()).map(|end_key| EndKey::EndKeyOpen(end_key));
+        let row_range = get_row_range_from_prefix(prefix);
         request.rows = Some(RowSet {
             row_keys: vec![], // use this field to put keys for reading specific rows
-            row_ranges: vec![RowRange {
-                start_key: Some(StartKey::StartKeyClosed(prefix)),
-                end_key,
-            }],
+            row_ranges: vec![row_range],
         });
         let response = self.client.read_rows(request).await?.into_inner();
         decode_read_rows_response(self.timeout.as_ref(), response).await

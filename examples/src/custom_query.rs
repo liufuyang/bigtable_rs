@@ -1,9 +1,8 @@
 use bigtable_rs::bigtable;
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
-use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
-use bigtable_rs::util::get_end_key_for_prefix;
+use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowSet};
+use bigtable_rs::util::get_row_range_from_prefix;
 use env_logger;
 use std::error::Error;
 use std::time::Duration;
@@ -40,14 +39,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         rows: Some(RowSet {
             row_keys: vec![],
             row_ranges: vec![
-                RowRange {
-                    start_key: Some(StartKey::StartKeyClosed(prefix_a.clone().into_bytes())),
-                    end_key: get_end_key_for_prefix(prefix_a.as_ref()).map(EndKey::EndKeyOpen),
-                },
-                RowRange {
-                    start_key: Some(StartKey::StartKeyClosed(prefix_b.clone().into_bytes())),
-                    end_key: get_end_key_for_prefix(prefix_b.as_ref()).map(EndKey::EndKeyOpen),
-                },
+                get_row_range_from_prefix(prefix_a.into_bytes()),
+                get_row_range_from_prefix(prefix_b.into_bytes()),
             ],
         }),
         filter: Some(RowFilter {

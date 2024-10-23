@@ -1,4 +1,15 @@
-pub fn get_end_key_for_prefix(start_key: &[u8]) -> Option<Vec<u8>> {
+use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
+use crate::google::bigtable::v2::RowRange;
+
+pub fn get_row_range_from_prefix(prefix: Vec<u8>) -> RowRange {
+    let end_key = get_end_key_for_prefix(prefix.as_ref()).map(EndKey::EndKeyOpen);
+    RowRange {
+        start_key: Some(StartKey::StartKeyClosed(prefix)),
+        end_key,
+    }
+}
+
+fn get_end_key_for_prefix(start_key: &[u8]) -> Option<Vec<u8>> {
     let size = start_key.len();
     if size < 1 {
         return None;
