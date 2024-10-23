@@ -48,8 +48,10 @@ Supported interfaces towards Bigtable:
 * [MutateRow](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L78)
 * [MutateRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L90)
 
-For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble the request you need to
+For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble any customized request you
+need to
 interact with Bigtable service via building the Protobuf messages (already complied as rs files and included here).
+See [this example](./examples/src/custom_query.rs).
 
 [gcp_auth](https://github.com/hrvolapeter/gcp_auth) is used, which
 supports:
@@ -63,7 +65,7 @@ You can use the library as follows:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.2.12"
+bigtable_rs = "0.2.13"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.11.1"
 ```

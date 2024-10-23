@@ -33,6 +33,10 @@ path = "src/configure_inner_client.rs"
 name = "prefix"
 path = "src/prefix.rs"
 
+[[bin]]
+name = "custom_query"
+path = "src/custom_query.rs"
+
 [dependencies]
 bigtable_rs = { path = "../bigtable_rs" }
 tokio = { version = "1.34.0", features = ["rt-multi-thread"] }
