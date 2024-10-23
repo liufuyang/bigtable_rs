@@ -16,6 +16,20 @@ cbt -instance instance-1 -project project-1  set table-1 key4 cf1:c1=value4
 cbt -instance instance-1 -project project-1  set table-1 key5 cf1:c1=value5
 cbt -instance instance-1 -project project-1  set table-1 key6 cf1:c1=value6
 
+cbt -instance instance-1 -project project-1  set table-1 jey1 cf1:c1=jvalue1
+cbt -instance instance-1 -project project-1  set table-1 jey2 cf1:c1=jvalue2
+cbt -instance instance-1 -project project-1  set table-1 jey3 cf1:c1=jvalue3
+cbt -instance instance-1 -project project-1  set table-1 jey4 cf1:c1=jvalue4
+cbt -instance instance-1 -project project-1  set table-1 jey5 cf1:c1=jvalue5
+cbt -instance instance-1 -project project-1  set table-1 jey6 cf1:c1=jvalue6
+
+cbt -instance instance-1 -project project-1  set table-1 pey1 cf1:c1=pvalue1
+cbt -instance instance-1 -project project-1  set table-1 pey2 cf1:c1=pvalue2
+cbt -instance instance-1 -project project-1  set table-1 pey3 cf1:c1=pvalue3
+cbt -instance instance-1 -project project-1  set table-1 pey4 cf1:c1=pvalue4
+cbt -instance instance-1 -project project-1  set table-1 pey5 cf1:c1=pvalue5
+cbt -instance instance-1 -project project-1  set table-1 pey6 cf1:c1=pvalue6
+
 # Set another version into key1
 cbt -instance instance-1 -project project-1  set table-1 key1 cf1:c1=value1.v1
 cbt -instance instance-1 -project project-1  set table-1 key1 cf1:c2=value1.c2

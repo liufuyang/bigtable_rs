@@ -11,7 +11,7 @@ mod auth_service;
 pub mod bigtable;
 pub mod google;
 mod root_ca_certificate;
-mod util;
+pub mod util;
 
 #[cfg(test)]
 mod tests {

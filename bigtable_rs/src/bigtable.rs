@@ -106,7 +106,7 @@ use crate::google::bigtable::v2::{
     SampleRowKeysResponse,
 };
 use crate::google::bigtable::v2::{CheckAndMutateRowRequest, CheckAndMutateRowResponse};
-use crate::{root_ca_certificate, util::get_end_key};
+use crate::{root_ca_certificate, util::get_end_key_for_prefix};
 
 pub mod read_rows;
 
@@ -486,7 +486,8 @@ impl BigTable {
         mut request: ReadRowsRequest,
         prefix: Vec<u8>,
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
-        let end_key = get_end_key(prefix.as_ref()).map(|end_key| EndKey::EndKeyOpen(end_key));
+        let end_key =
+            get_end_key_for_prefix(prefix.as_ref()).map(|end_key| EndKey::EndKeyOpen(end_key));
         request.rows = Some(RowSet {
             row_keys: vec![], // use this field to put keys for reading specific rows
             row_ranges: vec![RowRange {
