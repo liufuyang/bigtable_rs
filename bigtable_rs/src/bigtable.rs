@@ -89,6 +89,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use futures_util::Stream;
 use gcp_auth::TokenProvider;
 use log::info;
 use thiserror::Error;
@@ -98,7 +99,7 @@ use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Re
 use tower::ServiceBuilder;
 
 use crate::auth_service::AuthSvc;
-use crate::bigtable::read_rows::decode_read_rows_response;
+use crate::bigtable::read_rows::{decode_read_rows_response, decode_read_rows_response_stream};
 use crate::google::bigtable::v2::{
     bigtable_client::BigtableClient, MutateRowRequest, MutateRowResponse, MutateRowsRequest,
     MutateRowsResponse, ReadRowsRequest, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
@@ -491,6 +492,32 @@ impl BigTable {
         });
         let response = self.client.read_rows(request).await?.into_inner();
         decode_read_rows_response(self.timeout.as_ref(), response).await
+    }
+
+    /// Streaming support for `read_rows` method
+    pub async fn stream_rows(
+        &mut self,
+        request: ReadRowsRequest,
+    ) -> Result<impl Stream<Item = Result<(RowKey, Vec<RowCell>)>>> {
+        let response = self.client.read_rows(request).await?.into_inner();
+        let stream = decode_read_rows_response_stream(response).await;
+        Ok(stream)
+    }
+
+    /// Streaming support for `read_rows_with_prefix` method
+    pub async fn stream_rows_with_prefix(
+        &mut self,
+        mut request: ReadRowsRequest,
+        prefix: Vec<u8>,
+    ) -> Result<impl Stream<Item = Result<(RowKey, Vec<RowCell>)>>> {
+        let row_range = get_row_range_from_prefix(prefix);
+        request.rows = Some(RowSet {
+            row_keys: vec![],
+            row_ranges: vec![row_range],
+        });
+        let response = self.client.read_rows(request).await?.into_inner();
+        let stream = decode_read_rows_response_stream(response).await;
+        Ok(stream)
     }
 
     /// Wrapped `sample_row_keys` method

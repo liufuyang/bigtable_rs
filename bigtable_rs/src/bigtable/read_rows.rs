@@ -2,6 +2,8 @@ use crate::bigtable::{Error, Result, RowCell, RowKey};
 use crate::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
 use crate::google::bigtable::v2::read_rows_response::CellChunk;
 use crate::google::bigtable::v2::ReadRowsResponse;
+use futures_util::stream::iter;
+use futures_util::{Stream, StreamExt};
 use log::trace;
 use std::collections::HashSet;
 use std::time::{Duration, Instant};
@@ -31,6 +33,19 @@ pub async fn decode_read_rows_response(
         }
     }
     Ok(rows)
+}
+
+/// Flatten and decode the stream of `ReadRowsResponse` into a stream of `Result<(RowKey, Vec<RowCell>)>>`.
+pub async fn decode_read_rows_response_stream(
+    rrr: Streaming<ReadRowsResponse>,
+) -> impl Stream<Item = Result<(RowKey, Vec<RowCell>)>> {
+    rrr.flat_map(|message| match message {
+        Ok(response) => {
+            let results = decode_read_rows_response_to_vec(response.chunks);
+            iter(results)
+        }
+        Err(e) => iter(vec![Err(Error::RpcError(e))]),
+    })
 }
 
 pub fn decode_read_rows_response_to_vec(
