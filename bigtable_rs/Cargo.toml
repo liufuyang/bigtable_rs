@@ -25,6 +25,7 @@ prost-wkt-types = { version = "0.6.0" }
 serde = { version = "1.0.192", features = ["derive"] }
 serde_with = { version = "3.4.0", features = ["base64"] }
 # end of above part
+futures-util = "0.3.31"
 gcp_auth = "0.12.2"
 log = "0.4.20"
 thiserror = "1.0.50"
