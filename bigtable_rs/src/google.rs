@@ -19,3 +19,6 @@ pub mod cloud {
 
 #[path = "google/google.rpc.rs"]
 pub mod rpc;
+
+#[path = "google/google.r#type.rs"]
+pub mod r#type;
