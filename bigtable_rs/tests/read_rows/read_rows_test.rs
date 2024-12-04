@@ -1,7 +1,7 @@
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response_to_vec;
 use bigtable_rs::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
 use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
-use bigtable_rs::google::cloud::conformace::bigtable::v2::{
+use bigtable_rs::google::cloud::conformance::bigtable::v2::{
     read_rows_test, ReadRowsTest, TestFile,
 };
 use std::fs;
@@ -31,8 +31,8 @@ fn tmp_test_1() {
 
 #[test]
 fn read_rows_test_from_json_can_all_pass() {
-    let file =
-        fs::File::open("tests/read_rows/read_rows_test.json").expect("file should open read only");
+    let file = fs::File::open("tests/read_rows/read_rows_test.raw.json")
+        .expect("file should open read only");
 
     let jd = &mut serde_json::Deserializer::from_reader(file);
     let result: Result<TestFile, _> = serde_path_to_error::deserialize(jd);

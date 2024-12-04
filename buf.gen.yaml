@@ -1,0 +1,24 @@
+version: v1
+plugins:
+  - plugin: prost
+    out: bigtable_rs/src/google
+    opt:
+      # - bytes=.
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+      - file_descriptor_set
+      - enable_type_names
+      - disable_comments=.
+  - plugin: prost-serde
+    out: bigtable_rs/src/google
+  - plugin: tonic
+    out: bigtable_rs/src/google
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+  - plugin: prost-crate
+    out: bigtable_rs/src/google
+    strategy: all
+    opt:
+      - include_file=mod.rs
+      - no_features
