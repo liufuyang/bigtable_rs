@@ -7,9 +7,9 @@
 //!
 //! [`bigtable`]: mod@crate::bigtable
 //! [github repo]: https://github.com/liufuyang/bigtable_rs
+include!("google/mod.rs");
 mod auth_service;
 pub mod bigtable;
-pub mod google;
 mod root_ca_certificate;
 pub mod util;
 
