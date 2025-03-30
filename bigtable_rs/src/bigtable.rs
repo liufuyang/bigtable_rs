@@ -86,6 +86,7 @@
 //! }
 //! ```
 
+use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -94,7 +95,9 @@ use gcp_auth::TokenProvider;
 use log::info;
 use thiserror::Error;
 use tokio::net::UnixStream;
+use tonic::metadata::MetadataValue;
 use tonic::transport::Endpoint;
+use tonic::IntoRequest;
 use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response};
 use tower::ServiceBuilder;
 
@@ -104,7 +107,9 @@ use crate::google::bigtable::v2::{
     bigtable_client::BigtableClient, MutateRowRequest, MutateRowResponse, MutateRowsRequest,
     MutateRowsResponse, ReadRowsRequest, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
 };
-use crate::google::bigtable::v2::{CheckAndMutateRowRequest, CheckAndMutateRowResponse};
+use crate::google::bigtable::v2::{
+    CheckAndMutateRowRequest, CheckAndMutateRowResponse, ExecuteQueryRequest, ExecuteQueryResponse,
+};
 use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 
 pub mod read_rows;
@@ -162,6 +167,9 @@ pub enum Error {
 
     #[error("GCPAuthError error: {0}")]
     GCPAuthError(#[from] gcp_auth::Error),
+
+    #[error("Invalid metadata")]
+    MetadataError(tonic::metadata::errors::InvalidMetadataValue),
 }
 
 impl std::convert::From<std::io::Error> for Error {
@@ -187,6 +195,7 @@ impl std::convert::From<tonic::Status> for Error {
 pub struct BigTableConnection {
     client: BigtableClient<AuthSvc>,
     table_prefix: Arc<String>,
+    instance_prefix: Arc<String>,
     timeout: Arc<Option<Duration>>,
 }
 
@@ -275,10 +284,8 @@ impl BigTableConnection {
             ),
 
             Err(_) => {
-                let table_prefix = format!(
-                    "projects/{}/instances/{}/tables/",
-                    project_id, instance_name
-                );
+                let instance_prefix = format!("projects/{project_id}/instances/{instance_name}");
+                let table_prefix = format!("{instance_prefix}/tables/");
 
                 let endpoints: Result<Vec<Endpoint>> = vec![0; channel_size.max(1)]
                     .iter()
@@ -319,6 +326,7 @@ impl BigTableConnection {
                 Ok(Self {
                     client: create_client(channel, token_provider, is_read_only),
                     table_prefix: Arc::new(table_prefix),
+                    instance_prefix: Arc::new(instance_prefix),
                     timeout: Arc::new(timeout),
                 })
             }
@@ -387,6 +395,10 @@ impl BigTableConnection {
                 "projects/{}/instances/{}/tables/",
                 project_id, instance_name
             )),
+            instance_prefix: Arc::new(format!(
+                "projects/{}/instances/{}",
+                project_id, instance_name
+            )),
             timeout: Arc::new(timeout),
         })
     }
@@ -398,6 +410,7 @@ impl BigTableConnection {
     pub fn client(&self) -> BigTable {
         BigTable {
             client: self.client.clone(),
+            instance_prefix: self.instance_prefix.clone(),
             table_prefix: self.table_prefix.clone(),
             timeout: self.timeout.clone(),
         }
@@ -452,6 +465,7 @@ fn create_client(
 pub struct BigTable {
     // clone is cheap with Channel, see https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html
     client: BigtableClient<AuthSvc>,
+    instance_prefix: Arc<String>,
     table_prefix: Arc<String>,
     timeout: Arc<Option<Duration>>,
 }
@@ -544,6 +558,26 @@ impl BigTable {
         request: MutateRowsRequest,
     ) -> Result<Streaming<MutateRowsResponse>> {
         let response = self.client.mutate_rows(request).await?.into_inner();
+        Ok(response)
+    }
+
+    /// Wrapped `execute_query` method
+    pub async fn execute_query(
+        &mut self,
+        request: ExecuteQueryRequest,
+    ) -> Result<Streaming<ExecuteQueryResponse>> {
+        let app_profile_id = request.app_profile_id.clone();
+        let mut tonic_req: tonic::Request<_> = request.into_request();
+        // Add x-goog-request-params header with routing options, without those the call fails.
+        tonic_req.metadata_mut().insert(
+            "x-goog-request-params",
+            MetadataValue::from_str(&format!(
+                "name={}&app_profile_id={}",
+                self.instance_prefix, app_profile_id
+            ))
+            .map_err(Error::MetadataError)?,
+        );
+        let response = self.client.execute_query(tonic_req).await?.into_inner();
         Ok(response)
     }
 
