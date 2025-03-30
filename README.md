@@ -26,17 +26,20 @@ is [tested](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/tests
 by [porting](https://github.com/liufuyang/bigtable_rs/blob/main/bigtable_rs/tests/read_rows/read_rows_test.json)
 Google's Java client
 [tests code](https://github.com/googleapis/java-bigtable/blob/main/google-cloud-bigtable/src/test/java/com/google/cloud/bigtable/data/v2/stub/readrows/ReadRowsMergingAcceptanceTest.java)
-with [json test cases](https://github.com/googleapis/conformance-tests/blob/main/bigtable/v2/readrows.json) as raw
+with [json test cases](https://github.com/googleapis/conformance-tests/blob/main/bigtable/v2/readrows.json)
+as raw
 input.
 
 ## Introduction
 
 Current idea is to make this library very light weighted, and you assemble requests based
 on [Google Bigtable V2 protobuf schema](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto)
-and send the requests via [tonic gRPC over HTTP/2](https://github.com/hyperium/tonic). So the user have the flexibility
+and send the requests via [tonic gRPC over HTTP/2](https://github.com/hyperium/tonic). So the user
+have the flexibility
 of creating any type of Bigtable request and use this client to talk to Bigtable service.
 
-Compiled Bigtable API proto as Rust code is also included in the repo here so users don't need to compile from proto
+Compiled Bigtable API proto as Rust code is also included in the repo here so users don't need to
+compile from proto
 again.
 
 The returned row values from Bigtable is parsed by this library.
@@ -48,9 +51,11 @@ Supported interfaces towards Bigtable:
 * [MutateRow](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L78)
 * [MutateRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L90)
 
-For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble any customized request you
+For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble any
+customized request you
 need to
-interact with Bigtable service via building the Protobuf messages (already complied as rs files and included here).
+interact with Bigtable service via building the Protobuf messages (already complied as rs files and
+included here).
 See [this example](./examples/src/custom_query.rs).
 
 [gcp_auth](https://github.com/hrvolapeter/gcp_auth) is used, which
@@ -65,13 +70,14 @@ You can use the library as follows:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.2.16"
+bigtable_rs = "0.2.17"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 env_logger = "0.11.1"
 ```
 
 Documentation is on [crate.io](https://docs.rs/bigtable_rs/0.1.3/bigtable_rs/).
-See [examples](./examples) folders for more examples. The following example showing how to do a key range scan
+See [examples](./examples) folders for more examples. The following example showing how to do a key
+range scan
 
 ```rust
 use bigtable_rs::bigtable;
@@ -189,7 +195,8 @@ To run it against real Bigtable instance:
 GOOGLE_APPLICATION_CREDENTIALS=<path_to_key>/service_account_key.json cargo run --bin simple_read
 ```
 
-Or if you want to use your `gcloud auth login` auth then simply run the client without any special env settings:
+Or if you want to use your `gcloud auth login` auth then simply run the client without any special
+env settings:
 
 ```
 cargo run --bin simple_read
