@@ -16,7 +16,7 @@ readme = "../README.md"
 http = "1.1.0"
 hyper-util = { version = "0.1.7", features = ["tokio"] }
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
-tonic = { version = "0.12.2", features = ["tls", "transport"] }
+tonic = { version = "0.13.0", features = ["tls", "transport"] }
 tower = { version = "0.5.1", features = ["util"] }
 prost = "0.13.1"
 prost-types = "0.13.1"
