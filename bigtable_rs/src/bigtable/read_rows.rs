@@ -143,8 +143,11 @@ pub fn decode_read_rows_response_to_vec(
             // Close up the cell
             if cell_name.is_some() {
                 let row_cell = RowCell {
-                    family_name: cell_family_name.clone().unwrap_or("".to_owned()),
-                    qualifier: cell_name.clone().unwrap(), // checked above
+                    family_name: cell_family_name
+                        .clone()
+                        .map(|n| n.value)
+                        .unwrap_or("".to_owned()),
+                    qualifier: cell_name.clone().unwrap().value.to_vec(), // checked above
                     value: cell_value,
                     timestamp_micros: cell_timestamp,
                     labels: cell_labels,

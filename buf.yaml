@@ -1,0 +1,21 @@
+version: v2
+modules:
+  - path: googleapis
+    includes:
+      - googleapis/google/bigtable/v2
+      - googleapis/google/api
+      - googleapis/google/longrunning
+      - googleapis/google/rpc
+      - googleapis/google/logging
+      - googleapis/google/type
+    excludes:
+      - googleapis/google/api/apikeys
+      - googleapis/google/api/cloudquotas
+      - googleapis/google/api/expr
+      - googleapis/google/api/servicecontrol
+      - googleapis/google/api/servicemanagement
+      - googleapis/google/api/serviceusage
+  - path: proto
+
+#deps:
+#  - buf.build/googleapis/googleapis
