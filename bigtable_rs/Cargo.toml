@@ -18,7 +18,7 @@ hyper-util = { version = "0.1.7", features = ["tokio"] }
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
 tonic = { version = "0.12.2", features = ["tls", "transport"] }
 tower = { version = "0.5.1", features = ["util"] }
-prost = "0.13.1"
+prost = "0.14.0"
 prost-types = "0.13.1"
 prost-wkt = { version = "0.6.0" }
 prost-wkt-types = { version = "0.6.0" }
