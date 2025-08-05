@@ -6,7 +6,7 @@ use std::task::{Context, Poll};
 use gcp_auth::TokenProvider;
 use http::{HeaderValue, Request, Response};
 use log::debug;
-use tonic::body::BoxBody;
+use tonic::body::Body;
 use tonic::transport::Channel;
 use tower::Service;
 
@@ -31,8 +31,8 @@ impl AuthSvc {
     }
 }
 
-impl Service<Request<BoxBody>> for AuthSvc {
-    type Response = Response<BoxBody>;
+impl Service<Request<Body>> for AuthSvc {
+    type Response = Response<Body>;
     type Error = Box<dyn std::error::Error + Send + Sync>;
     #[allow(clippy::type_complexity)]
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
@@ -41,7 +41,7 @@ impl Service<Request<BoxBody>> for AuthSvc {
         self.inner.poll_ready(cx).map_err(Into::into)
     }
 
-    fn call(&mut self, mut request: Request<BoxBody>) -> Self::Future {
+    fn call(&mut self, mut request: Request<Body>) -> Self::Future {
         // This is necessary because tonic internally uses `tower::buffer::Buffer`.
         // See https://github.com/tower-rs/tower/issues/547#issuecomment-767629149
         // for details on why this is necessary
