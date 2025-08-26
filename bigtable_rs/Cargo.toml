@@ -45,4 +45,4 @@ serde_path_to_error = "0.1.8"
 [build-dependencies]
 tonic-build = { version = "0.13.1", features = ["cleanup-markdown"] }
 prost-build = "0.13.1"
-prost-wkt-build = { version = "0.6.0" }
+prost-wkt-build = { version = "0.7.0" }
