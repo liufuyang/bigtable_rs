@@ -2614,7 +2614,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/ReadRows");
             let mut req = request.into_request();
@@ -2636,7 +2636,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/SampleRowKeys");
             let mut req = request.into_request();
@@ -2655,7 +2655,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/MutateRow");
             let mut req = request.into_request();
@@ -2676,7 +2676,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/MutateRows");
             let mut req = request.into_request();
@@ -2693,7 +2693,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/google.bigtable.v2.Bigtable/CheckAndMutateRow",
             );
@@ -2714,7 +2714,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/PingAndWarm");
             let mut req = request.into_request();
@@ -2737,7 +2737,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/google.bigtable.v2.Bigtable/ReadModifyWriteRow",
             );
@@ -2764,7 +2764,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/google.bigtable.v2.Bigtable/GenerateInitialChangeStreamPartitions",
             );
@@ -2789,7 +2789,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/google.bigtable.v2.Bigtable/ReadChangeStream",
             );
@@ -2811,7 +2811,7 @@ pub mod bigtable_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/google.bigtable.v2.Bigtable/ExecuteQuery");
             let mut req = request.into_request();

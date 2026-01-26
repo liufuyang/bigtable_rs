@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let descriptor_file = out.join("descriptors.bin");
 
-    tonic_build::configure()
+    tonic_prost_build::configure()
         .build_server(false)
         .out_dir("src/google")
         .compile_well_known_types(true)
