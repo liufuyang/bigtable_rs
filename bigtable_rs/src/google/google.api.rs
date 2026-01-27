@@ -345,7 +345,7 @@ pub mod http_rule {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Pattern {
         /// Maps to HTTP GET. Used for listing and getting information about
         /// resources.
@@ -375,7 +375,7 @@ pub mod http_rule {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CustomHttpPattern {
     /// The name of this custom HTTP verb.
     #[prost(string, tag = "1")]
@@ -466,7 +466,7 @@ impl LaunchStage {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CommonLanguageSettings {
     /// Link to automatically generated reference documentation.  Example:
     /// <https://cloud.google.com/nodejs/docs/reference/asset/latest>
@@ -622,7 +622,7 @@ pub struct JavaSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CppSettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
@@ -632,7 +632,7 @@ pub struct CppSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PhpSettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
@@ -642,7 +642,7 @@ pub struct PhpSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PythonSettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
@@ -661,7 +661,7 @@ pub mod python_settings {
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct ExperimentalFeatures {
         /// Enables generation of asynchronous REST clients if `rest` transport is
         /// enabled. By default, asynchronous REST clients will not be generated.
@@ -681,7 +681,7 @@ pub mod python_settings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct NodeSettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
@@ -739,7 +739,7 @@ pub struct DotnetSettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RubySettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
@@ -749,7 +749,7 @@ pub struct RubySettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GoSettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
@@ -844,7 +844,7 @@ pub mod method_settings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SelectiveGapicGeneration {
     /// An allowlist of the fully qualified names of RPCs that should be included
     /// on public client surfaces.
@@ -1097,7 +1097,7 @@ impl FieldBehavior {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ResourceDescriptor {
     /// The resource type. It must be in the format of
     /// {service_name}/{resource_type_kind}. The `resource_type_kind` must be
@@ -1292,7 +1292,7 @@ pub mod resource_descriptor {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ResourceReference {
     /// The resource type that the annotated field references.
     ///
@@ -1765,7 +1765,7 @@ pub struct RoutingRule {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RoutingParameter {
     /// A request field to extract the header key-value pair from.
     #[prost(string, tag = "1")]

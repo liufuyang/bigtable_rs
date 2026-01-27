@@ -30,7 +30,7 @@ pub mod read_rows_test {
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
     #[serde(default)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Result {
         #[prost(string, tag = "1")]
         pub row_key: ::prost::alloc::string::String,
