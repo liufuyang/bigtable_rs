@@ -13,8 +13,7 @@ use bigtable_rs::google::bigtable::v2::mutation::SetCell;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
 use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
 use bigtable_rs::google::bigtable::v2::{
-    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet,
-    SampleRowKeysRequest,
+    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest,
 };
 use futures_util::TryStreamExt;
 use std::time::Duration;
@@ -80,7 +79,11 @@ async fn test_write_and_read_row() {
     };
 
     let write_result = bigtable.mutate_row(write_request).await;
-    assert!(write_result.is_ok(), "Failed to write row: {:?}", write_result.err());
+    assert!(
+        write_result.is_ok(),
+        "Failed to write row: {:?}",
+        write_result.err()
+    );
 
     // Read the row back
     let read_request = ReadRowsRequest {
@@ -113,10 +116,7 @@ async fn test_write_and_read_row() {
     let cell = &cells[0];
     assert_eq!(cell.family_name, "cf1");
     assert_eq!(String::from_utf8(cell.qualifier.clone()).unwrap(), "c1");
-    assert_eq!(
-        String::from_utf8(cell.value.clone()).unwrap(),
-        test_value
-    );
+    assert_eq!(String::from_utf8(cell.value.clone()).unwrap(), test_value);
 }
 
 #[tokio::test]
@@ -147,7 +147,10 @@ async fn test_read_rows_with_range() {
             }],
             ..MutateRowRequest::default()
         };
-        bigtable.mutate_row(write_request).await.expect("Failed to write row");
+        bigtable
+            .mutate_row(write_request)
+            .await
+            .expect("Failed to write row");
     }
 
     // Read with range (keys 1-3)
@@ -157,7 +160,9 @@ async fn test_read_rows_with_range() {
         rows: Some(RowSet {
             row_keys: vec![],
             row_ranges: vec![RowRange {
-                start_key: Some(StartKey::StartKeyClosed(format!("{}1", prefix).into_bytes())),
+                start_key: Some(StartKey::StartKeyClosed(
+                    format!("{}1", prefix).into_bytes(),
+                )),
                 end_key: Some(EndKey::EndKeyOpen(format!("{}4", prefix).into_bytes())),
             }],
         }),
@@ -168,10 +173,19 @@ async fn test_read_rows_with_range() {
     };
 
     let response = bigtable.read_rows(read_request).await;
-    assert!(response.is_ok(), "Failed to read rows: {:?}", response.err());
+    assert!(
+        response.is_ok(),
+        "Failed to read rows: {:?}",
+        response.err()
+    );
 
     let rows = response.unwrap();
-    assert_eq!(rows.len(), 3, "Expected 3 rows in range, got {}", rows.len());
+    assert_eq!(
+        rows.len(),
+        3,
+        "Expected 3 rows in range, got {}",
+        rows.len()
+    );
 }
 
 #[tokio::test]
@@ -221,7 +235,10 @@ async fn test_read_rows_with_filter_chain() {
         ..MutateRowRequest::default()
     };
 
-    bigtable.mutate_row(write_request).await.expect("Failed to write row");
+    bigtable
+        .mutate_row(write_request)
+        .await
+        .expect("Failed to write row");
 
     // Read with filter chain: cf1 family, c1 qualifier only
     let read_request = ReadRowsRequest {
@@ -247,13 +264,22 @@ async fn test_read_rows_with_filter_chain() {
     };
 
     let response = bigtable.read_rows(read_request).await;
-    assert!(response.is_ok(), "Failed to read rows: {:?}", response.err());
+    assert!(
+        response.is_ok(),
+        "Failed to read rows: {:?}",
+        response.err()
+    );
 
     let rows = response.unwrap();
     assert_eq!(rows.len(), 1, "Expected 1 row");
 
     let (_, cells) = &rows[0];
-    assert_eq!(cells.len(), 1, "Expected 1 cell after filtering, got {}", cells.len());
+    assert_eq!(
+        cells.len(),
+        1,
+        "Expected 1 cell after filtering, got {}",
+        cells.len()
+    );
     assert_eq!(cells[0].family_name, "cf1");
     assert_eq!(String::from_utf8(cells[0].qualifier.clone()).unwrap(), "c1");
 }
@@ -286,7 +312,10 @@ async fn test_stream_rows() {
             }],
             ..MutateRowRequest::default()
         };
-        bigtable.mutate_row(write_request).await.expect("Failed to write row");
+        bigtable
+            .mutate_row(write_request)
+            .await
+            .expect("Failed to write row");
     }
 
     // Read using stream_rows
@@ -296,7 +325,9 @@ async fn test_stream_rows() {
         rows: Some(RowSet {
             row_keys: vec![],
             row_ranges: vec![RowRange {
-                start_key: Some(StartKey::StartKeyClosed(format!("{}1", prefix).into_bytes())),
+                start_key: Some(StartKey::StartKeyClosed(
+                    format!("{}1", prefix).into_bytes(),
+                )),
                 end_key: Some(EndKey::EndKeyOpen(format!("{}9", prefix).into_bytes())),
             }],
         }),
@@ -306,7 +337,10 @@ async fn test_stream_rows() {
         ..ReadRowsRequest::default()
     };
 
-    let mut stream = bigtable.stream_rows(read_request).await.expect("Failed to create stream");
+    let mut stream = bigtable
+        .stream_rows(read_request)
+        .await
+        .expect("Failed to create stream");
 
     let mut count = 0;
     while let Some((key, cells)) = stream.try_next().await.expect("Stream error") {
@@ -337,7 +371,11 @@ async fn test_sample_row_keys() {
     };
 
     let response = bigtable.sample_row_keys(request).await;
-    assert!(response.is_ok(), "Failed to sample row keys: {:?}", response.err());
+    assert!(
+        response.is_ok(),
+        "Failed to sample row keys: {:?}",
+        response.err()
+    );
 
     // The emulator should return at least one sample (or empty for small tables)
     // We just verify the call succeeds
