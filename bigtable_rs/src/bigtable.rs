@@ -98,7 +98,11 @@ use tokio::net::UnixStream;
 use tonic::metadata::MetadataValue;
 use tonic::transport::Endpoint;
 use tonic::IntoRequest;
-use tonic::{codec::Streaming, transport::Channel, transport::ClientTlsConfig, Response};
+use tonic::{
+    codec::Streaming,
+    transport::{channel::Change, Channel, ClientTlsConfig},
+    Response,
+};
 use tower::ServiceBuilder;
 
 use crate::auth_service::AuthSvc;
@@ -209,16 +213,18 @@ impl BigTableConnection {
     /// The BIGTABLE_EMULATOR_HOST environment variable is also respected.
     ///
     /// `channel_size` defines the number of connections (or channels) established to Bigtable
-    /// service, and the requests are load balanced onto all the channels. You must therefore
-    /// make sure all of these connections are open when a new request is to be sent.
-    /// Idle connections are automatically closed in "a few minutes". Therefore it is important to
-    /// make sure you have a high enough QPS to send at least one request through all the
-    /// connections (in every service host) every minute. If not, you should consider decreasing the
-    /// channel size. If you are not sure what value to pick and your load is low, just start with 1.
-    /// The recommended value could be 2 x the thread count in your tokio environment see info here
-    /// https://docs.rs/tokio/latest/tokio/attr.main.html, but it might be a very different case for
-    /// different applications.
-    ///
+    /// service, and the requests are load balanced onto all the channels.
+    /// Consult the [Bigtable
+    /// docs](https://docs.cloud.google.com/bigtable/docs/configure-connection-pools) for guidance
+    /// on how to determine the optimal pool size for your application.
+    /// As documented in [Cold starts and low
+    /// QPS](https://docs.cloud.google.com/bigtable/docs/performance#cold-starts), you should
+    /// configure the pool size in a way that ensures all channels receive a steady amount of load
+    /// at all times. Failure to do so could result in latency spikes, as the server closes
+    /// connections after a period of inactivity.
+    /// Another approach to address this is to periodically send a low rate of artificial traffic
+    /// to the table at all times, to ensure no connection becomes idle.
+    /// If you are not sure what value to pick and your load is low, just start with 1.
     pub async fn new(
         project_id: &str,
         instance_name: &str,
@@ -248,24 +254,25 @@ impl BigTableConnection {
             }
         }
     }
-    /// Establish a connection to the BigTable instance named `instance_name`.  If read-only access
+    /// Establish a connection to the BigTable instance named `instance_name`. If read-only access
     /// is required, the `read_only` flag should be used to reduce the requested OAuth2 scope.
     ///
     /// The `authentication_manager` variable will be used to determine the
     /// program name that contains the BigTable instance in addition to access credentials.
     ///
-    ///
     /// `channel_size` defines the number of connections (or channels) established to Bigtable
-    /// service, and the requests are load balanced onto all the channels. You must therefore
-    /// make sure all of these connections are open when a new request is to be sent.
-    /// Idle connections are automatically closed in "a few minutes". Therefore it is important to
-    /// make sure you have a high enough QPS to send at least one request through all the
-    /// connections (in every service host) every minute. If not, you should consider decreasing the
-    /// channel size. If you are not sure what value to pick and your load is low, just start with 1.
-    /// The recommended value could be 2 x the thread count in your tokio environment see info here
-    /// https://docs.rs/tokio/latest/tokio/attr.main.html, but it might be a very different case for
-    /// different applications.
-    ///
+    /// service, and the requests are load balanced onto all the channels.
+    /// Consult the [Bigtable
+    /// docs](https://docs.cloud.google.com/bigtable/docs/configure-connection-pools) for guidance
+    /// on how to determine the optimal pool size for your application.
+    /// As documented in [Cold starts and low
+    /// QPS](https://docs.cloud.google.com/bigtable/docs/performance#cold-starts), you should
+    /// configure the pool size in a way that ensures all channels receive a steady amount of load
+    /// at all times. Failure to do so could result in latency spikes, as the server closes
+    /// connections after a period of inactivity.
+    /// Another approach to address this is to periodically send a low rate of artificial traffic
+    /// to the table at all times, to ensure no connection becomes idle.
+    /// If you are not sure what value to pick and your load is low, just start with 1.
     pub fn new_with_token_provider(
         project_id: &str,
         instance_name: &str,
@@ -287,40 +294,32 @@ impl BigTableConnection {
                 let instance_prefix = format!("projects/{project_id}/instances/{instance_name}");
                 let table_prefix = format!("{instance_prefix}/tables/");
 
-                let endpoints: Result<Vec<Endpoint>> = vec![0; channel_size.max(1)]
-                    .iter()
-                    .map(move |_| {
-                        Channel::from_static("https://bigtable.googleapis.com")
-                            .tls_config(
-                                ClientTlsConfig::new()
-                                    .ca_certificate(
-                                        root_ca_certificate::load()
-                                            .map_err(Error::CertificateError)
-                                            .expect("root certificate error"),
-                                    )
-                                    .domain_name("bigtable.googleapis.com"),
-                            )
-                            .map_err(Error::TransportError)
-                    })
-                    .collect();
+                let channel_size = channel_size.max(1);
+                let (channel, tx) = Channel::balance_channel(channel_size);
+                for i in 0..channel_size {
+                    let endpoint = Channel::from_static("https://bigtable.googleapis.com")
+                        .tls_config(
+                            ClientTlsConfig::new()
+                                .ca_certificate(
+                                    root_ca_certificate::load()
+                                        .map_err(Error::CertificateError)
+                                        .expect("root certificate error"),
+                                )
+                                .domain_name("bigtable.googleapis.com"),
+                        )
+                        .map_err(Error::TransportError)?
+                        .http2_keep_alive_interval(Duration::from_secs(60))
+                        .keep_alive_while_idle(true);
 
-                let endpoints: Vec<Endpoint> = endpoints?
-                    .into_iter()
-                    .map(|ep| {
-                        ep.http2_keep_alive_interval(Duration::from_secs(60))
-                            .keep_alive_while_idle(true)
-                    })
-                    .map(|ep| {
-                        if let Some(timeout) = timeout {
-                            ep.timeout(timeout)
-                        } else {
-                            ep
-                        }
-                    })
-                    .collect();
+                    let endpoint = if let Some(timeout) = timeout {
+                        endpoint.timeout(timeout)
+                    } else {
+                        endpoint
+                    };
 
-                // construct a channel, by balancing over all endpoints.
-                let channel = Channel::balance_list(endpoints.into_iter());
+                    // Use unique keys to ensure each channel has a dedicated HTTP connection
+                    tx.try_send(Change::Insert(i, endpoint)).unwrap();
+                }
 
                 let token_provider = Some(token_provider);
                 Ok(Self {
