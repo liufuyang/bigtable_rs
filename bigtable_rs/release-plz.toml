@@ -4,4 +4,4 @@ publish = true
 
 [[package]]
 name = "examples"
-publish = false
+release = false
