@@ -238,6 +238,7 @@ impl BigTableConnection {
                 project_id,
                 instance_name,
                 is_read_only,
+                channel_size,
                 timeout,
             ),
 
@@ -287,6 +288,7 @@ impl BigTableConnection {
                 project_id,
                 instance_name,
                 is_read_only,
+                channel_size,
                 timeout,
             ),
 
@@ -342,6 +344,7 @@ impl BigTableConnection {
         project_id: &str,
         instance_name: &str,
         is_read_only: bool,
+        channel_size: usize,
         timeout: Option<Duration>,
     ) -> Result<Self> {
         info!("Connecting to bigtable emulator at {}", emulator_endpoint);
@@ -378,14 +381,20 @@ impl BigTableConnection {
                     }
                 }
             });
-
+            // TODO - somehow support channel_size for UDS here as well
             endpoint.connect_with_connector_lazy(connector)
         } else {
-            let endpoint = Channel::from_shared(format!("http://{}", emulator_endpoint))
-                .expect("invalid connection emulator uri");
-            let endpoint = configure_endpoint(endpoint, timeout);
+            let channel_size = channel_size.max(1);
+            let (channel, tx) = Channel::balance_channel(channel_size);
+            for i in 0..channel_size {
+                let endpoint = Channel::from_shared(format!("http://{}", emulator_endpoint))
+                    .expect("invalid connection emulator uri");
+                let endpoint = configure_endpoint(endpoint, timeout);
 
-            endpoint.connect_lazy()
+                // Use unique keys to ensure each channel has a dedicated HTTP connection
+                tx.try_send(Change::Insert(i, endpoint)).unwrap();
+            }
+            channel
         };
 
         Ok(Self {
