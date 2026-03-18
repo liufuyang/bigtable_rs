@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -65,7 +65,7 @@ jobs:
           -o coverage.lcov
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4 # Updated to v4
+        uses: codecov/codecov-action@v5 # Updated to v5
         with:
           files: ./coverage.lcov
           flags: rust
