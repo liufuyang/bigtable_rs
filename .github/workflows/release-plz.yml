@@ -1,7 +1,10 @@
 name: Release-plz
 
 on:
-  push:
+  workflow_run:
+    workflows: ["bigtable_rs CI"] # Must match the 'name:' in CI.yaml exactly
+    types:
+      - completed
     branches:
       - main
 
@@ -11,7 +14,16 @@ jobs:
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'liufuyang' }}
+    # This line is the "gatekeeper" — it prevents release-plz from running if CI failed
+    # This logic covers all bases:
+    # 1. Only runs in your repo (not forks)
+    # 2. Only if the CI actually passed
+    # 3. Only if the CI was a 'push' to main (a merge), NOT a PR sync
+    if: |
+      github.repository_owner == 'liufuyang' && 
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+
     permissions:
       contents: write
       pull-requests: read
@@ -24,9 +36,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tool: protoc
       - &install-rust
         name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable

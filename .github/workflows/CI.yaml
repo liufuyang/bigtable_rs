@@ -53,9 +53,9 @@ jobs:
         with:
           submodules: 'true'
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tool: protoc
       - name: Check fmt
         run: cargo fmt -- --check
       - name: Cargo build
