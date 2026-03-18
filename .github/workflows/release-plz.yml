@@ -20,6 +20,7 @@ jobs:
     if: |
       github.repository_owner == 'liufuyang' && 
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
 
     permissions:
@@ -27,6 +28,12 @@ jobs:
       pull-requests: read
       id-token: write # Required for Trusted Publishing
     steps:
+      - &echo
+        run: |
+          echo "event=${{ github.event.workflow_run.event }}"
+          echo "branch=${{ github.event.workflow_run.head_branch }}"
+          echo "conclusion=${{ github.event.workflow_run.conclusion }}"
+
       - &checkout
         name: Checkout repository
         uses: actions/checkout@v6
@@ -53,6 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.repository_owner == 'liufuyang' && 
+      github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
 
     permissions:
@@ -62,6 +70,7 @@ jobs:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
     steps:
+      - *echo
       - *checkout
       - *install-rust
       - name: Run release-plz
