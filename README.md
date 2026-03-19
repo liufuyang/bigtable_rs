@@ -44,12 +44,12 @@ again.
 
 The returned row values from Bigtable is parsed by this library.
 
-Supported interfaces towards Bigtable:
+See more examples on how to use:
 
-* [ReadRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L55)
-* [SampleRowKeys](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L68)
-* [MutateRow](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L78)
-* [MutateRows](https://github.com/googleapis/googleapis/blob/master/google/bigtable/v2/bigtable.proto#L90)
+* [ReadRows](examples/src/simple_read.rs)
+* [MutateRows](examples/src/simple_write.rs)
+* [SampleRowKeys](examples/src/sample_row_keys.rs)
+* [Read with a prefix](examples/src/prefix.rs)
 
 For other gRPC APIs/methods, one should be able to use the gRCP client directly and assemble any
 customized request you
@@ -222,14 +222,21 @@ Running tests:
 
 ```
 cargo test -- --nocapture
+
+# Or run with integration tests (requires a bigtable emulator running)
+
+BIGTABLE_EMULATOR_HOST=localhost:8086 cargo test --features integration_tests
 ```
+
+See code coverage:
 
 ```
 rustup component add llvm-tools-preview
-cargo install grcov
-mkdir -p target/coverage/html
+cargo install cargo-llvm-cov
 
-CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' RUSTDOCFLAGS='-Cinstrument-coverage' cargo test
+cargo llvm-cov --no-cfg-coverage  --ignore-filename-regex "google/" --html --open
 
-grcov . --binary-path ./target/debug/deps/ -s . -t html --branch --ignore-not-existing --ignore '../*' --ignore "/*" --ignore "bigtable_rs/src/google/*" --keep-only "bigtable_rs/src/*" -o target/coverage/html
+# Or run with integration test (requires a bigtable emulator running)
+
+BIGTABLE_EMULATOR_HOST=localhost:8086 cargo llvm-cov --no-cfg-coverage  --ignore-filename-regex "google/" --features integration_tests --html --open
 ```
