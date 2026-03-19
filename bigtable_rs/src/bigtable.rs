@@ -381,7 +381,7 @@ impl BigTableConnection {
                     }
                 }
             });
-            // TODO - somehow support channel_size for UDS here as well
+            // TODO - somehow support channel_size for UDS here as well?
             endpoint.connect_with_connector_lazy(connector)
         } else {
             let channel_size = channel_size.max(1);
