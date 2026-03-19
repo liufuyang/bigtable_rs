@@ -1,4 +1,15 @@
 coverage:
   precision: 1
   round: up
-  range: "38...100"
+  range: "30...100"
+
+# codecov.yml
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false  # This ensures it comments even if coverage stays the same
+
+# Optional: Tell Codecov to comment as soon as the first report arrives
+codecov:
+  notify:
+    after_n_builds: 1

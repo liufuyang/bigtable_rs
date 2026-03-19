@@ -5,6 +5,8 @@ on:
     workflows: ["bigtable_rs CI"] # Must match the 'name:' in CI.yaml exactly
     types:
       - completed
+    branches:
+      - main
 
 jobs:
 
