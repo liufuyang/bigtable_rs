@@ -9,7 +9,16 @@
 
 #![cfg(feature = "integration_tests")]
 
+use std::collections::HashMap;
+use std::time::Duration;
+
 use bigtable_rs::bigtable::{BigTableConnection, Error};
+use bigtable_rs::google::bigtable::admin::v2::{
+    bigtable_table_admin_client::BigtableTableAdminClient, // This is the raw tonic client
+    ColumnFamily,
+    CreateTableRequest,
+    Table,
+};
 use bigtable_rs::google::bigtable::v2::mutation;
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
@@ -18,16 +27,7 @@ use bigtable_rs::google::bigtable::v2::{
     MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest,
 };
 use futures_util::TryStreamExt;
-use std::time::Duration;
 use tokio::sync::OnceCell;
-
-use bigtable_rs::google::bigtable::admin::v2::{
-    bigtable_table_admin_client::BigtableTableAdminClient, // This is the raw tonic client
-    ColumnFamily,
-    CreateTableRequest,
-    Table,
-};
-use std::collections::HashMap;
 use tonic::transport::Channel;
 
 const PROJECT_ID: &str = "project-1";

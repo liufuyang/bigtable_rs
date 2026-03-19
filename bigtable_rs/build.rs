@@ -20,8 +20,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "cargo:warning=Running build.rs to generate and format Google API Bigtable proto rs files."
     );
 
-    use prost_wkt_build::{FileDescriptorSet, Message};
     use std::{env, path::PathBuf};
+
+    use prost_wkt_build::{FileDescriptorSet, Message};
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let descriptor_file = out.join("descriptors.bin");
 

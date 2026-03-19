@@ -1,13 +1,15 @@
+use std::collections::HashSet;
+use std::time::{Duration, Instant};
+
+use futures_util::stream::iter;
+use futures_util::{Stream, StreamExt};
+use log::trace;
+use tonic::Streaming;
+
 use crate::bigtable::{Error, Result, RowCell, RowKey};
 use crate::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
 use crate::google::bigtable::v2::read_rows_response::CellChunk;
 use crate::google::bigtable::v2::ReadRowsResponse;
-use futures_util::stream::iter;
-use futures_util::{Stream, StreamExt};
-use log::trace;
-use std::collections::HashSet;
-use std::time::{Duration, Instant};
-use tonic::Streaming;
 
 /// As each `CellChunk` could be only part of a cell, this method reorganize multiple `CellChunk`
 /// from multiple `ReadRowsResponse` into a `Vec<(RowKey, Vec<RowCell>)>`.

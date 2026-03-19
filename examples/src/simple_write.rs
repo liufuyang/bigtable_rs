@@ -1,3 +1,6 @@
+use std::error::Error;
+use std::time::Duration;
+
 use bigtable_rs::bigtable;
 use bigtable_rs::google::bigtable::v2::mutation;
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
@@ -6,8 +9,6 @@ use bigtable_rs::google::bigtable::v2::{
     MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
 use env_logger;
-use std::error::Error;
-use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

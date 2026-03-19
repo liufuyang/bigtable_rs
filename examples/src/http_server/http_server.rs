@@ -1,12 +1,5 @@
 use std::time::Duration;
 
-use log::info;
-use serde::{Deserialize, Serialize};
-use warp::http::Response;
-use warp::http::StatusCode;
-use warp::reply::with_status;
-use warp::{Filter as WarpFilter, Rejection, Reply};
-
 use bigtable_rs::bigtable::{BigTable, BigTableConnection};
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
 use bigtable_rs::google::bigtable::v2::row_filter::Chain;
@@ -14,6 +7,12 @@ use bigtable_rs::google::bigtable::v2::row_filter::Filter;
 use bigtable_rs::google::bigtable::v2::{
     mutation, MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
+use log::info;
+use serde::{Deserialize, Serialize};
+use warp::http::Response;
+use warp::http::StatusCode;
+use warp::reply::with_status;
+use warp::{Filter as WarpFilter, Rejection, Reply};
 
 // More info about bigtable schema design see here: https://cloud.google.com/bigtable/docs/schema-design
 const PROJECT_ID: &str = "project-1";
