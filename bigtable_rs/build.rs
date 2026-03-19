@@ -93,6 +93,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .compile_protos(
             &[
                 "../googleapis/google/bigtable/v2/bigtable.proto",
+                "../googleapis/google/bigtable/admin/v2/table.proto",
+                "../googleapis/google/bigtable/admin/v2/bigtable_table_admin.proto",
                 "../googleapis/test/bigtable_test.proto", // only works with fork https://github.com/liufuyang/googleapis
             ],
             &["../googleapis"],
