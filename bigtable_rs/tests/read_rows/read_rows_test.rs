@@ -1,10 +1,11 @@
+use std::fs;
+
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response_to_vec;
 use bigtable_rs::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
 use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
 use bigtable_rs::google::cloud::conformace::bigtable::v2::{
     read_rows_test, ReadRowsTest, TestFile,
 };
-use std::fs;
 
 type ReadRowTestResult = read_rows_test::Result;
 

@@ -1,11 +1,12 @@
+use std::error::Error;
+use std::time::Duration;
+
 use bigtable_rs::bigtable;
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
 use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowSet};
 use bigtable_rs::util::get_row_range_from_prefix;
 use env_logger;
-use std::error::Error;
-use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

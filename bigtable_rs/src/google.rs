@@ -3,6 +3,12 @@
 pub mod bigtable {
     #[path = "google.bigtable.v2.rs"]
     pub mod v2;
+
+    #[path = "./"]
+    pub mod admin {
+        #[path = "google.bigtable.admin.v2.rs"]
+        pub mod v2;
+    }
 }
 
 #[path = "google"]
@@ -16,6 +22,15 @@ pub mod cloud {
         }
     }
 }
+
+#[path = "google"]
+pub mod iam {
+    #[path = "google.iam.v1.rs"]
+    pub mod v1;
+}
+
+#[path = "google/google.longrunning.rs"]
+pub mod longrunning;
 
 #[path = "google/google.rpc.rs"]
 pub mod rpc;

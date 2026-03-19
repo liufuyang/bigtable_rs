@@ -19,9 +19,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macOS-latest ]
+        os: [ ubuntu-latest ] # macOS-latest is ignored for now as there is no docker on it, also we might not really need to verify on mac
 
     steps:
+      - name: Start Bigtable Emulator
+        run: |
+          docker run --rm -d -p 8086:8086 --name bigtable-emulator \
+          google/cloud-sdk:latest \
+          gcloud beta emulators bigtable start --host-port=0.0.0.0:8086
+
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
@@ -55,9 +61,15 @@ jobs:
         # This  both 'Run tests'
         # --lcov: generates the file for Codecov
         # --ignore-filename-regex: excludes your google/ folder
+        env:
+          BIGTABLE_EMULATOR_HOST: localhost:8086
+
+        # Use cargo llvm-cov to run test and generate coverage report
+        # For local running, use command:
+        # BIGTABLE_EMULATOR_HOST=localhost:8086 cargo llvm-cov --no-cfg-coverage  --ignore-filename-regex "google/" --features integration_tests --html --open
         run: >
           cargo llvm-cov --no-cfg-coverage --lcov --output-path lcov.info
-          --ignore-filename-regex "google/"
+          --ignore-filename-regex "google/" --features integration_tests
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
@@ -66,5 +78,9 @@ jobs:
           flags: rust
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Emulator Logs on Failure
+        if: failure() # Only runs if the tests (or setup) fail
+        run: docker logs bigtable-emulator
       
       

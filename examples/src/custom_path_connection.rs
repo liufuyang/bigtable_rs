@@ -1,3 +1,7 @@
+use std::error::Error;
+use std::sync::Arc;
+use std::time::Duration;
+
 use bigtable_rs::bigtable;
 use bigtable_rs::google::bigtable::v2::mutation;
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
@@ -7,9 +11,6 @@ use bigtable_rs::google::bigtable::v2::{
 };
 use env_logger;
 use gcp_auth::CustomServiceAccount;
-use std::error::Error;
-use std::sync::Arc;
-use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

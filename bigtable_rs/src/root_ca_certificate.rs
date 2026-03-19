@@ -1,4 +1,5 @@
 use std::{fs::File, io::Read};
+
 use tonic::transport::Certificate;
 
 pub fn load() -> Result<Certificate, String> {

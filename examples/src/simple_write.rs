@@ -1,13 +1,15 @@
+use std::error::Error;
+use std::time::Duration;
+
 use bigtable_rs::bigtable;
+use bigtable_rs::google::bigtable::v2::mutate_rows_request::Entry;
 use bigtable_rs::google::bigtable::v2::mutation;
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
 use bigtable_rs::google::bigtable::v2::row_filter::Filter;
 use bigtable_rs::google::bigtable::v2::{
-    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
+    MutateRowRequest, MutateRowsRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
 };
 use env_logger;
-use std::error::Error;
-use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -32,6 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .await?;
     let mut bigtable = connection.client();
 
+    // a request to write a single row
     let request = MutateRowRequest {
         table_name: bigtable.get_full_table_name(table_name),
         row_key: key.clone().into_bytes(),
@@ -48,6 +51,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // write to table
     let _response = bigtable.mutate_row(request).await?;
+
+    // a request to write multiple entries
+    let request = MutateRowsRequest {
+        table_name: bigtable.get_full_table_name(table_name),
+        entries: vec![Entry {
+            row_key: key.clone().into_bytes(),
+            mutations: vec![Mutation {
+                mutation: Some(mutation::Mutation::SetCell(SetCell {
+                    family_name: "cf1".to_owned(),
+                    column_qualifier: "c1".to_owned().into_bytes(),
+                    timestamp_micros: -1, // IMPORTANT: Don't leave it empty. Use -1 for current Bigtable server time.
+                    value: "a newer write value".to_owned().into_bytes(),
+                })),
+            }],
+        }],
+        ..MutateRowsRequest::default()
+    };
+    // write again
+    let _response = bigtable.mutate_rows(request).await?;
 
     // read from table again
     // prepare a ReadRowsRequest

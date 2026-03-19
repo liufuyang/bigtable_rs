@@ -5,9 +5,20 @@
 //! 2. The BIGTABLE_EMULATOR_HOST environment variable set: `export BIGTABLE_EMULATOR_HOST=localhost:8086`
 //! 3. A test table created with column families cf1 and cf2
 //!
-//! Run with: `BIGTABLE_EMULATOR_HOST=localhost:8086 cargo test --test tests emulator -- --ignored`
+//! Run with: `BIGTABLE_EMULATOR_HOST=localhost:8086 cargo test --test tests emulator --features integration_tests`
+
+#![cfg(feature = "integration_tests")]
+
+use std::collections::HashMap;
+use std::time::Duration;
 
 use bigtable_rs::bigtable::{BigTableConnection, Error};
+use bigtable_rs::google::bigtable::admin::v2::{
+    bigtable_table_admin_client::BigtableTableAdminClient, // This is the raw tonic client
+    ColumnFamily,
+    CreateTableRequest,
+    Table,
+};
 use bigtable_rs::google::bigtable::v2::mutation;
 use bigtable_rs::google::bigtable::v2::mutation::SetCell;
 use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
@@ -16,16 +27,58 @@ use bigtable_rs::google::bigtable::v2::{
     MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest,
 };
 use futures_util::TryStreamExt;
-use std::time::Duration;
+use tokio::sync::OnceCell;
+use tonic::transport::Channel;
 
 const PROJECT_ID: &str = "project-1";
 const INSTANCE_NAME: &str = "instance-1";
 const TABLE_NAME: &str = "table-1";
+const CF1: &str = "cf1";
+const CF2: &str = "cf2";
 const CHANNEL_SIZE: usize = 4;
 const TIMEOUT_SECS: u64 = 10;
 
-fn emulator_is_configured() -> bool {
-    std::env::var("BIGTABLE_EMULATOR_HOST").is_ok()
+static INIT: OnceCell<()> = OnceCell::const_new();
+
+async fn global_setup() {
+    INIT.get_or_init(|| async {
+        // 1. Connect to the emulator
+        // Note: Emulator doesn't use TLS, so we use a plain channel
+        let emulator_host = std::env::var("BIGTABLE_EMULATOR_HOST")
+            .expect("BIGTABLE_EMULATOR_HOST must be set to run this test");
+        let endpoint = format!("http://{}", emulator_host);
+
+        let channel = Channel::from_shared(endpoint)
+            .expect("Creating channel failed.")
+            .connect()
+            .await
+            .expect("Connect to Bigtable emulater failed.");
+
+        let mut client = BigtableTableAdminClient::new(channel);
+
+        let mut column_families = HashMap::new();
+        column_families.insert(CF1.to_string(), ColumnFamily::default());
+        column_families.insert(CF2.to_string(), ColumnFamily::default());
+
+        let request = CreateTableRequest {
+            parent: format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME),
+            table_id: TABLE_NAME.to_string(),
+            table: Some(Table {
+                column_families,
+                ..Default::default()
+            }),
+            initial_splits: vec![],
+        };
+
+        match client.create_table(request).await {
+            Ok(_) => println!("Successfully created table: {}", TABLE_NAME),
+            Err(e) if e.to_string().contains("already exists") => {
+                println!("Table {} already exists in emulator, skipping.", TABLE_NAME);
+            }
+            Err(e) => panic!("Creating Bigtable table field. {}", e),
+        };
+    })
+    .await;
 }
 
 async fn create_connection(read_only: bool) -> Result<BigTableConnection, Error> {
@@ -40,22 +93,16 @@ async fn create_connection(read_only: bool) -> Result<BigTableConnection, Error>
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_connection_to_emulator() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: Result<BigTableConnection, Error> = create_connection(true).await;
     assert!(connection.is_ok(), "Failed to connect to emulator");
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_write_and_read_row() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
     let mut bigtable = connection.client();
@@ -120,11 +167,8 @@ async fn test_write_and_read_row() {
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_read_rows_with_range() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
     let mut bigtable = connection.client();
@@ -189,11 +233,8 @@ async fn test_read_rows_with_range() {
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_read_rows_with_filter_chain() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
     let mut bigtable = connection.client();
@@ -285,11 +326,8 @@ async fn test_read_rows_with_filter_chain() {
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_stream_rows() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
     let mut bigtable = connection.client();
@@ -356,11 +394,8 @@ async fn test_stream_rows() {
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_sample_row_keys() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: BigTableConnection = create_connection(true).await.expect("Failed to connect");
     let mut bigtable = connection.client();
@@ -389,11 +424,8 @@ async fn test_sample_row_keys() {
 }
 
 #[tokio::test]
-#[ignore = "requires BIGTABLE_EMULATOR_HOST"]
 async fn test_read_nonexistent_row() {
-    if !emulator_is_configured() {
-        panic!("BIGTABLE_EMULATOR_HOST must be set to run this test");
-    }
+    global_setup().await;
 
     let connection: BigTableConnection = create_connection(true).await.expect("Failed to connect");
     let mut bigtable = connection.client();

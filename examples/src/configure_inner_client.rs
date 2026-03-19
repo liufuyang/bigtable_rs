@@ -1,10 +1,11 @@
-use bigtable_rs::bigtable;
-use env_logger;
-use gcp_auth::CustomServiceAccount;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 use std::usize;
+
+use bigtable_rs::bigtable;
+use env_logger;
+use gcp_auth::CustomServiceAccount;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

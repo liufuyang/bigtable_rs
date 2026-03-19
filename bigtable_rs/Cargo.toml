@@ -36,6 +36,8 @@ default = ["tonic-tls-aws-lc"]
 # allows choosing between tonic/tls-*
 tonic-tls-aws-lc = ["tonic/tls-aws-lc"]
 tonic-tls-ring = ["tonic/tls-ring"]
+# for integration tests
+integration_tests = []
 
 
 [dev-dependencies]
