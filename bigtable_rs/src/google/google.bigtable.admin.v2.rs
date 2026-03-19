@@ -3186,3 +3186,1740 @@ pub mod bigtable_table_admin_client {
         }
     }
 }
+/// A collection of Bigtable \[Tables\]\[google.bigtable.admin.v2.Table\] and
+/// the resources that serve them.
+/// All tables in an instance are served from all
+/// \[Clusters\]\[google.bigtable.admin.v2.Cluster\] in the instance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Instance {
+    /// The unique name of the instance. Values are of the form
+    /// `projects/{project}/instances/[a-z][a-z0-9\\-]+\[a-z0-9\]`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The descriptive name for this instance as it appears in UIs.
+    /// Can be changed at any time, but should be kept globally unique
+    /// to avoid confusion.
+    #[prost(string, tag = "2")]
+    pub display_name: ::prost::alloc::string::String,
+    /// (`OutputOnly`)
+    /// The current state of the instance.
+    #[prost(enumeration = "instance::State", tag = "3")]
+    pub state: i32,
+    /// The type of the instance. Defaults to `PRODUCTION`.
+    #[prost(enumeration = "instance::Type", tag = "4")]
+    pub r#type: i32,
+    /// Labels are a flexible and lightweight mechanism for organizing cloud
+    /// resources into groups that reflect a customer's organizational needs and
+    /// deployment strategies. They can be used to filter resources and aggregate
+    /// metrics.
+    ///
+    /// * Label keys must be between 1 and 63 characters long and must conform to
+    ///   the regular expression: `[\p{Ll}\p{Lo}][\p{Ll}\p{Lo}\p{N}_-]{0,62}`.
+    /// * Label values must be between 0 and 63 characters long and must conform to
+    ///   the regular expression: `\[\p{Ll}\p{Lo}\p{N}_-\]{0,63}`.
+    /// * No more than 64 labels can be associated with a given resource.
+    /// * Keys and values must both be under 128 bytes.
+    #[prost(map = "string, string", tag = "5")]
+    pub labels:
+        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// Output only. A server-assigned timestamp representing when this Instance
+    /// was created. For instances created before this field was added (August
+    /// 2021), this value is `seconds: 0, nanos: 1`.
+    #[prost(message, optional, tag = "7")]
+    pub create_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// Output only. Reserved for future use.
+    #[prost(bool, optional, tag = "8")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+}
+/// Nested message and enum types in `Instance`.
+pub mod instance {
+    /// Possible states of an instance.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum State {
+        /// The state of the instance could not be determined.
+        NotKnown = 0,
+        /// The instance has been successfully created and can serve requests
+        /// to its tables.
+        Ready = 1,
+        /// The instance is currently being created, and may be destroyed
+        /// if the creation process encounters an error.
+        Creating = 2,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::NotKnown => "STATE_NOT_KNOWN",
+                Self::Ready => "READY",
+                Self::Creating => "CREATING",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_NOT_KNOWN" => Some(Self::NotKnown),
+                "READY" => Some(Self::Ready),
+                "CREATING" => Some(Self::Creating),
+                _ => None,
+            }
+        }
+    }
+    /// The type of the instance.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum Type {
+        /// The type of the instance is unspecified. If set when creating an
+        /// instance, a `PRODUCTION` instance will be created. If set when updating
+        /// an instance, the type will be left unchanged.
+        Unspecified = 0,
+        /// An instance meant for production use. `serve_nodes` must be set
+        /// on the cluster.
+        Production = 1,
+        /// DEPRECATED: Prefer PRODUCTION for all use cases, as it no longer enforces
+        /// a higher minimum node count than DEVELOPMENT.
+        Development = 2,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TYPE_UNSPECIFIED",
+                Self::Production => "PRODUCTION",
+                Self::Development => "DEVELOPMENT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "PRODUCTION" => Some(Self::Production),
+                "DEVELOPMENT" => Some(Self::Development),
+                _ => None,
+            }
+        }
+    }
+}
+/// The Autoscaling targets for a Cluster. These determine the recommended nodes.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct AutoscalingTargets {
+    /// The cpu utilization that the Autoscaler should be trying to achieve.
+    /// This number is on a scale from 0 (no utilization) to
+    /// 100 (total utilization), and is limited between 10 and 80, otherwise it
+    /// will return INVALID_ARGUMENT error.
+    #[prost(int32, tag = "2")]
+    pub cpu_utilization_percent: i32,
+    /// The storage utilization that the Autoscaler should be trying to achieve.
+    /// This number is limited between 2560 (2.5TiB) and 5120 (5TiB) for a SSD
+    /// cluster and between 8192 (8TiB) and 16384 (16TiB) for an HDD cluster,
+    /// otherwise it will return INVALID_ARGUMENT error. If this value is set to 0,
+    /// it will be treated as if it were set to the default value: 2560 for SSD,
+    /// 8192 for HDD.
+    #[prost(int32, tag = "3")]
+    pub storage_utilization_gib_per_node: i32,
+}
+/// Limits for the number of nodes a Cluster can autoscale up/down to.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct AutoscalingLimits {
+    /// Required. Minimum number of nodes to scale down to.
+    #[prost(int32, tag = "1")]
+    pub min_serve_nodes: i32,
+    /// Required. Maximum number of nodes to scale up to.
+    #[prost(int32, tag = "2")]
+    pub max_serve_nodes: i32,
+}
+/// A resizable group of nodes in a particular cloud location, capable
+/// of serving all \[Tables\]\[google.bigtable.admin.v2.Table\] in the parent
+/// \[Instance\]\[google.bigtable.admin.v2.Instance\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Cluster {
+    /// The unique name of the cluster. Values are of the form
+    /// `projects/{project}/instances/{instance}/clusters/[a-z][-a-z0-9]*`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Immutable. The location where this cluster's nodes and storage reside. For
+    /// best performance, clients should be located as close as possible to this
+    /// cluster. Currently only zones are supported, so values should be of the
+    /// form `projects/{project}/locations/{zone}`.
+    #[prost(string, tag = "2")]
+    pub location: ::prost::alloc::string::String,
+    /// Output only. The current state of the cluster.
+    #[prost(enumeration = "cluster::State", tag = "3")]
+    pub state: i32,
+    /// The number of nodes allocated to this cluster. More nodes enable higher
+    /// throughput and more consistent performance.
+    #[prost(int32, tag = "4")]
+    pub serve_nodes: i32,
+    /// Immutable. The node scaling factor of this cluster.
+    #[prost(enumeration = "cluster::NodeScalingFactor", tag = "9")]
+    pub node_scaling_factor: i32,
+    /// Immutable. The type of storage used by this cluster to serve its
+    /// parent instance's tables, unless explicitly overridden.
+    #[prost(enumeration = "StorageType", tag = "5")]
+    pub default_storage_type: i32,
+    /// Immutable. The encryption configuration for CMEK-protected clusters.
+    #[prost(message, optional, tag = "6")]
+    pub encryption_config: ::core::option::Option<cluster::EncryptionConfig>,
+    #[prost(oneof = "cluster::Config", tags = "7")]
+    pub config: ::core::option::Option<cluster::Config>,
+}
+/// Nested message and enum types in `Cluster`.
+pub mod cluster {
+    /// Autoscaling config for a cluster.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct ClusterAutoscalingConfig {
+        /// Required. Autoscaling limits for this cluster.
+        #[prost(message, optional, tag = "1")]
+        pub autoscaling_limits: ::core::option::Option<super::AutoscalingLimits>,
+        /// Required. Autoscaling targets for this cluster.
+        #[prost(message, optional, tag = "2")]
+        pub autoscaling_targets: ::core::option::Option<super::AutoscalingTargets>,
+    }
+    /// Configuration for a cluster.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct ClusterConfig {
+        /// Autoscaling configuration for this cluster.
+        #[prost(message, optional, tag = "1")]
+        pub cluster_autoscaling_config: ::core::option::Option<ClusterAutoscalingConfig>,
+    }
+    /// Cloud Key Management Service (Cloud KMS) settings for a CMEK-protected
+    /// cluster.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct EncryptionConfig {
+        /// Describes the Cloud KMS encryption key that will be used to protect the
+        /// destination Bigtable cluster. The requirements for this key are:
+        ///
+        /// 1. The Cloud Bigtable service account associated with the project that
+        ///    contains this cluster must be granted the
+        ///    `cloudkms.cryptoKeyEncrypterDecrypter` role on the CMEK key.
+        /// 1. Only regional keys can be used and the region of the CMEK key must
+        ///    match the region of the cluster.
+        /// 1. All clusters within an instance must use the same CMEK key.
+        ///    Values are of the form
+        ///    `projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}`
+        #[prost(string, tag = "1")]
+        pub kms_key_name: ::prost::alloc::string::String,
+    }
+    /// Possible states of a cluster.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum State {
+        /// The state of the cluster could not be determined.
+        NotKnown = 0,
+        /// The cluster has been successfully created and is ready to serve requests.
+        Ready = 1,
+        /// The cluster is currently being created, and may be destroyed
+        /// if the creation process encounters an error.
+        /// A cluster may not be able to serve requests while being created.
+        Creating = 2,
+        /// The cluster is currently being resized, and may revert to its previous
+        /// node count if the process encounters an error.
+        /// A cluster is still capable of serving requests while being resized,
+        /// but may exhibit performance as if its number of allocated nodes is
+        /// between the starting and requested states.
+        Resizing = 3,
+        /// The cluster has no backing nodes. The data (tables) still
+        /// exist, but no operations can be performed on the cluster.
+        Disabled = 4,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::NotKnown => "STATE_NOT_KNOWN",
+                Self::Ready => "READY",
+                Self::Creating => "CREATING",
+                Self::Resizing => "RESIZING",
+                Self::Disabled => "DISABLED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_NOT_KNOWN" => Some(Self::NotKnown),
+                "READY" => Some(Self::Ready),
+                "CREATING" => Some(Self::Creating),
+                "RESIZING" => Some(Self::Resizing),
+                "DISABLED" => Some(Self::Disabled),
+                _ => None,
+            }
+        }
+    }
+    /// Possible node scaling factors of the clusters. Node scaling delivers better
+    /// latency and more throughput by removing node boundaries.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum NodeScalingFactor {
+        /// No node scaling specified. Defaults to NODE_SCALING_FACTOR_1X.
+        Unspecified = 0,
+        /// The cluster is running with a scaling factor of 1.
+        NodeScalingFactor1x = 1,
+        /// The cluster is running with a scaling factor of 2.
+        /// All node count values must be in increments of 2 with this scaling factor
+        /// enabled, otherwise an INVALID_ARGUMENT error will be returned.
+        NodeScalingFactor2x = 2,
+    }
+    impl NodeScalingFactor {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "NODE_SCALING_FACTOR_UNSPECIFIED",
+                Self::NodeScalingFactor1x => "NODE_SCALING_FACTOR_1X",
+                Self::NodeScalingFactor2x => "NODE_SCALING_FACTOR_2X",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "NODE_SCALING_FACTOR_UNSPECIFIED" => Some(Self::Unspecified),
+                "NODE_SCALING_FACTOR_1X" => Some(Self::NodeScalingFactor1x),
+                "NODE_SCALING_FACTOR_2X" => Some(Self::NodeScalingFactor2x),
+                _ => None,
+            }
+        }
+    }
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Config {
+        /// Configuration for this cluster.
+        #[prost(message, tag = "7")]
+        ClusterConfig(ClusterConfig),
+    }
+}
+/// A configuration object describing how Cloud Bigtable should treat traffic
+/// from a particular end user application.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct AppProfile {
+    /// The unique name of the app profile. Values are of the form
+    /// `projects/{project}/instances/{instance}/appProfiles/[_a-zA-Z0-9][-_.a-zA-Z0-9]*`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Strongly validated etag for optimistic concurrency control. Preserve the
+    /// value returned from `GetAppProfile` when calling `UpdateAppProfile` to
+    /// fail the request if there has been a modification in the mean time. The
+    /// `update_mask` of the request need not include `etag` for this protection
+    /// to apply.
+    /// See [Wikipedia](<https://en.wikipedia.org/wiki/HTTP_ETag>) and
+    /// [RFC 7232](<https://tools.ietf.org/html/rfc7232#section-2.3>) for more
+    /// details.
+    #[prost(string, tag = "2")]
+    pub etag: ::prost::alloc::string::String,
+    /// Long form description of the use case for this AppProfile.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// The routing policy for all read/write requests that use this app profile.
+    /// A value must be explicitly set.
+    #[prost(oneof = "app_profile::RoutingPolicy", tags = "5, 6")]
+    pub routing_policy: ::core::option::Option<app_profile::RoutingPolicy>,
+    /// Options for isolating this app profile's traffic from other use cases.
+    #[prost(oneof = "app_profile::Isolation", tags = "7, 11, 10")]
+    pub isolation: ::core::option::Option<app_profile::Isolation>,
+}
+/// Nested message and enum types in `AppProfile`.
+pub mod app_profile {
+    /// Read/write requests are routed to the nearest cluster in the instance, and
+    /// will fail over to the nearest cluster that is available in the event of
+    /// transient errors or delays. Clusters in a region are considered
+    /// equidistant. Choosing this option sacrifices read-your-writes consistency
+    /// to improve availability.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct MultiClusterRoutingUseAny {
+        /// The set of clusters to route to. The order is ignored; clusters will be
+        /// tried in order of distance. If left empty, all clusters are eligible.
+        #[prost(string, repeated, tag = "1")]
+        pub cluster_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        /// Possible algorithms for routing affinity. If enabled, Bigtable will
+        /// route between equidistant clusters in a deterministic order rather than
+        /// choosing randomly.
+        ///
+        /// This mechanism gives read-your-writes consistency for *most* requests
+        /// under *most* circumstances, without sacrificing availability. Consistency
+        /// is *not* guaranteed, as requests might still fail over between clusters
+        /// in the event of errors or latency.
+        #[prost(oneof = "multi_cluster_routing_use_any::Affinity", tags = "3")]
+        pub affinity: ::core::option::Option<multi_cluster_routing_use_any::Affinity>,
+    }
+    /// Nested message and enum types in `MultiClusterRoutingUseAny`.
+    pub mod multi_cluster_routing_use_any {
+        /// If enabled, Bigtable will route the request based on the row key of the
+        /// request, rather than randomly. Instead, each row key will be assigned
+        /// to a cluster, and will stick to that cluster. If clusters are added or
+        /// removed, then this may affect which row keys stick to which clusters.
+        /// To avoid this, users can use a cluster group to specify which clusters
+        /// are to be used. In this case, new clusters that are not a part of the
+        /// cluster group will not be routed to, and routing will be unaffected by
+        /// the new cluster. Moreover, clusters specified in the cluster group cannot
+        /// be deleted unless removed from the cluster group.
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+        pub struct RowAffinity {}
+        /// Possible algorithms for routing affinity. If enabled, Bigtable will
+        /// route between equidistant clusters in a deterministic order rather than
+        /// choosing randomly.
+        ///
+        /// This mechanism gives read-your-writes consistency for *most* requests
+        /// under *most* circumstances, without sacrificing availability. Consistency
+        /// is *not* guaranteed, as requests might still fail over between clusters
+        /// in the event of errors or latency.
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
+        pub enum Affinity {
+            /// Row affinity sticky routing based on the row key of the request.
+            /// Requests that span multiple rows are routed non-deterministically.
+            #[prost(message, tag = "3")]
+            RowAffinity(RowAffinity),
+        }
+    }
+    /// Unconditionally routes all read/write requests to a specific cluster.
+    /// This option preserves read-your-writes consistency but does not improve
+    /// availability.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct SingleClusterRouting {
+        /// The cluster to which read/write requests should be routed.
+        #[prost(string, tag = "1")]
+        pub cluster_id: ::prost::alloc::string::String,
+        /// Whether or not `CheckAndMutateRow` and `ReadModifyWriteRow` requests are
+        /// allowed by this app profile. It is unsafe to send these requests to
+        /// the same table/row/column in multiple clusters.
+        #[prost(bool, tag = "2")]
+        pub allow_transactional_writes: bool,
+    }
+    /// Standard options for isolating this app profile's traffic from other use
+    /// cases.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct StandardIsolation {
+        /// The priority of requests sent using this app profile.
+        #[prost(enumeration = "Priority", tag = "1")]
+        pub priority: i32,
+    }
+    /// Data Boost is a serverless compute capability that lets you run
+    /// high-throughput read jobs on your Bigtable data, without impacting the
+    /// performance of the clusters that handle your application traffic.
+    /// Currently, Data Boost exclusively supports read-only use-cases with
+    /// single-cluster routing.
+    ///
+    /// Data Boost reads are only guaranteed to see the results of writes that
+    /// were written at least 30 minutes ago. This means newly written values may
+    /// not become visible for up to 30m, and also means that old values may
+    /// remain visible for up to 30m after being deleted or overwritten. To
+    /// mitigate the staleness of the data, users may either wait 30m, or use
+    /// CheckConsistency.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct DataBoostIsolationReadOnly {
+        /// The Compute Billing Owner for this Data Boost App Profile.
+        #[prost(
+            enumeration = "data_boost_isolation_read_only::ComputeBillingOwner",
+            optional,
+            tag = "1"
+        )]
+        pub compute_billing_owner: ::core::option::Option<i32>,
+    }
+    /// Nested message and enum types in `DataBoostIsolationReadOnly`.
+    pub mod data_boost_isolation_read_only {
+        /// Compute Billing Owner specifies how usage should be accounted when using
+        /// Data Boost. Compute Billing Owner also configures which Cloud Project is
+        /// charged for relevant quota.
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        #[derive(
+            Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration,
+        )]
+        #[repr(i32)]
+        pub enum ComputeBillingOwner {
+            /// Unspecified value.
+            Unspecified = 0,
+            /// The host Cloud Project containing the targeted Bigtable Instance /
+            /// Table pays for compute.
+            HostPays = 1,
+        }
+        impl ComputeBillingOwner {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "COMPUTE_BILLING_OWNER_UNSPECIFIED",
+                    Self::HostPays => "HOST_PAYS",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "COMPUTE_BILLING_OWNER_UNSPECIFIED" => Some(Self::Unspecified),
+                    "HOST_PAYS" => Some(Self::HostPays),
+                    _ => None,
+                }
+            }
+        }
+    }
+    /// Possible priorities for an app profile. Note that higher priority writes
+    /// can sometimes queue behind lower priority writes to the same tablet, as
+    /// writes must be strictly sequenced in the durability log.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum Priority {
+        /// Default value. Mapped to PRIORITY_HIGH (the legacy behavior) on creation.
+        Unspecified = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3,
+    }
+    impl Priority {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "PRIORITY_UNSPECIFIED",
+                Self::Low => "PRIORITY_LOW",
+                Self::Medium => "PRIORITY_MEDIUM",
+                Self::High => "PRIORITY_HIGH",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "PRIORITY_UNSPECIFIED" => Some(Self::Unspecified),
+                "PRIORITY_LOW" => Some(Self::Low),
+                "PRIORITY_MEDIUM" => Some(Self::Medium),
+                "PRIORITY_HIGH" => Some(Self::High),
+                _ => None,
+            }
+        }
+    }
+    /// The routing policy for all read/write requests that use this app profile.
+    /// A value must be explicitly set.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum RoutingPolicy {
+        /// Use a multi-cluster routing policy.
+        #[prost(message, tag = "5")]
+        MultiClusterRoutingUseAny(MultiClusterRoutingUseAny),
+        /// Use a single-cluster routing policy.
+        #[prost(message, tag = "6")]
+        SingleClusterRouting(SingleClusterRouting),
+    }
+    /// Options for isolating this app profile's traffic from other use cases.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Isolation {
+        /// This field has been deprecated in favor of `standard_isolation.priority`.
+        /// If you set this field, `standard_isolation.priority` will be set instead.
+        ///
+        /// The priority of requests sent using this app profile.
+        #[deprecated]
+        #[prost(enumeration = "Priority", tag = "7")]
+        Priority(i32),
+        /// The standard options used for isolating this app profile's traffic from
+        /// other use cases.
+        #[prost(message, tag = "11")]
+        StandardIsolation(StandardIsolation),
+        /// Specifies that this app profile is intended for read-only usage via the
+        /// Data Boost feature.
+        #[prost(message, tag = "10")]
+        DataBoostIsolationReadOnly(DataBoostIsolationReadOnly),
+    }
+}
+/// A tablet is a defined by a start and end key and is explained in
+/// <https://cloud.google.com/bigtable/docs/overview#architecture> and
+/// <https://cloud.google.com/bigtable/docs/performance#optimization.>
+/// A Hot tablet is a tablet that exhibits high average cpu usage during the time
+/// interval from start time to end time.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct HotTablet {
+    /// The unique name of the hot tablet. Values are of the form
+    /// `projects/{project}/instances/{instance}/clusters/{cluster}/hotTablets/\[a-zA-Z0-9_-\]*`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Name of the table that contains the tablet. Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/[_a-zA-Z0-9][-_.a-zA-Z0-9]*`.
+    #[prost(string, tag = "2")]
+    pub table_name: ::prost::alloc::string::String,
+    /// Output only. The start time of the hot tablet.
+    #[prost(message, optional, tag = "3")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// Output only. The end time of the hot tablet.
+    #[prost(message, optional, tag = "4")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// Tablet Start Key (inclusive).
+    #[prost(string, tag = "5")]
+    pub start_key: ::prost::alloc::string::String,
+    /// Tablet End Key (inclusive).
+    #[prost(string, tag = "6")]
+    pub end_key: ::prost::alloc::string::String,
+    /// Output only. The average CPU usage spent by a node on this tablet over the
+    /// start_time to end_time time range. The percentage is the amount of CPU used
+    /// by the node to serve the tablet, from 0% (tablet was not interacted with)
+    /// to 100% (the node spent all cycles serving the hot tablet).
+    #[prost(float, tag = "7")]
+    pub node_cpu_usage_percent: f32,
+}
+/// Request message for BigtableInstanceAdmin.CreateInstance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateInstanceRequest {
+    /// Required. The unique name of the project in which to create the new
+    /// instance. Values are of the form `projects/{project}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The ID to be used when referring to the new instance within its
+    /// project, e.g., just `myinstance` rather than
+    /// `projects/myproject/instances/myinstance`.
+    #[prost(string, tag = "2")]
+    pub instance_id: ::prost::alloc::string::String,
+    /// Required. The instance to create.
+    /// Fields marked `OutputOnly` must be left blank.
+    #[prost(message, optional, tag = "3")]
+    pub instance: ::core::option::Option<Instance>,
+    /// Required. The clusters to be created within the instance, mapped by desired
+    /// cluster ID, e.g., just `mycluster` rather than
+    /// `projects/myproject/instances/myinstance/clusters/mycluster`.
+    /// Fields marked `OutputOnly` must be left blank.
+    /// Currently, at most four clusters can be specified.
+    #[prost(map = "string, message", tag = "4")]
+    pub clusters: ::std::collections::HashMap<::prost::alloc::string::String, Cluster>,
+}
+/// Request message for BigtableInstanceAdmin.GetInstance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetInstanceRequest {
+    /// Required. The unique name of the requested instance. Values are of the form
+    /// `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.ListInstances.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListInstancesRequest {
+    /// Required. The unique name of the project for which a list of instances is
+    /// requested. Values are of the form `projects/{project}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// DEPRECATED: This field is unused and ignored.
+    #[prost(string, tag = "2")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for BigtableInstanceAdmin.ListInstances.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListInstancesResponse {
+    /// The list of requested instances.
+    #[prost(message, repeated, tag = "1")]
+    pub instances: ::prost::alloc::vec::Vec<Instance>,
+    /// Locations from which Instance information could not be retrieved,
+    /// due to an outage or some other transient condition.
+    /// Instances whose Clusters are all in one of the failed locations
+    /// may be missing from `instances`, and Instances with at least one
+    /// Cluster in a failed location may only have partial information returned.
+    /// Values are of the form `projects/<project>/locations/<zone_id>`
+    #[prost(string, repeated, tag = "2")]
+    pub failed_locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// DEPRECATED: This field is unused and ignored.
+    #[prost(string, tag = "3")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.PartialUpdateInstance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PartialUpdateInstanceRequest {
+    /// Required. The Instance which will (partially) replace the current value.
+    #[prost(message, optional, tag = "1")]
+    pub instance: ::core::option::Option<Instance>,
+    /// Required. The subset of Instance fields which should be replaced.
+    /// Must be explicitly set.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+}
+/// Request message for BigtableInstanceAdmin.DeleteInstance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteInstanceRequest {
+    /// Required. The unique name of the instance to be deleted.
+    /// Values are of the form `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.CreateCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateClusterRequest {
+    /// Required. The unique name of the instance in which to create the new
+    /// cluster. Values are of the form `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The ID to be used when referring to the new cluster within its
+    /// instance, e.g., just `mycluster` rather than
+    /// `projects/myproject/instances/myinstance/clusters/mycluster`.
+    #[prost(string, tag = "2")]
+    pub cluster_id: ::prost::alloc::string::String,
+    /// Required. The cluster to be created.
+    /// Fields marked `OutputOnly` must be left blank.
+    #[prost(message, optional, tag = "3")]
+    pub cluster: ::core::option::Option<Cluster>,
+}
+/// Request message for BigtableInstanceAdmin.GetCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetClusterRequest {
+    /// Required. The unique name of the requested cluster. Values are of the form
+    /// `projects/{project}/instances/{instance}/clusters/{cluster}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.ListClusters.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListClustersRequest {
+    /// Required. The unique name of the instance for which a list of clusters is
+    /// requested. Values are of the form
+    /// `projects/{project}/instances/{instance}`. Use `{instance} = '-'` to list
+    /// Clusters for all Instances in a project, e.g.,
+    /// `projects/myproject/instances/-`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// DEPRECATED: This field is unused and ignored.
+    #[prost(string, tag = "2")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for BigtableInstanceAdmin.ListClusters.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListClustersResponse {
+    /// The list of requested clusters.
+    #[prost(message, repeated, tag = "1")]
+    pub clusters: ::prost::alloc::vec::Vec<Cluster>,
+    /// Locations from which Cluster information could not be retrieved,
+    /// due to an outage or some other transient condition.
+    /// Clusters from these locations may be missing from `clusters`,
+    /// or may only have partial information returned.
+    /// Values are of the form `projects/<project>/locations/<zone_id>`
+    #[prost(string, repeated, tag = "2")]
+    pub failed_locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// DEPRECATED: This field is unused and ignored.
+    #[prost(string, tag = "3")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.DeleteCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteClusterRequest {
+    /// Required. The unique name of the cluster to be deleted. Values are of the
+    /// form `projects/{project}/instances/{instance}/clusters/{cluster}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The metadata for the Operation returned by CreateInstance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateInstanceMetadata {
+    /// The request that prompted the initiation of this CreateInstance operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<CreateInstanceRequest>,
+    /// The time at which the original request was received.
+    #[prost(message, optional, tag = "2")]
+    pub request_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The time at which the operation failed or was completed successfully.
+    #[prost(message, optional, tag = "3")]
+    pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// The metadata for the Operation returned by UpdateInstance.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateInstanceMetadata {
+    /// The request that prompted the initiation of this UpdateInstance operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<PartialUpdateInstanceRequest>,
+    /// The time at which the original request was received.
+    #[prost(message, optional, tag = "2")]
+    pub request_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The time at which the operation failed or was completed successfully.
+    #[prost(message, optional, tag = "3")]
+    pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// The metadata for the Operation returned by CreateCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateClusterMetadata {
+    /// The request that prompted the initiation of this CreateCluster operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<CreateClusterRequest>,
+    /// The time at which the original request was received.
+    #[prost(message, optional, tag = "2")]
+    pub request_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The time at which the operation failed or was completed successfully.
+    #[prost(message, optional, tag = "3")]
+    pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// Keys: the full `name` of each table that existed in the instance when
+    /// CreateCluster was first called, i.e.
+    /// `projects/<project>/instances/<instance>/tables/<table>`. Any table added
+    /// to the instance by a later API call will be created in the new cluster by
+    /// that API call, not this one.
+    ///
+    /// Values: information on how much of a table's data has been copied to the
+    /// newly-created cluster so far.
+    #[prost(map = "string, message", tag = "4")]
+    pub tables: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        create_cluster_metadata::TableProgress,
+    >,
+}
+/// Nested message and enum types in `CreateClusterMetadata`.
+pub mod create_cluster_metadata {
+    /// Progress info for copying a table's data to the new cluster.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct TableProgress {
+        /// Estimate of the size of the table to be copied.
+        #[prost(int64, tag = "2")]
+        pub estimated_size_bytes: i64,
+        /// Estimate of the number of bytes copied so far for this table.
+        /// This will eventually reach 'estimated_size_bytes' unless the table copy
+        /// is CANCELLED.
+        #[prost(int64, tag = "3")]
+        pub estimated_copied_bytes: i64,
+        #[prost(enumeration = "table_progress::State", tag = "4")]
+        pub state: i32,
+    }
+    /// Nested message and enum types in `TableProgress`.
+    pub mod table_progress {
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        #[derive(
+            Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration,
+        )]
+        #[repr(i32)]
+        pub enum State {
+            Unspecified = 0,
+            /// The table has not yet begun copying to the new cluster.
+            Pending = 1,
+            /// The table is actively being copied to the new cluster.
+            Copying = 2,
+            /// The table has been fully copied to the new cluster.
+            Completed = 3,
+            /// The table was deleted before it finished copying to the new cluster.
+            /// Note that tables deleted after completion will stay marked as
+            /// COMPLETED, not CANCELLED.
+            Cancelled = 4,
+        }
+        impl State {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "STATE_UNSPECIFIED",
+                    Self::Pending => "PENDING",
+                    Self::Copying => "COPYING",
+                    Self::Completed => "COMPLETED",
+                    Self::Cancelled => "CANCELLED",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                    "PENDING" => Some(Self::Pending),
+                    "COPYING" => Some(Self::Copying),
+                    "COMPLETED" => Some(Self::Completed),
+                    "CANCELLED" => Some(Self::Cancelled),
+                    _ => None,
+                }
+            }
+        }
+    }
+}
+/// The metadata for the Operation returned by UpdateCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateClusterMetadata {
+    /// The request that prompted the initiation of this UpdateCluster operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<Cluster>,
+    /// The time at which the original request was received.
+    #[prost(message, optional, tag = "2")]
+    pub request_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The time at which the operation failed or was completed successfully.
+    #[prost(message, optional, tag = "3")]
+    pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// The metadata for the Operation returned by PartialUpdateCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PartialUpdateClusterMetadata {
+    /// The time at which the original request was received.
+    #[prost(message, optional, tag = "1")]
+    pub request_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The time at which the operation failed or was completed successfully.
+    #[prost(message, optional, tag = "2")]
+    pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The original request for PartialUpdateCluster.
+    #[prost(message, optional, tag = "3")]
+    pub original_request: ::core::option::Option<PartialUpdateClusterRequest>,
+}
+/// Request message for BigtableInstanceAdmin.PartialUpdateCluster.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PartialUpdateClusterRequest {
+    /// Required. The Cluster which contains the partial updates to be applied,
+    /// subject to the update_mask.
+    #[prost(message, optional, tag = "1")]
+    pub cluster: ::core::option::Option<Cluster>,
+    /// Required. The subset of Cluster fields which should be replaced.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+}
+/// Request message for BigtableInstanceAdmin.CreateAppProfile.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateAppProfileRequest {
+    /// Required. The unique name of the instance in which to create the new app
+    /// profile. Values are of the form `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The ID to be used when referring to the new app profile within
+    /// its instance, e.g., just `myprofile` rather than
+    /// `projects/myproject/instances/myinstance/appProfiles/myprofile`.
+    #[prost(string, tag = "2")]
+    pub app_profile_id: ::prost::alloc::string::String,
+    /// Required. The app profile to be created.
+    /// Fields marked `OutputOnly` will be ignored.
+    #[prost(message, optional, tag = "3")]
+    pub app_profile: ::core::option::Option<AppProfile>,
+    /// If true, ignore safety checks when creating the app profile.
+    #[prost(bool, tag = "4")]
+    pub ignore_warnings: bool,
+}
+/// Request message for BigtableInstanceAdmin.GetAppProfile.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetAppProfileRequest {
+    /// Required. The unique name of the requested app profile. Values are of the
+    /// form `projects/{project}/instances/{instance}/appProfiles/{app_profile}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.ListAppProfiles.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListAppProfilesRequest {
+    /// Required. The unique name of the instance for which a list of app profiles
+    /// is requested. Values are of the form
+    /// `projects/{project}/instances/{instance}`.
+    /// Use `{instance} = '-'` to list AppProfiles for all Instances in a project,
+    /// e.g., `projects/myproject/instances/-`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Maximum number of results per page.
+    ///
+    /// A page_size of zero lets the server choose the number of items to return.
+    /// A page_size which is strictly positive will return at most that many items.
+    /// A negative page_size will cause an error.
+    ///
+    /// Following the first request, subsequent paginated calls are not required
+    /// to pass a page_size. If a page_size is set in subsequent calls, it must
+    /// match the page_size given in the first request.
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    /// The value of `next_page_token` returned by a previous call.
+    #[prost(string, tag = "2")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for BigtableInstanceAdmin.ListAppProfiles.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListAppProfilesResponse {
+    /// The list of requested app profiles.
+    #[prost(message, repeated, tag = "1")]
+    pub app_profiles: ::prost::alloc::vec::Vec<AppProfile>,
+    /// Set if not all app profiles could be returned in a single response.
+    /// Pass this value to `page_token` in another request to get the next
+    /// page of results.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+    /// Locations from which AppProfile information could not be retrieved,
+    /// due to an outage or some other transient condition.
+    /// AppProfiles from these locations may be missing from `app_profiles`.
+    /// Values are of the form `projects/<project>/locations/<zone_id>`
+    #[prost(string, repeated, tag = "3")]
+    pub failed_locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Request message for BigtableInstanceAdmin.UpdateAppProfile.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateAppProfileRequest {
+    /// Required. The app profile which will (partially) replace the current value.
+    #[prost(message, optional, tag = "1")]
+    pub app_profile: ::core::option::Option<AppProfile>,
+    /// Required. The subset of app profile fields which should be replaced.
+    /// If unset, all fields will be replaced.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+    /// If true, ignore safety checks when updating the app profile.
+    #[prost(bool, tag = "3")]
+    pub ignore_warnings: bool,
+}
+/// Request message for BigtableInstanceAdmin.DeleteAppProfile.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteAppProfileRequest {
+    /// Required. The unique name of the app profile to be deleted. Values are of
+    /// the form
+    /// `projects/{project}/instances/{instance}/appProfiles/{app_profile}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. If true, ignore safety checks when deleting the app profile.
+    #[prost(bool, tag = "2")]
+    pub ignore_warnings: bool,
+}
+/// The metadata for the Operation returned by UpdateAppProfile.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateAppProfileMetadata {}
+/// Request message for BigtableInstanceAdmin.ListHotTablets.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListHotTabletsRequest {
+    /// Required. The cluster name to list hot tablets.
+    /// Value is in the following form:
+    /// `projects/{project}/instances/{instance}/clusters/{cluster}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// The start time to list hot tablets. The hot tablets in the response will
+    /// have start times between the requested start time and end time. Start time
+    /// defaults to Now if it is unset, and end time defaults to Now - 24 hours if
+    /// it is unset. The start time should be less than the end time, and the
+    /// maximum allowed time range between start time and end time is 48 hours.
+    /// Start time and end time should have values between Now and Now - 14 days.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// The end time to list hot tablets.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// Maximum number of results per page.
+    ///
+    /// A page_size that is empty or zero lets the server choose the number of
+    /// items to return. A page_size which is strictly positive will return at most
+    /// that many items. A negative page_size will cause an error.
+    ///
+    /// Following the first request, subsequent paginated calls do not need a
+    /// page_size field. If a page_size is set in subsequent calls, it must match
+    /// the page_size given in the first request.
+    #[prost(int32, tag = "4")]
+    pub page_size: i32,
+    /// The value of `next_page_token` returned by a previous call.
+    #[prost(string, tag = "5")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for BigtableInstanceAdmin.ListHotTablets.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListHotTabletsResponse {
+    /// List of hot tablets in the tables of the requested cluster that fall
+    /// within the requested time range. Hot tablets are ordered by node cpu usage
+    /// percent. If there are multiple hot tablets that correspond to the same
+    /// tablet within a 15-minute interval, only the hot tablet with the highest
+    /// node cpu usage will be included in the response.
+    #[prost(message, repeated, tag = "1")]
+    pub hot_tablets: ::prost::alloc::vec::Vec<HotTablet>,
+    /// Set if not all hot tablets could be returned in a single response.
+    /// Pass this value to `page_token` in another request to get the next
+    /// page of results.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Generated client implementations.
+pub mod bigtable_instance_admin_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value
+    )]
+    use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
+    /// Service for creating, configuring, and deleting Cloud Bigtable Instances and
+    /// Clusters. Provides access to the Instance and Cluster schemas only, not the
+    /// tables' metadata or data stored in those tables.
+    #[derive(Debug, Clone)]
+    pub struct BigtableInstanceAdminClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl BigtableInstanceAdminClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> BigtableInstanceAdminClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::Body>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> BigtableInstanceAdminClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::Body>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            BigtableInstanceAdminClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Create an instance within a project.
+        ///
+        /// Note that exactly one of Cluster.serve_nodes and
+        /// Cluster.cluster_config.cluster_autoscaling_config can be set. If
+        /// serve_nodes is set to non-zero, then the cluster is manually scaled. If
+        /// cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is
+        /// enabled.
+        pub async fn create_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateInstanceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/CreateInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "CreateInstance",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets information about an instance.
+        pub async fn get_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetInstanceRequest>,
+        ) -> std::result::Result<tonic::Response<super::Instance>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/GetInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "GetInstance",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists information about instances in a project.
+        pub async fn list_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListInstancesRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListInstancesResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/ListInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "ListInstances",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates an instance within a project. This method updates only the display
+        /// name and type for an Instance. To update other Instance properties, such as
+        /// labels, use PartialUpdateInstance.
+        pub async fn update_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Instance>,
+        ) -> std::result::Result<tonic::Response<super::Instance>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/UpdateInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "UpdateInstance",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Partially updates an instance within a project. This method can modify all
+        /// fields of an Instance and is the preferred way to update an Instance.
+        pub async fn partial_update_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PartialUpdateInstanceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/PartialUpdateInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "PartialUpdateInstance",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Delete an instance from a project.
+        pub async fn delete_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteInstanceRequest>,
+        ) -> std::result::Result<tonic::Response<::prost_wkt_types::Empty>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/DeleteInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "DeleteInstance",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a cluster within an instance.
+        ///
+        /// Note that exactly one of Cluster.serve_nodes and
+        /// Cluster.cluster_config.cluster_autoscaling_config can be set. If
+        /// serve_nodes is set to non-zero, then the cluster is manually scaled. If
+        /// cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is
+        /// enabled.
+        pub async fn create_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateClusterRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/CreateCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "CreateCluster",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets information about a cluster.
+        pub async fn get_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetClusterRequest>,
+        ) -> std::result::Result<tonic::Response<super::Cluster>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/GetCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "GetCluster",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists information about clusters in an instance.
+        pub async fn list_clusters(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListClustersRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListClustersResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/ListClusters",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "ListClusters",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates a cluster within an instance.
+        ///
+        /// Note that UpdateCluster does not support updating
+        /// cluster_config.cluster_autoscaling_config. In order to update it, you
+        /// must use PartialUpdateCluster.
+        pub async fn update_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Cluster>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/UpdateCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "UpdateCluster",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Partially updates a cluster within a project. This method is the preferred
+        /// way to update a Cluster.
+        ///
+        /// To enable and update autoscaling, set
+        /// cluster_config.cluster_autoscaling_config. When autoscaling is enabled,
+        /// serve_nodes is treated as an OUTPUT_ONLY field, meaning that updates to it
+        /// are ignored. Note that an update cannot simultaneously set serve_nodes to
+        /// non-zero and cluster_config.cluster_autoscaling_config to non-empty, and
+        /// also specify both in the update_mask.
+        ///
+        /// To disable autoscaling, clear cluster_config.cluster_autoscaling_config,
+        /// and explicitly set a serve_node count via the update_mask.
+        pub async fn partial_update_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PartialUpdateClusterRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/PartialUpdateCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "PartialUpdateCluster",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a cluster from an instance.
+        pub async fn delete_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteClusterRequest>,
+        ) -> std::result::Result<tonic::Response<::prost_wkt_types::Empty>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/DeleteCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "DeleteCluster",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates an app profile within an instance.
+        pub async fn create_app_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateAppProfileRequest>,
+        ) -> std::result::Result<tonic::Response<super::AppProfile>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/CreateAppProfile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "CreateAppProfile",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets information about an app profile.
+        pub async fn get_app_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetAppProfileRequest>,
+        ) -> std::result::Result<tonic::Response<super::AppProfile>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/GetAppProfile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "GetAppProfile",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists information about app profiles in an instance.
+        pub async fn list_app_profiles(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListAppProfilesRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListAppProfilesResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/ListAppProfiles",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "ListAppProfiles",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates an app profile within an instance.
+        pub async fn update_app_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateAppProfileRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/UpdateAppProfile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "UpdateAppProfile",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes an app profile from an instance.
+        pub async fn delete_app_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteAppProfileRequest>,
+        ) -> std::result::Result<tonic::Response<::prost_wkt_types::Empty>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/DeleteAppProfile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "DeleteAppProfile",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets the access control policy for an instance resource. Returns an empty
+        /// policy if an instance exists but does not have a policy set.
+        pub async fn get_iam_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::super::super::super::iam::v1::GetIamPolicyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::iam::v1::Policy>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/GetIamPolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "GetIamPolicy",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Sets the access control policy on an instance resource. Replaces any
+        /// existing policy.
+        pub async fn set_iam_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::super::super::super::iam::v1::SetIamPolicyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::iam::v1::Policy>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/SetIamPolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "SetIamPolicy",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns permissions that the caller has on the specified instance resource.
+        pub async fn test_iam_permissions(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::super::super::super::iam::v1::TestIamPermissionsRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::iam::v1::TestIamPermissionsResponse>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/TestIamPermissions",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "TestIamPermissions",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists hot tablets in a cluster, within the time range provided. Hot
+        /// tablets are ordered based on CPU usage.
+        pub async fn list_hot_tablets(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListHotTabletsRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListHotTabletsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/ListHotTablets",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "ListHotTablets",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
