@@ -1,7 +1,10 @@
 name: Release-plz
 
 on:
-  push:
+  workflow_run:
+    workflows: ["bigtable_rs CI"] # Must match the 'name:' in CI.yaml exactly
+    types:
+      - completed
     branches:
       - main
 
@@ -17,13 +20,22 @@ jobs:
     # 2. Only if the CI actually passed
     # 3. Only if the CI was a 'push' to main
     if: |
-      github.repository_owner == 'liufuyang'
+      github.repository_owner == 'liufuyang' && 
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
 
     permissions:
       contents: write
       pull-requests: read
       id-token: write # Required for Trusted Publishing
     steps:
+      - &echo
+        run: |
+          echo "event=${{ github.event.workflow_run.event }}"
+          echo "branch=${{ github.event.workflow_run.head_branch }}"
+          echo "conclusion=${{ github.event.workflow_run.conclusion }}"
+
       - &checkout
         name: Checkout repository
         uses: actions/checkout@v6
@@ -49,7 +61,9 @@ jobs:
     name: Release-plz PR
     runs-on: ubuntu-latest
     if: |
-      github.repository_owner == 'liufuyang'
+      github.repository_owner == 'liufuyang' && 
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
 
     permissions:
       contents: write
@@ -58,6 +72,7 @@ jobs:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
     steps:
+      - *echo
       - *checkout
       - *install-rust
       - name: Run release-plz
