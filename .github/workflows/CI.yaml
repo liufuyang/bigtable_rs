@@ -33,42 +33,38 @@ jobs:
           components: rustfmt, llvm-tools-preview
           # This action automatically handles caching for ~/.cargo and ./target
 
-      - name: Install Tools (Protoc & grcov)
+      - name: Install Tools (Protoc & cargo-llvm-cov)
         uses: taiki-e/install-action@v2
         with:
-          tool: protoc, grcov
+          tool: protoc, cargo-llvm-cov
 
       - name: Check fmt
         run: cargo fmt -- --check
-
+      
       - name: Cargo build
         run: cargo build
         env:
           BUILD_BIGTABLE_RS_GOOGLE_PROTO: 'true'
-
+      
       - name: Check git status clean
         uses: CatChen/check-git-status-action@v1
         with:
           fail-if-not-clean: true
 
-      - name: Run tests
-        run: cargo test --verbose
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Cinstrument-coverage'
-          RUSTDOCFLAGS: '-Cinstrument-coverage'
-
-      - name: Run grcov
+      - name: Generate Code Coverage
+        # This  both 'Run tests'
+        # --lcov: generates the file for Codecov
+        # --ignore-filename-regex: excludes your google/ folder
         run: >
-          grcov . --binary-path target/debug/deps/ -s . -t lcov --branch 
-          --ignore-not-existing --ignore '../**' --ignore '/*' 
-          --ignore 'bigtable_rs/src/google/*' --keep-only 'bigtable_rs/src/*' 
-          -o coverage.lcov
+          cargo llvm-cov --no-cfg-coverage --lcov --output-path lcov.info
+          --ignore-filename-regex "google/"
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5 # Updated to v5
+        uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.lcov
+          files: ./lcov.info
           flags: rust
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }} # Required for v4+ in some cases
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      
