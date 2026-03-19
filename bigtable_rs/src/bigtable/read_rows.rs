@@ -220,6 +220,7 @@ pub fn decode_read_rows_response_to_vec(
         rows.push(Err(Error::ChunkError(
             "Invalid - last row missing commit".to_owned(),
         )));
+
         return rows;
     }
 
