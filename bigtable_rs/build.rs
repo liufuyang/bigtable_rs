@@ -23,36 +23,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::{env, path::PathBuf};
 
     use prost_wkt_build::{FileDescriptorSet, Message};
-    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let descriptor_file = out.join("descriptors.bin");
+    // let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    // let descriptor_file = out.join("descriptors.bin");
 
-    tonic_prost_build::configure()
-        .build_server(false)
-        .out_dir("src/google")
-        .compile_well_known_types(true)
-        .extern_path(
-            ".google.protobuf.BytesValue",
-            "::prost::alloc::vec::Vec<u8>",
-        )
-        .extern_path(
-            ".google.protobuf.StringValue",
-            "::prost::alloc::string::String",
-        )
-        .extern_path(".google.protobuf", "::prost_wkt_types")
-        .file_descriptor_set_path(&descriptor_file)
-        .compile_protos(
-            &[
-                "../googleapis/google/bigtable/v2/bigtable.proto",
-                "../googleapis/google/bigtable/admin/v2/table.proto",
-                "../googleapis/google/bigtable/admin/v2/bigtable_table_admin.proto",
-                "../googleapis/google/bigtable/admin/v2/bigtable_instance_admin.proto",
-            ],
-            &["../googleapis"],
-        )?;
+    // tonic_prost_build::configure()
+    //     .build_server(false)
+    //     .out_dir("src/google")
+    //     .compile_well_known_types(true)
+    //     .extern_path(
+    //         ".google.protobuf.BytesValue",
+    //         "::prost::alloc::vec::Vec<u8>",
+    //     )
+    //     .extern_path(
+    //         ".google.protobuf.StringValue",
+    //         "::prost::alloc::string::String",
+    //     )
+    //     .extern_path(".google.protobuf", "::prost_wkt_types")
+    //     .file_descriptor_set_path(&descriptor_file)
+    //     .compile_protos(
+    //         &[
+    //             "../googleapis/google/bigtable/v2/bigtable.proto",
+    //             "../googleapis/google/bigtable/admin/v2/table.proto",
+    //             "../googleapis/google/bigtable/admin/v2/bigtable_table_admin.proto",
+    //             "../googleapis/google/bigtable/admin/v2/bigtable_instance_admin.proto",
+    //         ],
+    //         &["../googleapis"],
+    //     )?;
 
-    let descriptor_bytes = std::fs::read(descriptor_file).unwrap();
-    let descriptor = FileDescriptorSet::decode(&descriptor_bytes[..]).unwrap();
-    prost_wkt_build::add_serde(out, descriptor);
+    // let descriptor_bytes = std::fs::read(descriptor_file).unwrap();
+    // let descriptor = FileDescriptorSet::decode(&descriptor_bytes[..]).unwrap();
+    // prost_wkt_build::add_serde(out, descriptor);
 
     // Build test protos
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());

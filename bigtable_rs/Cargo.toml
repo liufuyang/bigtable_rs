@@ -12,6 +12,7 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+googleapis-tonic-google-bigtable-v2 = "0.36.0"
 # tonic, prost, and prost-types are need for build generated rs files
 http = "1.1.0"
 hyper-util = { version = "0.1.7", features = ["tokio"] }
@@ -19,10 +20,6 @@ tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
 tonic = { version = "0.14.2", features = ["transport"] }
 tonic-prost = "0.14.2"
 tower = { version = "0.5.1", features = ["util"] }
-prost = "0.14.1"
-prost-types = "0.14.1"
-prost-wkt = { version = "0.7.0" }
-prost-wkt-types = { version = "0.7.0" }
 # end of above part
 futures-util = "0.3.31"
 gcp_auth = "0.12.2"
@@ -39,6 +36,8 @@ integration_tests = []
 
 
 [dev-dependencies]
+googleapis-tonic-google-bigtable-v2 = "0.36.0"
+googleapis-tonic-google-bigtable-admin-v2 = "0.36.0"
 env_logger = "0.11.1"
 futures-util = "0.3.31"
 prost = "0.14.1"

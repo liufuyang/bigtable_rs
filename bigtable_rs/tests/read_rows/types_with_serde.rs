@@ -1,5 +1,5 @@
-use bigtable_rs::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
-use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::read_rows_response::CellChunk;
 
 use serde::{Deserialize, Serialize};
 use serde_with::base64::Base64;

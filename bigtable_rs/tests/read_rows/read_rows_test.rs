@@ -5,7 +5,7 @@ use crate::read_rows::google::cloud::conformace::bigtable::v2::{
 };
 use crate::read_rows::types_with_serde::CellChunkWithSerde;
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response_to_vec;
-use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::read_rows_response::CellChunk;
 
 type ReadRowTestResult = read_rows_test::Result;
 

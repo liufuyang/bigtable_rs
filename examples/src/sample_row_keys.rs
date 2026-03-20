@@ -2,7 +2,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use bigtable_rs::bigtable;
-use bigtable_rs::google::bigtable::v2::SampleRowKeysRequest;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::SampleRowKeysRequest;
 use env_logger;
 
 #[tokio::main]

@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use bigtable_rs::bigtable;
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response;
-use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowSet};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowSet};
 use bigtable_rs::util::get_row_range_from_prefix;
 use env_logger;
 

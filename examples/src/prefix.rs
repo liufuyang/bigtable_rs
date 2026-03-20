@@ -2,8 +2,8 @@ use std::error::Error;
 use std::time::Duration;
 
 use bigtable_rs::bigtable;
-use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{ReadRowsRequest, RowFilter};
 use env_logger;
 
 #[tokio::main]
