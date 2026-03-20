@@ -107,6 +107,7 @@ use tower::ServiceBuilder;
 
 use crate::auth_service::AuthSvc;
 use crate::bigtable::read_rows::{decode_read_rows_response, decode_read_rows_response_stream};
+use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
     bigtable_client::BigtableClient, MutateRowRequest, MutateRowResponse, MutateRowsRequest,
     MutateRowsResponse, ReadRowsRequest, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
@@ -114,7 +115,6 @@ use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
     CheckAndMutateRowRequest, CheckAndMutateRowResponse, ExecuteQueryRequest, ExecuteQueryResponse,
 };
-use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 
 pub mod read_rows;
 

@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use bigtable_rs::bigtable::{BigTableConnection, Error};
+use futures_util::TryStreamExt;
 use googleapis_tonic_google_bigtable_admin_v2::google::bigtable::admin::v2::{
     bigtable_table_admin_client::BigtableTableAdminClient, // This is the raw tonic client
     ColumnFamily,
@@ -26,7 +27,6 @@ use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKe
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
     MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest,
 };
-use futures_util::TryStreamExt;
 use tokio::sync::OnceCell;
 use tonic::transport::Channel;
 

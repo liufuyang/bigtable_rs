@@ -2,9 +2,9 @@ use std::error::Error;
 use std::time::Duration;
 
 use bigtable_rs::bigtable;
+use env_logger;
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{ReadRowsRequest, RowFilter};
-use env_logger;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
