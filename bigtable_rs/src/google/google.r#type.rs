@@ -12,9 +12,6 @@
 ///
 /// Related types are \[google.type.TimeOfDay\]\[google.type.TimeOfDay\] and
 /// `google.protobuf.Timestamp`.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Date {
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without
@@ -70,9 +67,6 @@ pub struct Date {
 /// The exact variables and functions that may be referenced within an expression
 /// are determined by the service that evaluates it. See the service
 /// documentation for additional information.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Expr {
     /// Textual representation of an expression in Common Expression Language
