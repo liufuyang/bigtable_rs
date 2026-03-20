@@ -16,7 +16,7 @@ pub struct ReadRowsTest {
     #[prost(string, tag = "1")]
     pub description: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "2")]
-    pub chunks: ::prost::alloc::vec::Vec<crate::read_rows::proxy_types::CellChunkProxy>,
+    pub chunks: ::prost::alloc::vec::Vec<crate::read_rows::types_with_serde::CellChunkWithSerde>,
     #[prost(message, repeated, tag = "3")]
     pub results: ::prost::alloc::vec::Vec<read_rows_test::Result>,
 }

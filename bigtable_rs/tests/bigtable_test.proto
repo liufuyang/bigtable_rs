@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package google.cloud.conformance.bigtable.v2;
 
-// No need of using official google bigtable.proto anymore as we are using a CellChunkProxy type
+// No need of using official google bigtable.proto anymore as we are using a CellChunkWithSerde type
 // import "google/bigtable/v2/bigtable.proto";
 
 option csharp_namespace = "Google.Cloud.Bigtable.V2.Tests.Conformance";
@@ -43,11 +43,11 @@ message ReadRowsTest {
   }
 
   // Dummy type
-  message CellChunkProxy {
+  message CellChunkWithSerde {
   }
 
   string description = 1;
-  repeated CellChunkProxy chunks = 2;
+  repeated CellChunkWithSerde chunks = 2;
   repeated Result results = 3;
 
 }

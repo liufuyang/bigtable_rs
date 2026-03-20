@@ -7,12 +7,14 @@ use serde_with::serde_as;
 
 use prost::Message;
 
+/// A proxy type to [`bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk`],
+/// with serde tags applied, so that we can use test data from json file.
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 #[derive(Clone, PartialEq, Message)]
-pub struct CellChunkProxy {
+pub struct CellChunkWithSerde {
     #[serde_as(as = "Base64")]
     #[serde(default)]
     #[prost(bytes = "vec", tag = "1")]
@@ -53,8 +55,8 @@ pub struct CellChunkProxy {
     pub reset_row: Option<bool>,
 }
 
-impl From<CellChunkProxy> for CellChunk {
-    fn from(proxy: CellChunkProxy) -> Self {
+impl From<CellChunkWithSerde> for CellChunk {
+    fn from(proxy: CellChunkWithSerde) -> Self {
         // Map the flat proxy fields back to the Protobuf OneOf enum
         let row_status = if let Some(true) = proxy.commit_row {
             Some(RowStatus::CommitRow(true))

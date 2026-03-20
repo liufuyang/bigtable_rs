@@ -81,8 +81,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "::prost::alloc::string::String",
         )
         .extern_path(
-            ".google.cloud.conformance.bigtable.v2.ReadRowsTest.CellChunkProxy",
-            "crate::read_rows::proxy_types::CellChunkProxy",
+            ".google.cloud.conformance.bigtable.v2.ReadRowsTest.CellChunkWithSerde",
+            "crate::read_rows::types_with_serde::CellChunkWithSerde",
         )
         // todo type change
         .extern_path(".google.protobuf", "::prost_wkt_types")

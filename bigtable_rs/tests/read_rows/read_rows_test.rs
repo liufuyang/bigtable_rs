@@ -3,7 +3,7 @@ use std::fs;
 use crate::read_rows::google::cloud::conformace::bigtable::v2::{
     read_rows_test, ReadRowsTest, TestFile,
 };
-use crate::read_rows::proxy_types::CellChunkProxy;
+use crate::read_rows::types_with_serde::CellChunkWithSerde;
 use bigtable_rs::bigtable::read_rows::decode_read_rows_response_to_vec;
 use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
 
@@ -16,7 +16,7 @@ type ReadRowTestResult = read_rows_test::Result;
 
 #[test]
 fn tmp_test_1() {
-    let chunk = CellChunkProxy {
+    let chunk = CellChunkWithSerde {
         row_key: vec![],
         family_name: None,
         qualifier: None,
