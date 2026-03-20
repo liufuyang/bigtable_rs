@@ -67,12 +67,17 @@ supports:
   (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
 * Default service account by retrieving a token from the gcloud metadata server
 
+Depends on [googleapis_tonic_google_bigtable_v2](https://crates.io/crates/googleapis_tonic_google_bigtable_v2) - which is a crate
+contains all the Bigtable Rust types generated from
+googleapis Bigtable protos by using tonic build.
+
 You can use the library as follows:
 
 ```toml
 [dependencies]
 bigtable_rs = "0.2.21"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
+googleapis_tonic_google_bigtable_v2 = "0.36.0"
 env_logger = "0.11.1"
 ```
 
