@@ -75,7 +75,7 @@ You can use the library as follows:
 
 ```toml
 [dependencies]
-bigtable_rs = "0.2.21"
+bigtable_rs = "0.3.0"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 googleapis_tonic_google_bigtable_v2 = "0.36.0"
 env_logger = "0.11.1"
