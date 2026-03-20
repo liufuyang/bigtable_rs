@@ -4,32 +4,33 @@
 /// familiarity and consistency across products and features.
 ///
 /// For compatibility with Bigtable's existing untyped APIs, each `Type` includes
-/// an `Encoding` which describes how to convert to/from the underlying data.
+/// an `Encoding` which describes how to convert to or from the underlying data.
 ///
-/// Each encoding also defines the following properties:
+/// Each encoding can operate in one of two modes:
 ///
-/// * Order-preserving: Does the encoded value sort consistently with the
-///   original typed value? Note that Bigtable will always sort data based on
-///   the raw encoded value, *not* the decoded type.
-///   * Example: BYTES values sort in the same order as their raw encodings.
-///   * Counterexample: Encoding INT64 as a fixed-width decimal string does
-///     *not* preserve sort order when dealing with negative numbers.
-///     `INT64(1) > INT64(-1)`, but `STRING("-00001") > STRING("00001)`.
-/// * Self-delimiting: If we concatenate two encoded values, can we always tell
-///   where the first one ends and the second one begins?
-///   * Example: If we encode INT64s to fixed-width STRINGs, the first value
-///     will always contain exactly N digits, possibly preceded by a sign.
-///   * Counterexample: If we concatenate two UTF-8 encoded STRINGs, we have
-///     no way to tell where the first one ends.
-/// * Compatibility: Which other systems have matching encoding schemes? For
-///   example, does this encoding have a GoogleSQL equivalent? HBase? Java?
+/// * Sorted: In this mode, Bigtable guarantees that `Encode(X) <= Encode(Y)`
+///   if and only if `X <= Y`. This is useful anywhere sort order is important,
+///   for example when encoding keys.
+/// * Distinct: In this mode, Bigtable guarantees that if `X != Y` then
+///   `Encode(X) != Encode(Y)`. However, the converse is not guaranteed. For
+///   example, both "{'foo': '1', 'bar': '2'}" and "{'bar': '2', 'foo': '1'}"
+///   are valid encodings of the same JSON value.
+///
+/// The API clearly documents which mode is used wherever an encoding can be
+/// configured. Each encoding also documents which values are supported in which
+/// modes. For example, when encoding INT64 as a numeric STRING, negative numbers
+/// cannot be encoded in sorted mode. This is because `INT64(1) > INT64(-1)`, but
+/// `STRING("-00001") > STRING("00001")`.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Type {
     /// The kind of type that this represents.
-    #[prost(oneof = "r#type::Kind", tags = "1, 2, 5, 12, 9, 8, 10, 11, 6, 7, 3, 4")]
+    #[prost(
+        oneof = "r#type::Kind",
+        tags = "1, 2, 5, 12, 9, 8, 10, 11, 6, 7, 3, 4, 13, 14"
+    )]
     pub kind: ::core::option::Option<r#type::Kind>,
 }
 /// Nested message and enum types in `Type`.
@@ -41,13 +42,13 @@ pub mod r#type {
     #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Bytes {
-        /// The encoding to use when converting to/from lower level types.
+        /// The encoding to use when converting to or from lower level types.
         #[prost(message, optional, tag = "1")]
         pub encoding: ::core::option::Option<bytes::Encoding>,
     }
     /// Nested message and enum types in `Bytes`.
     pub mod bytes {
-        /// Rules used to convert to/from lower level types.
+        /// Rules used to convert to or from lower level types.
         #[serde_with::serde_as]
         #[derive(serde::Serialize, serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
@@ -59,11 +60,11 @@ pub mod r#type {
         }
         /// Nested message and enum types in `Encoding`.
         pub mod encoding {
-            /// Leaves the value "as-is"
+            /// Leaves the value as-is.
             ///
-            /// * Order-preserving? Yes
-            /// * Self-delimiting? No
-            /// * Compatibility? N/A
+            /// Sorted mode: all values are supported.
+            ///
+            /// Distinct mode: all values are supported.
             #[serde_with::serde_as]
             #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(rename_all = "camelCase")]
@@ -88,13 +89,13 @@ pub mod r#type {
     #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct String {
-        /// The encoding to use when converting to/from lower level types.
+        /// The encoding to use when converting to or from lower level types.
         #[prost(message, optional, tag = "1")]
         pub encoding: ::core::option::Option<string::Encoding>,
     }
     /// Nested message and enum types in `String`.
     pub mod string {
-        /// Rules used to convert to/from lower level types.
+        /// Rules used to convert to or from lower level types.
         #[serde_with::serde_as]
         #[derive(serde::Serialize, serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
@@ -112,14 +113,20 @@ pub mod r#type {
             #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Utf8Raw {}
-            /// UTF-8 encoding
+            /// UTF-8 encoding.
             ///
-            /// * Order-preserving? Yes (code point order)
-            /// * Self-delimiting? No
-            /// * Compatibility?
-            ///   * BigQuery Federation `TEXT` encoding
-            ///   * HBase `Bytes.toBytes`
-            ///   * Java `String#getBytes(StandardCharsets.UTF_8)`
+            /// Sorted mode:
+            ///
+            /// * All values are supported.
+            /// * Code point order is preserved.
+            ///
+            /// Distinct mode: all values are supported.
+            ///
+            /// Compatible with:
+            ///
+            /// * BigQuery `TEXT` encoding
+            /// * HBase `Bytes.toBytes`
+            /// * Java `String#getBytes(StandardCharsets.UTF_8)`
             #[serde_with::serde_as]
             #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(rename_all = "camelCase")]
@@ -148,42 +155,56 @@ pub mod r#type {
     #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Int64 {
-        /// The encoding to use when converting to/from lower level types.
+        /// The encoding to use when converting to or from lower level types.
         #[prost(message, optional, tag = "1")]
         pub encoding: ::core::option::Option<int64::Encoding>,
     }
     /// Nested message and enum types in `Int64`.
     pub mod int64 {
-        /// Rules used to convert to/from lower level types.
+        /// Rules used to convert to or from lower level types.
         #[serde_with::serde_as]
         #[derive(serde::Serialize, serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
-            #[prost(oneof = "encoding::Encoding", tags = "1")]
+            #[prost(oneof = "encoding::Encoding", tags = "1, 2")]
             pub encoding: ::core::option::Option<encoding::Encoding>,
         }
         /// Nested message and enum types in `Encoding`.
         pub mod encoding {
-            /// Encodes the value as an 8-byte big endian twos complement `Bytes`
-            /// value.
+            /// Encodes the value as an 8-byte big-endian two's complement value.
             ///
-            /// * Order-preserving? No (positive values only)
-            /// * Self-delimiting? Yes
-            /// * Compatibility?
-            ///   * BigQuery Federation `BINARY` encoding
-            ///   * HBase `Bytes.toBytes`
-            ///   * Java `ByteBuffer.putLong()` with `ByteOrder.BIG_ENDIAN`
+            /// Sorted mode: non-negative values are supported.
+            ///
+            /// Distinct mode: all values are supported.
+            ///
+            /// Compatible with:
+            ///
+            /// * BigQuery `BINARY` encoding
+            /// * HBase `Bytes.toBytes`
+            /// * Java `ByteBuffer.putLong()` with `ByteOrder.BIG_ENDIAN`
             #[serde_with::serde_as]
             #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct BigEndianBytes {
                 /// Deprecated: ignored if set.
+                #[deprecated]
                 #[prost(message, optional, tag = "1")]
                 pub bytes_type: ::core::option::Option<super::super::Bytes>,
             }
+            /// Encodes the value in a variable length binary format of up to 10 bytes.
+            /// Values that are closer to zero use fewer bytes.
+            ///
+            /// Sorted mode: all values are supported.
+            ///
+            /// Distinct mode: all values are supported.
+            #[serde_with::serde_as]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+            pub struct OrderedCodeBytes {}
             /// Which encoding to use.
             #[serde_with::serde_as]
             #[derive(serde::Serialize, serde::Deserialize)]
@@ -193,6 +214,9 @@ pub mod r#type {
                 /// Use `BigEndianBytes` encoding.
                 #[prost(message, tag = "1")]
                 BigEndianBytes(BigEndianBytes),
+                /// Use `OrderedCodeBytes` encoding.
+                #[prost(message, tag = "2")]
+                OrderedCodeBytes(OrderedCodeBytes),
             }
         }
     }
@@ -223,7 +247,42 @@ pub mod r#type {
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
-    pub struct Timestamp {}
+    pub struct Timestamp {
+        /// The encoding to use when converting to or from lower level types.
+        #[prost(message, optional, tag = "1")]
+        pub encoding: ::core::option::Option<timestamp::Encoding>,
+    }
+    /// Nested message and enum types in `Timestamp`.
+    pub mod timestamp {
+        /// Rules used to convert to or from lower level types.
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+        pub struct Encoding {
+            /// Which encoding to use.
+            #[prost(oneof = "encoding::Encoding", tags = "1")]
+            pub encoding: ::core::option::Option<encoding::Encoding>,
+        }
+        /// Nested message and enum types in `Encoding`.
+        pub mod encoding {
+            /// Which encoding to use.
+            #[serde_with::serde_as]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
+            pub enum Encoding {
+                /// Encodes the number of microseconds since the Unix epoch using the
+                /// given `Int64` encoding. Values must be microsecond-aligned.
+                ///
+                /// Compatible with:
+                ///
+                /// * Java `Instant.truncatedTo()` with `ChronoUnit.MICROS`
+                #[prost(message, tag = "1")]
+                UnixMicrosInt64(super::super::int64::Encoding),
+            }
+        }
+    }
     /// Date
     /// Values of type `Date` are stored in `Value.date_value`.
     #[serde_with::serde_as]
@@ -243,6 +302,9 @@ pub mod r#type {
         /// The names and types of the fields in this struct.
         #[prost(message, repeated, tag = "1")]
         pub fields: ::prost::alloc::vec::Vec<r#struct::Field>,
+        /// The encoding to use when converting to or from lower level types.
+        #[prost(message, optional, tag = "2")]
+        pub encoding: ::core::option::Option<r#struct::Encoding>,
     }
     /// Nested message and enum types in `Struct`.
     pub mod r#struct {
@@ -260,6 +322,143 @@ pub mod r#type {
             #[prost(message, optional, tag = "2")]
             pub r#type: ::core::option::Option<super::super::Type>,
         }
+        /// Rules used to convert to or from lower level types.
+        #[serde_with::serde_as]
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+        pub struct Encoding {
+            /// Which encoding to use.
+            #[prost(oneof = "encoding::Encoding", tags = "1, 2, 3")]
+            pub encoding: ::core::option::Option<encoding::Encoding>,
+        }
+        /// Nested message and enum types in `Encoding`.
+        pub mod encoding {
+            /// Uses the encoding of `fields\[0\].type` as-is.
+            /// Only valid if `fields.size == 1`.
+            #[serde_with::serde_as]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+            pub struct Singleton {}
+            /// Fields are encoded independently and concatenated with a configurable
+            /// `delimiter` in between.
+            ///
+            /// A struct with no fields defined is encoded as a single `delimiter`.
+            ///
+            /// Sorted mode:
+            ///
+            /// * Fields are encoded in sorted mode.
+            /// * Encoded field values must not contain any bytes \<= `delimiter\[0\]`
+            /// * Element-wise order is preserved: `A < B` if `A\[0\] < B\[0\]`, or if
+            ///   `A\[0\] == B\[0\] && A\[1\] < B\[1\]`, etc. Strict prefixes sort first.
+            ///
+            /// Distinct mode:
+            ///
+            /// * Fields are encoded in distinct mode.
+            /// * Encoded field values must not contain `delimiter\[0\]`.
+            #[serde_with::serde_as]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+            pub struct DelimitedBytes {
+                /// Byte sequence used to delimit concatenated fields. The delimiter must
+                /// contain at least 1 character and at most 50 characters.
+                #[prost(bytes = "vec", tag = "1")]
+                pub delimiter: ::prost::alloc::vec::Vec<u8>,
+            }
+            /// Fields are encoded independently and concatenated with the fixed byte
+            /// pair {0x00, 0x01} in between.
+            ///
+            /// Any null (0x00) byte in an encoded field is replaced by the fixed byte
+            /// pair {0x00, 0xFF}.
+            ///
+            /// Fields that encode to the empty string "" have special handling:
+            ///
+            /// * If *every* field encodes to "", or if the STRUCT has no fields
+            ///   defined, then the STRUCT is encoded as the fixed byte pair
+            ///   {0x00, 0x00}.
+            /// * Otherwise, the STRUCT only encodes until the last non-empty field,
+            ///   omitting any trailing empty fields. Any empty fields that aren't
+            ///   omitted are replaced with the fixed byte pair {0x00, 0x00}.
+            ///
+            /// Examples:
+            ///
+            /// * STRUCT()             -> "\00\00"
+            /// * STRUCT("")           -> "\00\00"
+            /// * STRUCT("", "")       -> "\00\00"
+            /// * STRUCT("", "B")      -> "\00\00" + "\00\01" + "B"
+            /// * STRUCT("A", "")      -> "A"
+            /// * STRUCT("", "B", "")  -> "\00\00" + "\00\01" + "B"
+            /// * STRUCT("A", "", "C") -> "A" + "\00\01" + "\00\00" + "\00\01" + "C"
+            ///
+            /// Since null bytes are always escaped, this encoding can cause size
+            /// blowup for encodings like `Int64.BigEndianBytes` that are likely to
+            /// produce many such bytes.
+            ///
+            /// Sorted mode:
+            ///
+            /// * Fields are encoded in sorted mode.
+            /// * All values supported by the field encodings are allowed
+            /// * Element-wise order is preserved: `A < B` if `A\[0\] < B\[0\]`, or if
+            ///   `A\[0\] == B\[0\] && A\[1\] < B\[1\]`, etc. Strict prefixes sort first.
+            ///
+            /// Distinct mode:
+            ///
+            /// * Fields are encoded in distinct mode.
+            /// * All values supported by the field encodings are allowed.
+            #[serde_with::serde_as]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+            pub struct OrderedCodeBytes {}
+            /// Which encoding to use.
+            #[serde_with::serde_as]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+            pub enum Encoding {
+                /// Use `Singleton` encoding.
+                #[prost(message, tag = "1")]
+                Singleton(Singleton),
+                /// Use `DelimitedBytes` encoding.
+                #[prost(message, tag = "2")]
+                DelimitedBytes(DelimitedBytes),
+                /// User `OrderedCodeBytes` encoding.
+                #[prost(message, tag = "3")]
+                OrderedCodeBytes(OrderedCodeBytes),
+            }
+        }
+    }
+    /// A protobuf message type.
+    /// Values of type `Proto` are stored in `Value.bytes_value`.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct Proto {
+        /// The ID of the schema bundle that this proto is defined in.
+        #[prost(string, tag = "1")]
+        pub schema_bundle_id: ::prost::alloc::string::String,
+        /// The fully qualified name of the protobuf message, including package. In
+        /// the format of "foo.bar.Message".
+        #[prost(string, tag = "2")]
+        pub message_name: ::prost::alloc::string::String,
+    }
+    /// A protobuf enum type.
+    /// Values of type `Enum` are stored in `Value.int_value`.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct Enum {
+        /// The ID of the schema bundle that this enum is defined in.
+        #[prost(string, tag = "1")]
+        pub schema_bundle_id: ::prost::alloc::string::String,
+        /// The fully qualified name of the protobuf enum message, including package.
+        /// In the format of "foo.bar.EnumMessage".
+        #[prost(string, tag = "2")]
+        pub enum_name: ::prost::alloc::string::String,
     }
     /// An ordered list of elements of a given type.
     /// Values of type `Array` are stored in `Value.array_value`.
@@ -416,6 +615,12 @@ pub mod r#type {
         /// Map
         #[prost(message, tag = "4")]
         MapType(::prost::alloc::boxed::Box<Map>),
+        /// Proto
+        #[prost(message, tag = "13")]
+        ProtoType(Proto),
+        /// Enum
+        #[prost(message, tag = "14")]
+        EnumType(Enum),
     }
 }
 /// Information about a table restore.
@@ -508,6 +713,75 @@ pub struct Table {
     /// Note one can still delete the data stored in the table through Data APIs.
     #[prost(bool, tag = "9")]
     pub deletion_protection: bool,
+    /// Rules to specify what data is stored in each storage tier.
+    /// Different tiers store data differently, providing different trade-offs
+    /// between cost and performance. Different parts of a table can be stored
+    /// separately on different tiers.
+    /// If a config is specified, tiered storage is enabled for this table.
+    /// Otherwise, tiered storage is disabled.
+    /// Only SSD instances can configure tiered storage.
+    #[prost(message, optional, tag = "14")]
+    pub tiered_storage_config: ::core::option::Option<TieredStorageConfig>,
+    /// The row key schema for this table. The schema is used to decode the raw row
+    /// key bytes into a structured format. The order of field declarations in this
+    /// schema is important, as it reflects how the raw row key bytes are
+    /// structured. Currently, this only affects how the key is read via a
+    /// GoogleSQL query from the ExecuteQuery API.
+    ///
+    /// For a SQL query, the \_key column is still read as raw bytes. But queries
+    /// can reference the key fields by name, which will be decoded from \_key using
+    /// provided type and encoding. Queries that reference key fields will fail if
+    /// they encounter an invalid row key.
+    ///
+    /// For example, if \_key = "some_id#2024-04-30#\x00\x13\x00\xf3" with the
+    /// following schema:
+    /// {
+    /// fields {
+    /// field_name: "id"
+    /// type { string { encoding: utf8_bytes {} } }
+    /// }
+    /// fields {
+    /// field_name: "date"
+    /// type { string { encoding: utf8_bytes {} } }
+    /// }
+    /// fields {
+    /// field_name: "product_code"
+    /// type { int64 { encoding: big_endian_bytes {} } }
+    /// }
+    /// encoding { delimited_bytes { delimiter: "#" } }
+    /// }
+    ///
+    /// The decoded key parts would be:
+    /// id = "some_id", date = "2024-04-30", product_code = 1245427
+    /// The query "SELECT \_key, product_code FROM table" will return two columns:
+    /// /------------------------------------------------------\
+    ///
+    /// |\_key|product_code|
+    /// |----|------------|
+    /// |"some_id#2024-04-30#\x00\x13\x00\xf3"|1245427|
+    /// |------------------------------------------------------/||
+    ///
+    /// The schema has the following invariants:
+    /// (1) The decoded field values are order-preserved. For read, the field
+    /// values will be decoded in sorted mode from the raw bytes.
+    /// (2) Every field in the schema must specify a non-empty name.
+    /// (3) Every field must specify a type with an associated encoding. The type
+    /// is limited to scalar types only: Array, Map, Aggregate, and Struct are not
+    /// allowed.
+    /// (4) The field names must not collide with existing column family
+    /// names and reserved keywords "\_key" and "\_timestamp".
+    ///
+    /// The following update operations are allowed for row_key_schema:
+    ///
+    /// * Update from an empty schema to a new schema.
+    /// * Remove the existing schema. This operation requires setting the
+    ///   `ignore_warnings` flag to `true`, since it might be a backward
+    ///   incompatible change. Without the flag, the update request will fail with
+    ///   an INVALID_ARGUMENT error.
+    ///   Any other row key schema update operation (e.g. update existing schema
+    ///   columns names or types) is currently unsupported.
+    #[prost(message, optional, tag = "15")]
+    pub row_key_schema: ::core::option::Option<r#type::Struct>,
     #[prost(oneof = "table::AutomatedBackupConfig", tags = "13")]
     pub automated_backup_config: ::core::option::Option<table::AutomatedBackupConfig>,
 }
@@ -1227,6 +1501,107 @@ pub struct BackupInfo {
     #[prost(string, tag = "10")]
     pub source_backup: ::prost::alloc::string::String,
 }
+/// Config for tiered storage.
+/// A valid config must have a valid TieredStorageRule. Otherwise the whole
+/// TieredStorageConfig must be unset.
+/// By default all data is stored in the SSD tier (only SSD instances can
+/// configure tiered storage).
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct TieredStorageConfig {
+    /// Rule to specify what data is stored in the infrequent access(IA) tier.
+    /// The IA tier allows storing more data per node with reduced performance.
+    #[prost(message, optional, tag = "1")]
+    pub infrequent_access: ::core::option::Option<TieredStorageRule>,
+}
+/// Rule to specify what data is stored in a storage tier.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct TieredStorageRule {
+    /// Rules to specify what data is stored in this tier.
+    #[prost(oneof = "tiered_storage_rule::Rule", tags = "1")]
+    pub rule: ::core::option::Option<tiered_storage_rule::Rule>,
+}
+/// Nested message and enum types in `TieredStorageRule`.
+pub mod tiered_storage_rule {
+    /// Rules to specify what data is stored in this tier.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Rule {
+        /// Include cells older than the given age.
+        /// For the infrequent access tier, this value must be at least 30 days.
+        #[prost(message, tag = "1")]
+        IncludeIfOlderThan(::prost_wkt_types::Duration),
+    }
+}
+/// Represents a protobuf schema.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ProtoSchema {
+    /// Required. Contains a protobuf-serialized
+    /// [google.protobuf.FileDescriptorSet](<https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto>),
+    /// which could include multiple proto files.
+    /// To generate it, [install](<https://grpc.io/docs/protoc-installation/>) and
+    /// run `protoc` with
+    /// `--include_imports` and `--descriptor_set_out`. For example, to generate
+    /// for moon/shot/app.proto, run
+    ///
+    /// ```text,
+    /// $protoc  --proto_path=/app_path --proto_path=/lib_path \
+    ///          --include_imports \
+    ///          --descriptor_set_out=descriptors.pb \
+    ///          moon/shot/app.proto
+    /// ```
+    ///
+    /// For more details, see protobuffer [self
+    /// description](<https://developers.google.com/protocol-buffers/docs/techniques#self-description>).
+    #[prost(bytes = "vec", tag = "2")]
+    pub proto_descriptors: ::prost::alloc::vec::Vec<u8>,
+}
+/// A named collection of related schemas.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SchemaBundle {
+    /// Identifier. The unique name identifying this schema bundle.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The etag for this schema bundle.
+    /// This may be sent on update and delete requests to ensure the
+    /// client has an up-to-date value before proceeding. The server
+    /// returns an ABORTED error on a mismatched etag.
+    #[prost(string, tag = "3")]
+    pub etag: ::prost::alloc::string::String,
+    /// The type of this schema bundle. The oneof case cannot change after
+    /// creation.
+    #[prost(oneof = "schema_bundle::Type", tags = "2")]
+    pub r#type: ::core::option::Option<schema_bundle::Type>,
+}
+/// Nested message and enum types in `SchemaBundle`.
+pub mod schema_bundle {
+    /// The type of this schema bundle. The oneof case cannot change after
+    /// creation.
+    #[serde_with::serde_as]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Type {
+        /// Schema for Protobufs.
+        #[prost(message, tag = "2")]
+        ProtoSchema(super::ProtoSchema),
+    }
+}
 /// Indicates the type of the restore source.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -1608,11 +1983,15 @@ pub struct UpdateTableRequest {
     /// * `change_stream_config`
     /// * `change_stream_config.retention_period`
     /// * `deletion_protection`
+    /// * `row_key_schema`
     ///
     /// If `column_families` is set in `update_mask`, it will return an
     /// UNIMPLEMENTED error.
     #[prost(message, optional, tag = "2")]
     pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+    /// Optional. If true, ignore safety checks when updating the table.
+    #[prost(bool, tag = "3")]
+    pub ignore_warnings: bool,
 }
 /// Metadata type for the operation returned by
 /// \[UpdateTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateTable\].
@@ -2273,7 +2652,8 @@ pub struct CreateAuthorizedViewRequest {
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateAuthorizedViewMetadata {
-    /// The request that prompted the initiation of this CreateInstance operation.
+    /// The request that prompted the initiation of this CreateAuthorizedView
+    /// operation.
     #[prost(message, optional, tag = "1")]
     pub original_request: ::core::option::Option<CreateAuthorizedViewRequest>,
     /// The time at which the original request was received.
@@ -2309,8 +2689,8 @@ pub struct ListAuthorizedViewsRequest {
     /// Optional. The value of `next_page_token` returned by a previous call.
     #[prost(string, tag = "3")]
     pub page_token: ::prost::alloc::string::String,
-    /// Optional. The resource_view to be applied to the returned views' fields.
-    /// Default to NAME_ONLY.
+    /// Optional. The resource_view to be applied to the returned AuthorizedViews'
+    /// fields. Default to NAME_ONLY.
     #[prost(enumeration = "authorized_view::ResponseView", tag = "4")]
     pub view: i32,
 }
@@ -2356,8 +2736,8 @@ pub struct GetAuthorizedViewRequest {
 pub struct UpdateAuthorizedViewRequest {
     /// Required. The AuthorizedView to update. The `name` in `authorized_view` is
     /// used to identify the AuthorizedView. AuthorizedView name must in this
-    /// format
-    /// projects/<project>/instances/<instance>/tables/<table>/authorizedViews/\<authorized_view>
+    /// format:
+    /// `projects/{project}/instances/{instance}/tables/{table}/authorizedViews/{authorized_view}`.
     #[prost(message, optional, tag = "1")]
     pub authorized_view: ::core::option::Option<AuthorizedView>,
     /// Optional. The list of fields to update.
@@ -2408,6 +2788,160 @@ pub struct DeleteAuthorizedViewRequest {
     /// If an etag is provided and does not match the current etag of the
     /// AuthorizedView, deletion will be blocked and an ABORTED error will be
     /// returned.
+    #[prost(string, tag = "2")]
+    pub etag: ::prost::alloc::string::String,
+}
+/// The request for
+/// \[CreateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateSchemaBundle\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateSchemaBundleRequest {
+    /// Required. The parent resource where this schema bundle will be created.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The unique ID to use for the schema bundle, which will become the
+    /// final component of the schema bundle's resource name.
+    #[prost(string, tag = "2")]
+    pub schema_bundle_id: ::prost::alloc::string::String,
+    /// Required. The schema bundle to create.
+    #[prost(message, optional, tag = "3")]
+    pub schema_bundle: ::core::option::Option<SchemaBundle>,
+}
+/// The metadata for the Operation returned by
+/// \[CreateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateSchemaBundle\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateSchemaBundleMetadata {
+    /// The unique name identifying this schema bundle.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The time at which this operation started.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// If set, the time at which this operation finished or was canceled.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// The request for
+/// \[UpdateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateSchemaBundle\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateSchemaBundleRequest {
+    /// Required. The schema bundle to update.
+    ///
+    /// The schema bundle's `name` field is used to identify the schema bundle to
+    /// update. Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}`
+    #[prost(message, optional, tag = "1")]
+    pub schema_bundle: ::core::option::Option<SchemaBundle>,
+    /// Optional. The list of fields to update.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+    /// Optional. If set, ignore the safety checks when updating the Schema Bundle.
+    /// The safety checks are:
+    ///
+    /// * The new Schema Bundle is backwards compatible with the existing Schema
+    ///   Bundle.
+    #[prost(bool, tag = "3")]
+    pub ignore_warnings: bool,
+}
+/// The metadata for the Operation returned by
+/// \[UpdateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateSchemaBundle\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateSchemaBundleMetadata {
+    /// The unique name identifying this schema bundle.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The time at which this operation started.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// If set, the time at which this operation finished or was canceled.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// The request for
+/// \[GetSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.GetSchemaBundle\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetSchemaBundleRequest {
+    /// Required. The unique name of the schema bundle to retrieve.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The request for
+/// \[ListSchemaBundles\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListSchemaBundles\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListSchemaBundlesRequest {
+    /// Required. The parent, which owns this collection of schema bundles.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// The maximum number of schema bundles to return. If the value is positive,
+    /// the server may return at most this value. If unspecified, the server will
+    /// return the maximum allowed page size.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// A page token, received from a previous `ListSchemaBundles` call.
+    /// Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to `ListSchemaBundles` must
+    /// match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// The response for
+/// \[ListSchemaBundles\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListSchemaBundles\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSchemaBundlesResponse {
+    /// The schema bundles from the specified table.
+    #[prost(message, repeated, tag = "1")]
+    pub schema_bundles: ::prost::alloc::vec::Vec<SchemaBundle>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// The request for
+/// \[DeleteSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.DeleteSchemaBundle\].
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteSchemaBundleRequest {
+    /// Required. The unique name of the schema bundle to delete.
+    /// Values are of the form
+    /// `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The etag of the schema bundle.
+    /// If this is provided, it must match the server's etag. The server
+    /// returns an ABORTED error on a mismatched etag.
     #[prost(string, tag = "2")]
     pub etag: ::prost::alloc::string::String,
 }
@@ -3112,7 +3646,7 @@ pub mod bigtable_table_admin_client {
             ));
             self.inner.unary(req, path, codec).await
         }
-        /// Gets the access control policy for a Table or Backup resource.
+        /// Gets the access control policy for a Bigtable resource.
         /// Returns an empty policy if the resource exists but does not have a policy
         /// set.
         pub async fn get_iam_policy(
@@ -3136,7 +3670,7 @@ pub mod bigtable_table_admin_client {
             ));
             self.inner.unary(req, path, codec).await
         }
-        /// Sets the access control policy on a Table or Backup resource.
+        /// Sets the access control policy on a Bigtable resource.
         /// Replaces any existing policy.
         pub async fn set_iam_policy(
             &mut self,
@@ -3159,7 +3693,7 @@ pub mod bigtable_table_admin_client {
             ));
             self.inner.unary(req, path, codec).await
         }
-        /// Returns permissions that the caller has on the specified Table or Backup
+        /// Returns permissions that the caller has on the specified Bigtable
         /// resource.
         pub async fn test_iam_permissions(
             &mut self,
@@ -3184,6 +3718,108 @@ pub mod bigtable_table_admin_client {
             ));
             self.inner.unary(req, path, codec).await
         }
+        /// Creates a new schema bundle in the specified table.
+        pub async fn create_schema_bundle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateSchemaBundleRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableTableAdmin/CreateSchemaBundle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableTableAdmin",
+                "CreateSchemaBundle",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates a schema bundle in the specified table.
+        pub async fn update_schema_bundle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateSchemaBundleRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableTableAdmin/UpdateSchemaBundle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableTableAdmin",
+                "UpdateSchemaBundle",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets metadata information about the specified schema bundle.
+        pub async fn get_schema_bundle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSchemaBundleRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaBundle>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableTableAdmin/GetSchemaBundle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableTableAdmin",
+                "GetSchemaBundle",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists all schema bundles associated with the specified table.
+        pub async fn list_schema_bundles(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListSchemaBundlesRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListSchemaBundlesResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableTableAdmin/ListSchemaBundles",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableTableAdmin",
+                "ListSchemaBundles",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a schema bundle in the specified table.
+        pub async fn delete_schema_bundle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteSchemaBundleRequest>,
+        ) -> std::result::Result<tonic::Response<::prost_wkt_types::Empty>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableTableAdmin/DeleteSchemaBundle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableTableAdmin",
+                "DeleteSchemaBundle",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// A collection of Bigtable \[Tables\]\[google.bigtable.admin.v2.Table\] and
@@ -3204,8 +3840,7 @@ pub struct Instance {
     /// to avoid confusion.
     #[prost(string, tag = "2")]
     pub display_name: ::prost::alloc::string::String,
-    /// (`OutputOnly`)
-    /// The current state of the instance.
+    /// Output only. The current state of the instance.
     #[prost(enumeration = "instance::State", tag = "3")]
     pub state: i32,
     /// The type of the instance. Defaults to `PRODUCTION`.
@@ -3225,14 +3860,30 @@ pub struct Instance {
     #[prost(map = "string, string", tag = "5")]
     pub labels:
         ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
-    /// Output only. A server-assigned timestamp representing when this Instance
-    /// was created. For instances created before this field was added (August
-    /// 2021), this value is `seconds: 0, nanos: 1`.
+    /// Output only. A commit timestamp representing when this Instance was
+    /// created. For instances created before this field was added (August 2021),
+    /// this value is `seconds: 0, nanos: 1`.
     #[prost(message, optional, tag = "7")]
     pub create_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
     /// Output only. Reserved for future use.
     #[prost(bool, optional, tag = "8")]
     pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[prost(bool, optional, tag = "11")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Optional. Input only. Immutable. Tag keys/values directly bound to this
+    /// resource. For example:
+    ///
+    /// * "123/environment": "production",
+    /// * "123/costCenter": "marketing"
+    ///
+    /// Tags and Labels (above) are both used to bind metadata to resources, with
+    /// different use-cases. See
+    /// <https://cloud.google.com/resource-manager/docs/tags/tags-overview> for an
+    /// in-depth overview on the difference between tags and labels.
+    #[prost(map = "string, string", tag = "12")]
+    pub tags:
+        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
 }
 /// Nested message and enum types in `Instance`.
 pub mod instance {
@@ -3370,8 +4021,9 @@ pub struct Cluster {
     /// Output only. The current state of the cluster.
     #[prost(enumeration = "cluster::State", tag = "3")]
     pub state: i32,
-    /// The number of nodes allocated to this cluster. More nodes enable higher
-    /// throughput and more consistent performance.
+    /// The number of nodes in the cluster. If no value is set,
+    /// Cloud Bigtable automatically allocates nodes based on your data footprint
+    /// and optimized for 50% storage utilization.
     #[prost(int32, tag = "4")]
     pub serve_nodes: i32,
     /// Immutable. The node scaling factor of this cluster.
@@ -3427,7 +4079,6 @@ pub mod cluster {
         ///    `cloudkms.cryptoKeyEncrypterDecrypter` role on the CMEK key.
         /// 1. Only regional keys can be used and the region of the CMEK key must
         ///    match the region of the cluster.
-        /// 1. All clusters within an instance must use the same CMEK key.
         ///    Values are of the form
         ///    `projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}`
         #[prost(string, tag = "1")]
@@ -3656,17 +4307,10 @@ pub mod app_profile {
         pub priority: i32,
     }
     /// Data Boost is a serverless compute capability that lets you run
-    /// high-throughput read jobs on your Bigtable data, without impacting the
-    /// performance of the clusters that handle your application traffic.
-    /// Currently, Data Boost exclusively supports read-only use-cases with
-    /// single-cluster routing.
-    ///
-    /// Data Boost reads are only guaranteed to see the results of writes that
-    /// were written at least 30 minutes ago. This means newly written values may
-    /// not become visible for up to 30m, and also means that old values may
-    /// remain visible for up to 30m after being deleted or overwritten. To
-    /// mitigate the staleness of the data, users may either wait 30m, or use
-    /// CheckConsistency.
+    /// high-throughput read jobs and queries on your Bigtable data, without
+    /// impacting the performance of the clusters that handle your application
+    /// traffic. Data Boost supports read-only use cases with single-cluster
+    /// routing.
     #[serde_with::serde_as]
     #[derive(serde::Serialize, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
@@ -3833,6 +4477,54 @@ pub struct HotTablet {
     #[prost(float, tag = "7")]
     pub node_cpu_usage_percent: f32,
 }
+/// A SQL logical view object that can be referenced in SQL queries.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct LogicalView {
+    /// Identifier. The unique name of the logical view.
+    /// Format:
+    /// `projects/{project}/instances/{instance}/logicalViews/{logical_view}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The logical view's select query.
+    #[prost(string, tag = "2")]
+    pub query: ::prost::alloc::string::String,
+    /// Optional. The etag for this logical view.
+    /// This may be sent on update requests to ensure that the client has an
+    /// up-to-date value before proceeding. The server returns an ABORTED error on
+    /// a mismatched etag.
+    #[prost(string, tag = "3")]
+    pub etag: ::prost::alloc::string::String,
+    /// Optional. Set to true to make the LogicalView protected against deletion.
+    #[prost(bool, tag = "6")]
+    pub deletion_protection: bool,
+}
+/// A materialized view object that can be referenced in SQL queries.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MaterializedView {
+    /// Identifier. The unique name of the materialized view.
+    /// Format:
+    /// `projects/{project}/instances/{instance}/materializedViews/{materialized_view}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. Immutable. The materialized view's select query.
+    #[prost(string, tag = "2")]
+    pub query: ::prost::alloc::string::String,
+    /// Optional. The etag for this materialized view.
+    /// This may be sent on update requests to ensure that the client has an
+    /// up-to-date value before proceeding. The server returns an ABORTED error on
+    /// a mismatched etag.
+    #[prost(string, tag = "3")]
+    pub etag: ::prost::alloc::string::String,
+    /// Set to true to make the MaterializedView protected against deletion.
+    #[prost(bool, tag = "6")]
+    pub deletion_protection: bool,
+}
 /// Request message for BigtableInstanceAdmin.CreateInstance.
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -3856,7 +4548,6 @@ pub struct CreateInstanceRequest {
     /// cluster ID, e.g., just `mycluster` rather than
     /// `projects/myproject/instances/myinstance/clusters/mycluster`.
     /// Fields marked `OutputOnly` must be left blank.
-    /// Currently, at most four clusters can be specified.
     #[prost(map = "string, message", tag = "4")]
     pub clusters: ::std::collections::HashMap<::prost::alloc::string::String, Cluster>,
 }
@@ -4362,6 +5053,277 @@ pub struct ListHotTabletsResponse {
     /// page of results.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.CreateLogicalView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateLogicalViewRequest {
+    /// Required. The parent instance where this logical view will be created.
+    /// Format: `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The ID to use for the logical view, which will become the final
+    /// component of the logical view's resource name.
+    #[prost(string, tag = "2")]
+    pub logical_view_id: ::prost::alloc::string::String,
+    /// Required. The logical view to create.
+    #[prost(message, optional, tag = "3")]
+    pub logical_view: ::core::option::Option<LogicalView>,
+}
+/// The metadata for the Operation returned by CreateLogicalView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateLogicalViewMetadata {
+    /// The request that prompted the initiation of this CreateLogicalView
+    /// operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<CreateLogicalViewRequest>,
+    /// The time at which this operation started.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// If set, the time at which this operation finished or was canceled.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// Request message for BigtableInstanceAdmin.GetLogicalView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetLogicalViewRequest {
+    /// Required. The unique name of the requested logical view. Values are of the
+    /// form `projects/{project}/instances/{instance}/logicalViews/{logical_view}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.ListLogicalViews.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListLogicalViewsRequest {
+    /// Required. The unique name of the instance for which the list of logical
+    /// views is requested. Values are of the form
+    /// `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of logical views to return. The service may
+    /// return fewer than this value
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous `ListLogicalViews` call.
+    /// Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to `ListLogicalViews` must
+    /// match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for BigtableInstanceAdmin.ListLogicalViews.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListLogicalViewsResponse {
+    /// The list of requested logical views.
+    #[prost(message, repeated, tag = "1")]
+    pub logical_views: ::prost::alloc::vec::Vec<LogicalView>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.UpdateLogicalView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateLogicalViewRequest {
+    /// Required. The logical view to update.
+    ///
+    /// The logical view's `name` field is used to identify the view to update.
+    /// Format:
+    /// `projects/{project}/instances/{instance}/logicalViews/{logical_view}`.
+    #[prost(message, optional, tag = "1")]
+    pub logical_view: ::core::option::Option<LogicalView>,
+    /// Optional. The list of fields to update.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+}
+/// The metadata for the Operation returned by UpdateLogicalView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateLogicalViewMetadata {
+    /// The request that prompted the initiation of this UpdateLogicalView
+    /// operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<UpdateLogicalViewRequest>,
+    /// The time at which this operation was started.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// If set, the time at which this operation finished or was canceled.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// Request message for BigtableInstanceAdmin.DeleteLogicalView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteLogicalViewRequest {
+    /// Required. The unique name of the logical view to be deleted.
+    /// Format:
+    /// `projects/{project}/instances/{instance}/logicalViews/{logical_view}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The current etag of the logical view.
+    /// If an etag is provided and does not match the current etag of the
+    /// logical view, deletion will be blocked and an ABORTED error will be
+    /// returned.
+    #[prost(string, tag = "2")]
+    pub etag: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.CreateMaterializedView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateMaterializedViewRequest {
+    /// Required. The parent instance where this materialized view will be created.
+    /// Format: `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The ID to use for the materialized view, which will become the
+    /// final component of the materialized view's resource name.
+    #[prost(string, tag = "2")]
+    pub materialized_view_id: ::prost::alloc::string::String,
+    /// Required. The materialized view to create.
+    #[prost(message, optional, tag = "3")]
+    pub materialized_view: ::core::option::Option<MaterializedView>,
+}
+/// The metadata for the Operation returned by CreateMaterializedView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateMaterializedViewMetadata {
+    /// The request that prompted the initiation of this CreateMaterializedView
+    /// operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<CreateMaterializedViewRequest>,
+    /// The time at which this operation started.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// If set, the time at which this operation finished or was canceled.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// Request message for BigtableInstanceAdmin.GetMaterializedView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetMaterializedViewRequest {
+    /// Required. The unique name of the requested materialized view. Values are of
+    /// the form
+    /// `projects/{project}/instances/{instance}/materializedViews/{materialized_view}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.ListMaterializedViews.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListMaterializedViewsRequest {
+    /// Required. The unique name of the instance for which the list of
+    /// materialized views is requested. Values are of the form
+    /// `projects/{project}/instances/{instance}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of materialized views to return. The service
+    /// may return fewer than this value
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous `ListMaterializedViews`
+    /// call. Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to `ListMaterializedViews`
+    /// must match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for BigtableInstanceAdmin.ListMaterializedViews.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListMaterializedViewsResponse {
+    /// The list of requested materialized views.
+    #[prost(message, repeated, tag = "1")]
+    pub materialized_views: ::prost::alloc::vec::Vec<MaterializedView>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for BigtableInstanceAdmin.UpdateMaterializedView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateMaterializedViewRequest {
+    /// Required. The materialized view to update.
+    ///
+    /// The materialized view's `name` field is used to identify the view to
+    /// update. Format:
+    /// `projects/{project}/instances/{instance}/materializedViews/{materialized_view}`.
+    #[prost(message, optional, tag = "1")]
+    pub materialized_view: ::core::option::Option<MaterializedView>,
+    /// Optional. The list of fields to update.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
+}
+/// The metadata for the Operation returned by UpdateMaterializedView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateMaterializedViewMetadata {
+    /// The request that prompted the initiation of this UpdateMaterializedView
+    /// operation.
+    #[prost(message, optional, tag = "1")]
+    pub original_request: ::core::option::Option<UpdateMaterializedViewRequest>,
+    /// The time at which this operation was started.
+    #[prost(message, optional, tag = "2")]
+    pub start_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+    /// If set, the time at which this operation finished or was canceled.
+    #[prost(message, optional, tag = "3")]
+    pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
+}
+/// Request message for BigtableInstanceAdmin.DeleteMaterializedView.
+#[serde_with::serde_as]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteMaterializedViewRequest {
+    /// Required. The unique name of the materialized view to be deleted.
+    /// Format:
+    /// `projects/{project}/instances/{instance}/materializedViews/{materialized_view}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The current etag of the materialized view.
+    /// If an etag is provided and does not match the current etag of the
+    /// materialized view, deletion will be blocked and an ABORTED error will be
+    /// returned.
+    #[prost(string, tag = "2")]
+    pub etag: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod bigtable_instance_admin_client {
@@ -4918,6 +5880,210 @@ pub mod bigtable_instance_admin_client {
             req.extensions_mut().insert(GrpcMethod::new(
                 "google.bigtable.admin.v2.BigtableInstanceAdmin",
                 "ListHotTablets",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a logical view within an instance.
+        pub async fn create_logical_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateLogicalViewRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/CreateLogicalView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "CreateLogicalView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets information about a logical view.
+        pub async fn get_logical_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetLogicalViewRequest>,
+        ) -> std::result::Result<tonic::Response<super::LogicalView>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/GetLogicalView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "GetLogicalView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists information about logical views in an instance.
+        pub async fn list_logical_views(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListLogicalViewsRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListLogicalViewsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/ListLogicalViews",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "ListLogicalViews",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates a logical view within an instance.
+        pub async fn update_logical_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateLogicalViewRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/UpdateLogicalView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "UpdateLogicalView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a logical view from an instance.
+        pub async fn delete_logical_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteLogicalViewRequest>,
+        ) -> std::result::Result<tonic::Response<::prost_wkt_types::Empty>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/DeleteLogicalView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "DeleteLogicalView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a materialized view within an instance.
+        pub async fn create_materialized_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateMaterializedViewRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/CreateMaterializedView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "CreateMaterializedView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets information about a materialized view.
+        pub async fn get_materialized_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetMaterializedViewRequest>,
+        ) -> std::result::Result<tonic::Response<super::MaterializedView>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/GetMaterializedView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "GetMaterializedView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists information about materialized views in an instance.
+        pub async fn list_materialized_views(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListMaterializedViewsRequest>,
+        ) -> std::result::Result<tonic::Response<super::ListMaterializedViewsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/ListMaterializedViews",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "ListMaterializedViews",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates a materialized view within an instance.
+        pub async fn update_materialized_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateMaterializedViewRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/UpdateMaterializedView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "UpdateMaterializedView",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a materialized view from an instance.
+        pub async fn delete_materialized_view(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteMaterializedViewRequest>,
+        ) -> std::result::Result<tonic::Response<::prost_wkt_types::Empty>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.bigtable.admin.v2.BigtableInstanceAdmin/DeleteMaterializedView",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "google.bigtable.admin.v2.BigtableInstanceAdmin",
+                "DeleteMaterializedView",
             ));
             self.inner.unary(req, path, codec).await
         }

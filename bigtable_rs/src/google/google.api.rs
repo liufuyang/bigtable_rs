@@ -675,6 +675,12 @@ pub mod python_settings {
         /// packages.
         #[prost(bool, tag = "2")]
         pub protobuf_pythonic_types_enabled: bool,
+        /// Disables generation of an unversioned Python package for this client
+        /// library. This means that the module names will need to be versioned in
+        /// import statements. For example `import google.cloud.library_v2` instead
+        /// of `import google.cloud.library`.
+        #[prost(bool, tag = "3")]
+        pub unversioned_package_disabled: bool,
     }
 }
 /// Settings for Node client libraries.
@@ -749,11 +755,24 @@ pub struct RubySettings {
 #[serde_with::serde_as]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GoSettings {
     /// Some settings.
     #[prost(message, optional, tag = "1")]
     pub common: ::core::option::Option<CommonLanguageSettings>,
+    /// Map of service names to renamed services. Keys are the package relative
+    /// service names and values are the name to be used for the service client
+    /// and call options.
+    ///
+    /// publishing:
+    /// go_settings:
+    /// renamed_services:
+    /// Publisher: TopicAdmin
+    #[prost(map = "string, string", tag = "2")]
+    pub renamed_services: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
 }
 /// Describes the generator configuration for a method.
 #[serde_with::serde_as]
@@ -850,6 +869,14 @@ pub struct SelectiveGapicGeneration {
     /// on public client surfaces.
     #[prost(string, repeated, tag = "1")]
     pub methods: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Setting this to true indicates to the client generators that methods
+    /// that would be excluded from the generation should instead be generated
+    /// in a way that indicates these methods should not be consumed by
+    /// end users. How this is expressed is up to individual language
+    /// implementations to decide. Some examples may be: added annotations,
+    /// obfuscated identifiers, or other language idiomatic patterns.
+    #[prost(bool, tag = "2")]
+    pub generate_omitted_as_internal: bool,
 }
 /// The organization for which the client libraries are being published.
 /// Affects the url where generated docs are published, etc.
@@ -1373,7 +1400,7 @@ pub struct ResourceReference {
 /// The routing header consists of one or multiple key-value pairs. Every key
 /// and value must be percent-encoded, and joined together in the format of
 /// `key1=value1&key2=value2`.
-/// In the examples below I am skipping the percent-encoding for readablity.
+/// The examples below skip the percent-encoding for readability.
 ///
 /// Example 1
 ///

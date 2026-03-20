@@ -65,6 +65,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     value: "a newer write value".to_owned().into_bytes(),
                 })),
             }],
+            ..Entry::default()
         }],
         ..MutateRowsRequest::default()
     };
