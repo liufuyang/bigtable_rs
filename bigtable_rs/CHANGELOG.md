@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/liufuyang/bigtable_rs/compare/v0.2.21...v0.3.0) - 2026-03-20
+
+### Added
+
+- [**breaking**] switch to use googleapis-tonic-google-bigtable-v2 ([#139](https://github.com/liufuyang/bigtable_rs/pull/139))
+
+### Other
+
+- simplify proto build for test ([#138](https://github.com/liufuyang/bigtable_rs/pull/138))
+- update readme to have codecov badge
+- update ci and release ([#136](https://github.com/liufuyang/bigtable_rs/pull/136))
+
 ## [0.2.21](https://github.com/liufuyang/bigtable_rs/compare/v0.2.20...v0.2.21) - 2026-03-20
 
 ### Added
