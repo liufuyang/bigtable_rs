@@ -7,9 +7,9 @@ use log::trace;
 use tonic::Streaming;
 
 use crate::bigtable::{Error, Result, RowCell, RowKey};
-use crate::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
-use crate::google::bigtable::v2::read_rows_response::CellChunk;
-use crate::google::bigtable::v2::ReadRowsResponse;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::read_rows_response::CellChunk;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::ReadRowsResponse;
 
 /// As each `CellChunk` could be only part of a cell, this method reorganize multiple `CellChunk`
 /// from multiple `ReadRowsResponse` into a `Vec<(RowKey, Vec<RowCell>)>`.

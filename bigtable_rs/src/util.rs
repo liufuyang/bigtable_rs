@@ -1,5 +1,5 @@
-use crate::google::bigtable::v2::row_range::{EndKey, StartKey};
-use crate::google::bigtable::v2::RowRange;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKey, StartKey};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::RowRange;
 
 pub fn get_row_range_from_prefix(prefix: Vec<u8>) -> RowRange {
     let end_key = get_end_key_for_prefix(prefix.as_ref()).map(EndKey::EndKeyOpen);

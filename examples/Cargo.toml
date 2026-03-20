@@ -42,6 +42,7 @@ name = "stream"
 path = "src/stream.rs"
 
 [dependencies]
+googleapis-tonic-google-bigtable-v2 = "0.36.0"
 bigtable_rs = { path = "../bigtable_rs" }
 tokio = { version = "1.34.0", features = ["rt-multi-thread"] }
 env_logger = "0.11.1"

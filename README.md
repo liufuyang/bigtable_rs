@@ -67,12 +67,17 @@ supports:
   (by setting `GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json` environment parameter)
 * Default service account by retrieving a token from the gcloud metadata server
 
+Depends on [googleapis_tonic_google_bigtable_v2](https://crates.io/crates/googleapis_tonic_google_bigtable_v2) - which is a crate
+contains all the Bigtable Rust types generated from
+googleapis Bigtable protos by using tonic build.
+
 You can use the library as follows:
 
 ```toml
 [dependencies]
 bigtable_rs = "0.2.21"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
+googleapis_tonic_google_bigtable_v2 = "0.36.0"
 env_logger = "0.11.1"
 ```
 
@@ -82,9 +87,9 @@ range scan
 
 ```rust
 use bigtable_rs::bigtable;
-use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
-use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKey, StartKey};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
 use env_logger;
 use std::error::Error;
 use std::time::Duration;

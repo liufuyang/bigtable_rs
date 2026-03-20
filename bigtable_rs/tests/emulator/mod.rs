@@ -13,20 +13,20 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use bigtable_rs::bigtable::{BigTableConnection, Error};
-use bigtable_rs::google::bigtable::admin::v2::{
+use futures_util::TryStreamExt;
+use googleapis_tonic_google_bigtable_admin_v2::google::bigtable::admin::v2::{
     bigtable_table_admin_client::BigtableTableAdminClient, // This is the raw tonic client
     ColumnFamily,
     CreateTableRequest,
     Table,
 };
-use bigtable_rs::google::bigtable::v2::mutation;
-use bigtable_rs::google::bigtable::v2::mutation::SetCell;
-use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
-use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
-use bigtable_rs::google::bigtable::v2::{
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation::SetCell;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKey, StartKey};
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
     MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest,
 };
-use futures_util::TryStreamExt;
 use tokio::sync::OnceCell;
 use tonic::transport::Channel;
 

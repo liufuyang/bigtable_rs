@@ -3,14 +3,14 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bigtable_rs::bigtable;
-use bigtable_rs::google::bigtable::v2::mutation;
-use bigtable_rs::google::bigtable::v2::mutation::SetCell;
-use bigtable_rs::google::bigtable::v2::row_filter::Filter;
-use bigtable_rs::google::bigtable::v2::{
-    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
-};
 use env_logger;
 use gcp_auth::CustomServiceAccount;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation::SetCell;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::Filter;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
+    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowSet,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
