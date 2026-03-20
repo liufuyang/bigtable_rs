@@ -4,9 +4,10 @@ A simple Rust library for working
 with [Google Bigtable](https://cloud.google.com/bigtable/docs/) [Data API V2](https://cloud.google.com/bigtable/docs/reference/data/rpc/google.bigtable.v2)
 .
 
-![ci_badge](https://github.com/liufuyang/bigtable_rs/workflows/bigtable_rs%20CI/badge.svg)
+[![ci_badge](https://github.com/liufuyang/bigtable_rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/liufuyang/bigtable_rs/actions/workflows/CI.yaml)
 [![Crates.io](https://img.shields.io/crates/v/bigtable_rs)](https://crates.io/crates/bigtable_rs)
 [![Documentation](https://docs.rs/bigtable_rs/badge.svg)](https://docs.rs/bigtable_rs)
+[![codecov](https://codecov.io/github/liufuyang/bigtable_rs/graph/badge.svg?token=U9LTK0V10S)](https://codecov.io/github/liufuyang/bigtable_rs)
 [![Crates.io](https://img.shields.io/crates/l/bigtable_rs)](LICENSE)
 
 ## Disclaimer - might be ready for production use
