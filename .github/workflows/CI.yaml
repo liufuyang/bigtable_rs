@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   test:
+    name: Build and Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -82,5 +83,64 @@ jobs:
       - name: Emulator Logs on Failure
         if: failure() # Only runs if the tests (or setup) fail
         run: docker logs bigtable-emulator
+
+
+  # Release unpublished packages.
+  release-plz-release:
+    name: Release-plz release
+    runs-on: ubuntu-latest
+    needs: test # <--- CRITICAL: release-plz-release won't start until 'test' passes
+    if: |
+      github.repository_owner == 'liufuyang' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: write
+      pull-requests: read
+      id-token: write # Required for Trusted Publishing
+    steps:
+      - &checkout
+        name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - &install-rust
+        name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: release-plz/action@v0.5
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Create a PR with the new versions and changelog, preparing the next release.
+  release-plz-pr:
+    name: Release-plz creating PR
+    runs-on: ubuntu-latest
+    if: |
+      github.repository_owner == 'liufuyang' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - *checkout
+      - *install-rust
+      - name: Run release-plz
+        uses: release-plz/action@v0.5
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       
