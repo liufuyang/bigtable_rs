@@ -21,9 +21,6 @@
 /// modes. For example, when encoding INT64 as a numeric STRING, negative numbers
 /// cannot be encoded in sorted mode. This is because `INT64(1) > INT64(-1)`, but
 /// `STRING("-00001") > STRING("00001")`.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Type {
     /// The kind of type that this represents.
@@ -37,9 +34,6 @@ pub struct Type {
 pub mod r#type {
     /// Bytes
     /// Values of type `Bytes` are stored in `Value.bytes_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Bytes {
         /// The encoding to use when converting to or from lower level types.
@@ -49,9 +43,6 @@ pub mod r#type {
     /// Nested message and enum types in `Bytes`.
     pub mod bytes {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -65,15 +56,9 @@ pub mod r#type {
             /// Sorted mode: all values are supported.
             ///
             /// Distinct mode: all values are supported.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Raw {}
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Use `Raw` encoding.
@@ -84,9 +69,6 @@ pub mod r#type {
     }
     /// String
     /// Values of type `String` are stored in `Value.string_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct String {
         /// The encoding to use when converting to or from lower level types.
@@ -96,9 +78,6 @@ pub mod r#type {
     /// Nested message and enum types in `String`.
     pub mod string {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -108,9 +87,6 @@ pub mod r#type {
         /// Nested message and enum types in `Encoding`.
         pub mod encoding {
             /// Deprecated: prefer the equivalent `Utf8Bytes`.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Utf8Raw {}
             /// UTF-8 encoding.
@@ -127,15 +103,9 @@ pub mod r#type {
             /// * BigQuery `TEXT` encoding
             /// * HBase `Bytes.toBytes`
             /// * Java `String#getBytes(StandardCharsets.UTF_8)`
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Utf8Bytes {}
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Deprecated: if set, converts to an empty `utf8_bytes`.
@@ -150,9 +120,6 @@ pub mod r#type {
     }
     /// Int64
     /// Values of type `Int64` are stored in `Value.int_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Int64 {
         /// The encoding to use when converting to or from lower level types.
@@ -162,9 +129,6 @@ pub mod r#type {
     /// Nested message and enum types in `Int64`.
     pub mod int64 {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -184,9 +148,6 @@ pub mod r#type {
             /// * BigQuery `BINARY` encoding
             /// * HBase `Bytes.toBytes`
             /// * Java `ByteBuffer.putLong()` with `ByteOrder.BIG_ENDIAN`
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct BigEndianBytes {
                 /// Deprecated: ignored if set.
@@ -200,15 +161,9 @@ pub mod r#type {
             /// Sorted mode: all values are supported.
             ///
             /// Distinct mode: all values are supported.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct OrderedCodeBytes {}
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Use `BigEndianBytes` encoding.
@@ -222,30 +177,18 @@ pub mod r#type {
     }
     /// bool
     /// Values of type `Bool` are stored in `Value.bool_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Bool {}
     /// Float32
     /// Values of type `Float32` are stored in `Value.float_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Float32 {}
     /// Float64
     /// Values of type `Float64` are stored in `Value.float_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Float64 {}
     /// Timestamp
     /// Values of type `Timestamp` are stored in `Value.timestamp_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Timestamp {
         /// The encoding to use when converting to or from lower level types.
@@ -255,9 +198,6 @@ pub mod r#type {
     /// Nested message and enum types in `Timestamp`.
     pub mod timestamp {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -267,9 +207,6 @@ pub mod r#type {
         /// Nested message and enum types in `Encoding`.
         pub mod encoding {
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Encodes the number of microseconds since the Unix epoch using the
@@ -285,18 +222,12 @@ pub mod r#type {
     }
     /// Date
     /// Values of type `Date` are stored in `Value.date_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Date {}
     /// A structured data value, consisting of fields which map to dynamically
     /// typed values.
     /// Values of type `Struct` are stored in `Value.array_value` where entries are
     /// in the same order and number as `field_types`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Struct {
         /// The names and types of the fields in this struct.
@@ -309,9 +240,6 @@ pub mod r#type {
     /// Nested message and enum types in `Struct`.
     pub mod r#struct {
         /// A struct field and its type.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, ::prost::Message)]
         pub struct Field {
             /// The field name (optional). Fields without a `field_name` are considered
@@ -323,9 +251,6 @@ pub mod r#type {
             pub r#type: ::core::option::Option<super::super::Type>,
         }
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -336,9 +261,6 @@ pub mod r#type {
         pub mod encoding {
             /// Uses the encoding of `fields\[0\].type` as-is.
             /// Only valid if `fields.size == 1`.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Singleton {}
             /// Fields are encoded independently and concatenated with a configurable
@@ -357,9 +279,6 @@ pub mod r#type {
             ///
             /// * Fields are encoded in distinct mode.
             /// * Encoded field values must not contain `delimiter\[0\]`.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct DelimitedBytes {
                 /// Byte sequence used to delimit concatenated fields. The delimiter must
@@ -407,15 +326,9 @@ pub mod r#type {
             ///
             /// * Fields are encoded in distinct mode.
             /// * All values supported by the field encodings are allowed.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct OrderedCodeBytes {}
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Use `Singleton` encoding.
@@ -432,9 +345,6 @@ pub mod r#type {
     }
     /// A protobuf message type.
     /// Values of type `Proto` are stored in `Value.bytes_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Proto {
         /// The ID of the schema bundle that this proto is defined in.
@@ -447,9 +357,6 @@ pub mod r#type {
     }
     /// A protobuf enum type.
     /// Values of type `Enum` are stored in `Value.int_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Enum {
         /// The ID of the schema bundle that this enum is defined in.
@@ -462,9 +369,6 @@ pub mod r#type {
     }
     /// An ordered list of elements of a given type.
     /// Values of type `Array` are stored in `Value.array_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Array {
         /// The type of the elements in the array. This must not be `Array`.
@@ -478,9 +382,6 @@ pub mod r#type {
     /// Normally encoded Map values won't have repeated keys, however, clients are
     /// expected to handle the case in which they do. If the same key appears
     /// multiple times, the *last* value takes precedence.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Map {
         /// The type of a map key.
@@ -496,9 +397,6 @@ pub mod r#type {
     /// Data is never directly written or read using type `Aggregate`. Writes will
     /// provide either the `input_type` or `state_type`, and reads will always
     /// return the `state_type` .
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Aggregate {
         /// Type of the inputs that are accumulated by this `Aggregate`, which must
@@ -520,25 +418,16 @@ pub mod r#type {
         /// Computes the sum of the input values.
         /// Allowed input: `Int64`
         /// State: same as input
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Sum {}
         /// Computes the max of the input values.
         /// Allowed input: `Int64`
         /// State: same as input
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Max {}
         /// Computes the min of the input values.
         /// Allowed input: `Int64`
         /// State: same as input
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Min {}
         /// Computes an approximate unique count over the input values. When using
@@ -548,15 +437,9 @@ pub mod r#type {
         /// Input: Any, or omit for Raw
         /// State: TBD
         /// Special state conversions: `Int64` (the unique count estimate)
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct HyperLogLogPlusPlusUniqueCount {}
         /// Which aggregator function to use. The configured types must match.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
         pub enum Aggregator {
             /// Sum aggregator.
@@ -574,9 +457,6 @@ pub mod r#type {
         }
     }
     /// The kind of type that this represents.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Kind {
         /// Bytes
@@ -624,9 +504,6 @@ pub mod r#type {
     }
 }
 /// Information about a table restore.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RestoreInfo {
     /// The type of the restore source.
@@ -639,9 +516,6 @@ pub struct RestoreInfo {
 /// Nested message and enum types in `RestoreInfo`.
 pub mod restore_info {
     /// Information about the source used to restore the table.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum SourceInfo {
         /// Information about the backup used to restore the table. The backup
@@ -651,9 +525,6 @@ pub mod restore_info {
     }
 }
 /// Change stream configuration.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ChangeStreamConfig {
     /// How long the change stream should be retained. Change stream data older
@@ -666,9 +537,6 @@ pub struct ChangeStreamConfig {
 }
 /// A collection of user data indexed by row, column, and timestamp.
 /// Each table is served using the resources of its parent cluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Table {
     /// The unique name of the table. Values are of the form
@@ -788,9 +656,6 @@ pub struct Table {
 /// Nested message and enum types in `Table`.
 pub mod table {
     /// The state of a table's data in a particular cluster.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ClusterState {
         /// Output only. The state of replication for the table in this cluster.
@@ -807,9 +672,6 @@ pub mod table {
     /// Nested message and enum types in `ClusterState`.
     pub mod cluster_state {
         /// Table replication states.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(
             Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration,
         )]
@@ -866,9 +728,6 @@ pub mod table {
         }
     }
     /// Defines an automated backup policy for a table
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct AutomatedBackupPolicy {
         /// Required. How long the automated backups should be retained. The only
@@ -882,9 +741,6 @@ pub mod table {
     }
     /// Possible timestamp granularities to use when keeping multiple versions
     /// of data in a table.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum TimestampGranularity {
@@ -915,9 +771,6 @@ pub mod table {
         }
     }
     /// Defines a view over a table's fields.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum View {
@@ -963,9 +816,6 @@ pub mod table {
             }
         }
     }
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum AutomatedBackupConfig {
         /// If specified, automated backups are enabled for this table.
@@ -977,9 +827,6 @@ pub mod table {
 /// AuthorizedViews represent subsets of a particular Cloud Bigtable table. Users
 /// can configure access to each Authorized View independently from the table and
 /// use the existing Data APIs to access the subset of data.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthorizedView {
     /// Identifier. The name of this AuthorizedView.
@@ -1004,9 +851,6 @@ pub struct AuthorizedView {
 /// Nested message and enum types in `AuthorizedView`.
 pub mod authorized_view {
     /// Subsets of a column family that are included in this AuthorizedView.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct FamilySubsets {
         /// Individual exact column qualifiers to be included in the AuthorizedView.
@@ -1021,9 +865,6 @@ pub mod authorized_view {
         pub qualifier_prefixes: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     }
     /// Defines a simple AuthorizedView that is a subset of the underlying Table.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct SubsetView {
         /// Row prefixes to be included in the AuthorizedView.
@@ -1037,9 +878,6 @@ pub mod authorized_view {
             ::std::collections::HashMap<::prost::alloc::string::String, FamilySubsets>,
     }
     /// Defines a subset of an AuthorizedView's fields.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum ResponseView {
@@ -1078,9 +916,6 @@ pub mod authorized_view {
         }
     }
     /// The type of this AuthorizedView.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum AuthorizedView {
         /// An AuthorizedView permitting access to an explicit subset of a Table.
@@ -1089,9 +924,6 @@ pub mod authorized_view {
     }
 }
 /// A set of columns within a table which share a common configuration.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ColumnFamily {
     /// Garbage collection rule specified as a protobuf.
@@ -1116,9 +948,6 @@ pub struct ColumnFamily {
     pub value_type: ::core::option::Option<Type>,
 }
 /// Rule for determining which cells to delete during garbage collection.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GcRule {
     /// Garbage collection rules.
@@ -1128,9 +957,6 @@ pub struct GcRule {
 /// Nested message and enum types in `GcRule`.
 pub mod gc_rule {
     /// A GcRule which deletes cells matching all of the given rules.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Intersection {
         /// Only delete cells which would be deleted by every element of `rules`.
@@ -1138,9 +964,6 @@ pub mod gc_rule {
         pub rules: ::prost::alloc::vec::Vec<super::GcRule>,
     }
     /// A GcRule which deletes cells matching any of the given rules.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Union {
         /// Delete cells which would be deleted by any element of `rules`.
@@ -1148,9 +971,6 @@ pub mod gc_rule {
         pub rules: ::prost::alloc::vec::Vec<super::GcRule>,
     }
     /// Garbage collection rules.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Rule {
         /// Delete all cells in a column except the most recent N.
@@ -1173,9 +993,6 @@ pub mod gc_rule {
 /// If this resource is protected with customer managed encryption, the in-use
 /// Cloud Key Management Service (Cloud KMS) key version is specified along with
 /// its status.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EncryptionInfo {
     /// Output only. The type of encryption used to protect this resource.
@@ -1194,9 +1011,6 @@ pub struct EncryptionInfo {
 /// Nested message and enum types in `EncryptionInfo`.
 pub mod encryption_info {
     /// Possible encryption types for a resource.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum EncryptionType {
@@ -1245,9 +1059,6 @@ pub mod encryption_info {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Snapshot {
     /// The unique name of the snapshot.
@@ -1282,9 +1093,6 @@ pub struct Snapshot {
 /// Nested message and enum types in `Snapshot`.
 pub mod snapshot {
     /// Possible states of a snapshot.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum State {
@@ -1321,9 +1129,6 @@ pub mod snapshot {
     }
 }
 /// A backup of a Cloud Bigtable table.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Backup {
     /// A globally unique identifier for the backup which cannot be
@@ -1396,9 +1201,6 @@ pub struct Backup {
 /// Nested message and enum types in `Backup`.
 pub mod backup {
     /// Indicates the current state of the backup.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum State {
@@ -1433,9 +1235,6 @@ pub mod backup {
         }
     }
     /// The type of the backup.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum BackupType {
@@ -1475,9 +1274,6 @@ pub mod backup {
     }
 }
 /// Information about a backup.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct BackupInfo {
     /// Output only. Name of the backup.
@@ -1506,9 +1302,6 @@ pub struct BackupInfo {
 /// TieredStorageConfig must be unset.
 /// By default all data is stored in the SSD tier (only SSD instances can
 /// configure tiered storage).
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TieredStorageConfig {
     /// Rule to specify what data is stored in the infrequent access(IA) tier.
@@ -1517,9 +1310,6 @@ pub struct TieredStorageConfig {
     pub infrequent_access: ::core::option::Option<TieredStorageRule>,
 }
 /// Rule to specify what data is stored in a storage tier.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TieredStorageRule {
     /// Rules to specify what data is stored in this tier.
@@ -1529,9 +1319,6 @@ pub struct TieredStorageRule {
 /// Nested message and enum types in `TieredStorageRule`.
 pub mod tiered_storage_rule {
     /// Rules to specify what data is stored in this tier.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Rule {
         /// Include cells older than the given age.
@@ -1541,9 +1328,6 @@ pub mod tiered_storage_rule {
     }
 }
 /// Represents a protobuf schema.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ProtoSchema {
     /// Required. Contains a protobuf-serialized
@@ -1567,9 +1351,6 @@ pub struct ProtoSchema {
     pub proto_descriptors: ::prost::alloc::vec::Vec<u8>,
 }
 /// A named collection of related schemas.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SchemaBundle {
     /// Identifier. The unique name identifying this schema bundle.
@@ -1592,9 +1373,6 @@ pub struct SchemaBundle {
 pub mod schema_bundle {
     /// The type of this schema bundle. The oneof case cannot change after
     /// creation.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Type {
         /// Schema for Protobufs.
@@ -1603,9 +1381,6 @@ pub mod schema_bundle {
     }
 }
 /// Indicates the type of the restore source.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum RestoreSourceType {
@@ -1636,9 +1411,6 @@ impl RestoreSourceType {
 }
 /// Encapsulates progress related information for a Cloud Bigtable long
 /// running operation.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OperationProgress {
     /// Percent completion of the operation.
@@ -1654,9 +1426,6 @@ pub struct OperationProgress {
     pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// Storage media types for persisting Bigtable data.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum StorageType {
@@ -1691,9 +1460,6 @@ impl StorageType {
 }
 /// The request for
 /// \[RestoreTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.RestoreTable\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RestoreTableRequest {
     /// Required. The name of the instance in which to create the restored
@@ -1713,9 +1479,6 @@ pub struct RestoreTableRequest {
 /// Nested message and enum types in `RestoreTableRequest`.
 pub mod restore_table_request {
     /// Required. The source from which to restore.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Source {
         /// Name of the backup from which to restore.  Values are of the form
@@ -1726,9 +1489,6 @@ pub mod restore_table_request {
 }
 /// Metadata type for the long-running operation returned by
 /// \[RestoreTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.RestoreTable\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RestoreTableMetadata {
     /// Name of the table being created and restored to.
@@ -1764,9 +1524,6 @@ pub mod restore_table_metadata {
     /// Information about the source used to restore the table, as specified by
     /// `source` in
     /// \[RestoreTableRequest\]\[google.bigtable.admin.v2.RestoreTableRequest\].
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum SourceInfo {
         #[prost(message, tag = "3")]
@@ -1777,9 +1534,6 @@ pub mod restore_table_metadata {
 /// of optimizations performed on a newly restored table. This long-running
 /// operation is automatically created by the system after the successful
 /// completion of a table restore, and cannot be cancelled.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OptimizeRestoredTableMetadata {
     /// Name of the restored table being optimized.
@@ -1791,9 +1545,6 @@ pub struct OptimizeRestoredTableMetadata {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.CreateTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateTable\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateTableRequest {
     /// Required. The unique name of the instance in which to create the table.
@@ -1830,9 +1581,6 @@ pub struct CreateTableRequest {
 /// Nested message and enum types in `CreateTableRequest`.
 pub mod create_table_request {
     /// An initial split point for a newly created table.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Split {
         /// Row key to use as an initial tablet boundary.
@@ -1847,9 +1595,6 @@ pub mod create_table_request {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateTableFromSnapshotRequest {
     /// Required. The unique name of the instance in which to create the table.
@@ -1869,9 +1614,6 @@ pub struct CreateTableFromSnapshotRequest {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.DropRowRange\]\[google.bigtable.admin.v2.BigtableTableAdmin.DropRowRange\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DropRowRangeRequest {
     /// Required. The unique name of the table on which to drop a range of rows.
@@ -1886,9 +1628,6 @@ pub struct DropRowRangeRequest {
 /// Nested message and enum types in `DropRowRangeRequest`.
 pub mod drop_row_range_request {
     /// Delete all rows or by prefix.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Target {
         /// Delete all rows that start with this row key prefix. Prefix cannot be
@@ -1902,9 +1641,6 @@ pub mod drop_row_range_request {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.ListTables\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListTables\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListTablesRequest {
     /// Required. The unique name of the instance for which tables should be
@@ -1932,9 +1668,6 @@ pub struct ListTablesRequest {
 }
 /// Response message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.ListTables\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListTables\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListTablesResponse {
     /// The tables present in the requested instance.
@@ -1948,9 +1681,6 @@ pub struct ListTablesResponse {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.GetTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.GetTable\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetTableRequest {
     /// Required. The unique name of the requested table.
@@ -1965,9 +1695,6 @@ pub struct GetTableRequest {
 }
 /// The request for
 /// \[UpdateTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateTable\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateTableRequest {
     /// Required. The table to update.
@@ -1995,9 +1722,6 @@ pub struct UpdateTableRequest {
 }
 /// Metadata type for the operation returned by
 /// \[UpdateTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateTable\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateTableMetadata {
     /// The name of the table being updated.
@@ -2012,9 +1736,6 @@ pub struct UpdateTableMetadata {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.DeleteTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.DeleteTable\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteTableRequest {
     /// Required. The unique name of the table to be deleted.
@@ -2025,9 +1746,6 @@ pub struct DeleteTableRequest {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UndeleteTableRequest {
     /// Required. The unique name of the table to be restored.
@@ -2038,9 +1756,6 @@ pub struct UndeleteTableRequest {
 }
 /// Metadata type for the operation returned by
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable\]\[google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UndeleteTableMetadata {
     /// The name of the table being restored.
@@ -2055,9 +1770,6 @@ pub struct UndeleteTableMetadata {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.ModifyColumnFamilies\]\[google.bigtable.admin.v2.BigtableTableAdmin.ModifyColumnFamilies\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModifyColumnFamiliesRequest {
     /// Required. The unique name of the table whose families should be modified.
@@ -2078,9 +1790,6 @@ pub struct ModifyColumnFamiliesRequest {
 /// Nested message and enum types in `ModifyColumnFamiliesRequest`.
 pub mod modify_column_families_request {
     /// A create, update, or delete of a particular column family.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Modification {
         /// The ID of the column family to be modified.
@@ -2098,9 +1807,6 @@ pub mod modify_column_families_request {
     /// Nested message and enum types in `Modification`.
     pub mod modification {
         /// Column family modifications.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, ::prost::Oneof)]
         pub enum Mod {
             /// Create a new column family with the specified schema, or fail if
@@ -2120,9 +1826,6 @@ pub mod modify_column_families_request {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken\]\[google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GenerateConsistencyTokenRequest {
     /// Required. The unique name of the Table for which to create a consistency
@@ -2133,9 +1836,6 @@ pub struct GenerateConsistencyTokenRequest {
 }
 /// Response message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken\]\[google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GenerateConsistencyTokenResponse {
     /// The generated consistency token.
@@ -2144,9 +1844,6 @@ pub struct GenerateConsistencyTokenResponse {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency\]\[google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CheckConsistencyRequest {
     /// Required. The unique name of the Table for which to check replication
@@ -2166,9 +1863,6 @@ pub struct CheckConsistencyRequest {
 pub mod check_consistency_request {
     /// Which type of read needs to consistently observe which type of write?
     /// Default: `standard_read_remote_writes`
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Mode {
         /// Checks that reads using an app profile with `StandardIsolation` can
@@ -2185,23 +1879,14 @@ pub mod check_consistency_request {
 }
 /// Checks that all writes before the consistency token was generated are
 /// replicated in every cluster and readable.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StandardReadRemoteWrites {}
 /// Checks that all writes before the consistency token was generated in the same
 /// cluster are readable by Databoost.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DataBoostReadLocalWrites {}
 /// Response message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency\]\[google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CheckConsistencyResponse {
     /// True only if the token is consistent. A token is consistent if replication
@@ -2216,9 +1901,6 @@ pub struct CheckConsistencyResponse {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SnapshotTableRequest {
     /// Required. The unique name of the table to have the snapshot taken.
@@ -2254,9 +1936,6 @@ pub struct SnapshotTableRequest {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetSnapshotRequest {
     /// Required. The unique name of the requested snapshot.
@@ -2272,9 +1951,6 @@ pub struct GetSnapshotRequest {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListSnapshotsRequest {
     /// Required. The unique name of the cluster for which snapshots should be
@@ -2299,9 +1975,6 @@ pub struct ListSnapshotsRequest {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSnapshotsResponse {
     /// The snapshots present in the requested cluster.
@@ -2320,9 +1993,6 @@ pub struct ListSnapshotsResponse {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteSnapshotRequest {
     /// Required. The unique name of the snapshot to be deleted.
@@ -2337,9 +2007,6 @@ pub struct DeleteSnapshotRequest {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SnapshotTableMetadata {
     /// The request that prompted the initiation of this SnapshotTable operation.
@@ -2358,9 +2025,6 @@ pub struct SnapshotTableMetadata {
 /// feature is not currently available to most Cloud Bigtable customers. This
 /// feature might be changed in backward-incompatible ways and is not recommended
 /// for production use. It is not subject to any SLA or deprecation policy.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateTableFromSnapshotMetadata {
     /// The request that prompted the initiation of this CreateTableFromSnapshot
@@ -2376,9 +2040,6 @@ pub struct CreateTableFromSnapshotMetadata {
 }
 /// The request for
 /// \[CreateBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateBackupRequest {
     /// Required. This must be one of the clusters in the instance in which this
@@ -2400,9 +2061,6 @@ pub struct CreateBackupRequest {
 }
 /// Metadata type for the operation returned by
 /// \[CreateBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateBackupMetadata {
     /// The name of the backup being created.
@@ -2420,9 +2078,6 @@ pub struct CreateBackupMetadata {
 }
 /// The request for
 /// \[UpdateBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateBackupRequest {
     /// Required. The backup to update. `backup.name`, and the fields to be updated
@@ -2442,9 +2097,6 @@ pub struct UpdateBackupRequest {
 }
 /// The request for
 /// \[GetBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.GetBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetBackupRequest {
     /// Required. Name of the backup.
@@ -2455,9 +2107,6 @@ pub struct GetBackupRequest {
 }
 /// The request for
 /// \[DeleteBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.DeleteBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteBackupRequest {
     /// Required. Name of the backup to delete.
@@ -2468,9 +2117,6 @@ pub struct DeleteBackupRequest {
 }
 /// The request for
 /// \[ListBackups\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListBackups\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListBackupsRequest {
     /// Required. The cluster to list backups from.  Values are of the
@@ -2552,9 +2198,6 @@ pub struct ListBackupsRequest {
 }
 /// The response for
 /// \[ListBackups\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListBackups\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListBackupsResponse {
     /// The list of matching backups.
@@ -2568,9 +2211,6 @@ pub struct ListBackupsResponse {
 }
 /// The request for
 /// \[CopyBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.CopyBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CopyBackupRequest {
     /// Required. The name of the destination cluster that will contain the backup
@@ -2605,9 +2245,6 @@ pub struct CopyBackupRequest {
 }
 /// Metadata type for the google.longrunning.Operation returned by
 /// \[CopyBackup\]\[google.bigtable.admin.v2.BigtableTableAdmin.CopyBackup\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CopyBackupMetadata {
     /// The name of the backup being created through the copy operation.
@@ -2626,9 +2263,6 @@ pub struct CopyBackupMetadata {
 }
 /// The request for
 /// \[CreateAuthorizedView\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateAuthorizedView\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateAuthorizedViewRequest {
     /// Required. This is the name of the table the AuthorizedView belongs to.
@@ -2647,9 +2281,6 @@ pub struct CreateAuthorizedViewRequest {
     pub authorized_view: ::core::option::Option<AuthorizedView>,
 }
 /// The metadata for the Operation returned by CreateAuthorizedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateAuthorizedViewMetadata {
     /// The request that prompted the initiation of this CreateAuthorizedView
@@ -2665,9 +2296,6 @@ pub struct CreateAuthorizedViewMetadata {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.ListAuthorizedViews\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListAuthorizedViews\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListAuthorizedViewsRequest {
     /// Required. The unique name of the table for which AuthorizedViews should be
@@ -2696,9 +2324,6 @@ pub struct ListAuthorizedViewsRequest {
 }
 /// Response message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.ListAuthorizedViews\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListAuthorizedViews\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListAuthorizedViewsResponse {
     /// The AuthorizedViews present in the requested table.
@@ -2712,9 +2337,6 @@ pub struct ListAuthorizedViewsResponse {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.GetAuthorizedView\]\[google.bigtable.admin.v2.BigtableTableAdmin.GetAuthorizedView\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetAuthorizedViewRequest {
     /// Required. The unique name of the requested AuthorizedView.
@@ -2729,9 +2351,6 @@ pub struct GetAuthorizedViewRequest {
 }
 /// The request for
 /// \[UpdateAuthorizedView\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateAuthorizedView\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateAuthorizedViewRequest {
     /// Required. The AuthorizedView to update. The `name` in `authorized_view` is
@@ -2756,9 +2375,6 @@ pub struct UpdateAuthorizedViewRequest {
 }
 /// Metadata for the google.longrunning.Operation returned by
 /// \[UpdateAuthorizedView\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateAuthorizedView\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateAuthorizedViewMetadata {
     /// The request that prompted the initiation of this UpdateAuthorizedView
@@ -2774,9 +2390,6 @@ pub struct UpdateAuthorizedViewMetadata {
 }
 /// Request message for
 /// \[google.bigtable.admin.v2.BigtableTableAdmin.DeleteAuthorizedView\]\[google.bigtable.admin.v2.BigtableTableAdmin.DeleteAuthorizedView\]
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteAuthorizedViewRequest {
     /// Required. The unique name of the AuthorizedView to be deleted.
@@ -2793,9 +2406,6 @@ pub struct DeleteAuthorizedViewRequest {
 }
 /// The request for
 /// \[CreateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateSchemaBundle\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateSchemaBundleRequest {
     /// Required. The parent resource where this schema bundle will be created.
@@ -2813,9 +2423,6 @@ pub struct CreateSchemaBundleRequest {
 }
 /// The metadata for the Operation returned by
 /// \[CreateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.CreateSchemaBundle\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateSchemaBundleMetadata {
     /// The unique name identifying this schema bundle.
@@ -2832,9 +2439,6 @@ pub struct CreateSchemaBundleMetadata {
 }
 /// The request for
 /// \[UpdateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateSchemaBundle\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateSchemaBundleRequest {
     /// Required. The schema bundle to update.
@@ -2857,9 +2461,6 @@ pub struct UpdateSchemaBundleRequest {
 }
 /// The metadata for the Operation returned by
 /// \[UpdateSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.UpdateSchemaBundle\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateSchemaBundleMetadata {
     /// The unique name identifying this schema bundle.
@@ -2876,9 +2477,6 @@ pub struct UpdateSchemaBundleMetadata {
 }
 /// The request for
 /// \[GetSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.GetSchemaBundle\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetSchemaBundleRequest {
     /// Required. The unique name of the schema bundle to retrieve.
@@ -2889,9 +2487,6 @@ pub struct GetSchemaBundleRequest {
 }
 /// The request for
 /// \[ListSchemaBundles\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListSchemaBundles\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListSchemaBundlesRequest {
     /// Required. The parent, which owns this collection of schema bundles.
@@ -2914,9 +2509,6 @@ pub struct ListSchemaBundlesRequest {
 }
 /// The response for
 /// \[ListSchemaBundles\]\[google.bigtable.admin.v2.BigtableTableAdmin.ListSchemaBundles\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSchemaBundlesResponse {
     /// The schema bundles from the specified table.
@@ -2929,9 +2521,6 @@ pub struct ListSchemaBundlesResponse {
 }
 /// The request for
 /// \[DeleteSchemaBundle\]\[google.bigtable.admin.v2.BigtableTableAdmin.DeleteSchemaBundle\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteSchemaBundleRequest {
     /// Required. The unique name of the schema bundle to delete.
@@ -3826,9 +3415,6 @@ pub mod bigtable_table_admin_client {
 /// the resources that serve them.
 /// All tables in an instance are served from all
 /// \[Clusters\]\[google.bigtable.admin.v2.Cluster\] in the instance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Instance {
     /// The unique name of the instance. Values are of the form
@@ -3888,9 +3474,6 @@ pub struct Instance {
 /// Nested message and enum types in `Instance`.
 pub mod instance {
     /// Possible states of an instance.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum State {
@@ -3926,9 +3509,6 @@ pub mod instance {
         }
     }
     /// The type of the instance.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum Type {
@@ -3967,9 +3547,6 @@ pub mod instance {
     }
 }
 /// The Autoscaling targets for a Cluster. These determine the recommended nodes.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AutoscalingTargets {
     /// The cpu utilization that the Autoscaler should be trying to achieve.
@@ -3988,9 +3565,6 @@ pub struct AutoscalingTargets {
     pub storage_utilization_gib_per_node: i32,
 }
 /// Limits for the number of nodes a Cluster can autoscale up/down to.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AutoscalingLimits {
     /// Required. Minimum number of nodes to scale down to.
@@ -4003,9 +3577,6 @@ pub struct AutoscalingLimits {
 /// A resizable group of nodes in a particular cloud location, capable
 /// of serving all \[Tables\]\[google.bigtable.admin.v2.Table\] in the parent
 /// \[Instance\]\[google.bigtable.admin.v2.Instance\].
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Cluster {
     /// The unique name of the cluster. Values are of the form
@@ -4042,9 +3613,6 @@ pub struct Cluster {
 /// Nested message and enum types in `Cluster`.
 pub mod cluster {
     /// Autoscaling config for a cluster.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct ClusterAutoscalingConfig {
         /// Required. Autoscaling limits for this cluster.
@@ -4055,9 +3623,6 @@ pub mod cluster {
         pub autoscaling_targets: ::core::option::Option<super::AutoscalingTargets>,
     }
     /// Configuration for a cluster.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct ClusterConfig {
         /// Autoscaling configuration for this cluster.
@@ -4066,9 +3631,6 @@ pub mod cluster {
     }
     /// Cloud Key Management Service (Cloud KMS) settings for a CMEK-protected
     /// cluster.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct EncryptionConfig {
         /// Describes the Cloud KMS encryption key that will be used to protect the
@@ -4085,9 +3647,6 @@ pub mod cluster {
         pub kms_key_name: ::prost::alloc::string::String,
     }
     /// Possible states of a cluster.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum State {
@@ -4137,9 +3696,6 @@ pub mod cluster {
     }
     /// Possible node scaling factors of the clusters. Node scaling delivers better
     /// latency and more throughput by removing node boundaries.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum NodeScalingFactor {
@@ -4174,9 +3730,6 @@ pub mod cluster {
             }
         }
     }
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Config {
         /// Configuration for this cluster.
@@ -4186,9 +3739,6 @@ pub mod cluster {
 }
 /// A configuration object describing how Cloud Bigtable should treat traffic
 /// from a particular end user application.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AppProfile {
     /// The unique name of the app profile. Values are of the form
@@ -4223,9 +3773,6 @@ pub mod app_profile {
     /// transient errors or delays. Clusters in a region are considered
     /// equidistant. Choosing this option sacrifices read-your-writes consistency
     /// to improve availability.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct MultiClusterRoutingUseAny {
         /// The set of clusters to route to. The order is ignored; clusters will be
@@ -4254,9 +3801,6 @@ pub mod app_profile {
         /// cluster group will not be routed to, and routing will be unaffected by
         /// the new cluster. Moreover, clusters specified in the cluster group cannot
         /// be deleted unless removed from the cluster group.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct RowAffinity {}
         /// Possible algorithms for routing affinity. If enabled, Bigtable will
@@ -4267,9 +3811,6 @@ pub mod app_profile {
         /// under *most* circumstances, without sacrificing availability. Consistency
         /// is *not* guaranteed, as requests might still fail over between clusters
         /// in the event of errors or latency.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
         pub enum Affinity {
             /// Row affinity sticky routing based on the row key of the request.
@@ -4281,9 +3822,6 @@ pub mod app_profile {
     /// Unconditionally routes all read/write requests to a specific cluster.
     /// This option preserves read-your-writes consistency but does not improve
     /// availability.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct SingleClusterRouting {
         /// The cluster to which read/write requests should be routed.
@@ -4297,9 +3835,6 @@ pub mod app_profile {
     }
     /// Standard options for isolating this app profile's traffic from other use
     /// cases.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct StandardIsolation {
         /// The priority of requests sent using this app profile.
@@ -4311,9 +3846,6 @@ pub mod app_profile {
     /// impacting the performance of the clusters that handle your application
     /// traffic. Data Boost supports read-only use cases with single-cluster
     /// routing.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct DataBoostIsolationReadOnly {
         /// The Compute Billing Owner for this Data Boost App Profile.
@@ -4329,9 +3861,6 @@ pub mod app_profile {
         /// Compute Billing Owner specifies how usage should be accounted when using
         /// Data Boost. Compute Billing Owner also configures which Cloud Project is
         /// charged for relevant quota.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(
             Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration,
         )]
@@ -4367,9 +3896,6 @@ pub mod app_profile {
     /// Possible priorities for an app profile. Note that higher priority writes
     /// can sometimes queue behind lower priority writes to the same tablet, as
     /// writes must be strictly sequenced in the durability log.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum Priority {
@@ -4405,9 +3931,6 @@ pub mod app_profile {
     }
     /// The routing policy for all read/write requests that use this app profile.
     /// A value must be explicitly set.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum RoutingPolicy {
         /// Use a multi-cluster routing policy.
@@ -4418,9 +3941,6 @@ pub mod app_profile {
         SingleClusterRouting(SingleClusterRouting),
     }
     /// Options for isolating this app profile's traffic from other use cases.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Isolation {
         /// This field has been deprecated in favor of `standard_isolation.priority`.
@@ -4445,9 +3965,6 @@ pub mod app_profile {
 /// <https://cloud.google.com/bigtable/docs/performance#optimization.>
 /// A Hot tablet is a tablet that exhibits high average cpu usage during the time
 /// interval from start time to end time.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HotTablet {
     /// The unique name of the hot tablet. Values are of the form
@@ -4478,9 +3995,6 @@ pub struct HotTablet {
     pub node_cpu_usage_percent: f32,
 }
 /// A SQL logical view object that can be referenced in SQL queries.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct LogicalView {
     /// Identifier. The unique name of the logical view.
@@ -4502,9 +4016,6 @@ pub struct LogicalView {
     pub deletion_protection: bool,
 }
 /// A materialized view object that can be referenced in SQL queries.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct MaterializedView {
     /// Identifier. The unique name of the materialized view.
@@ -4526,9 +4037,6 @@ pub struct MaterializedView {
     pub deletion_protection: bool,
 }
 /// Request message for BigtableInstanceAdmin.CreateInstance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateInstanceRequest {
     /// Required. The unique name of the project in which to create the new
@@ -4552,9 +4060,6 @@ pub struct CreateInstanceRequest {
     pub clusters: ::std::collections::HashMap<::prost::alloc::string::String, Cluster>,
 }
 /// Request message for BigtableInstanceAdmin.GetInstance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetInstanceRequest {
     /// Required. The unique name of the requested instance. Values are of the form
@@ -4563,9 +4068,6 @@ pub struct GetInstanceRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.ListInstances.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListInstancesRequest {
     /// Required. The unique name of the project for which a list of instances is
@@ -4577,9 +4079,6 @@ pub struct ListInstancesRequest {
     pub page_token: ::prost::alloc::string::String,
 }
 /// Response message for BigtableInstanceAdmin.ListInstances.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListInstancesResponse {
     /// The list of requested instances.
@@ -4598,9 +4097,6 @@ pub struct ListInstancesResponse {
     pub next_page_token: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.PartialUpdateInstance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PartialUpdateInstanceRequest {
     /// Required. The Instance which will (partially) replace the current value.
@@ -4612,9 +4108,6 @@ pub struct PartialUpdateInstanceRequest {
     pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
 }
 /// Request message for BigtableInstanceAdmin.DeleteInstance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteInstanceRequest {
     /// Required. The unique name of the instance to be deleted.
@@ -4623,9 +4116,6 @@ pub struct DeleteInstanceRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.CreateCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateClusterRequest {
     /// Required. The unique name of the instance in which to create the new
@@ -4643,9 +4133,6 @@ pub struct CreateClusterRequest {
     pub cluster: ::core::option::Option<Cluster>,
 }
 /// Request message for BigtableInstanceAdmin.GetCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetClusterRequest {
     /// Required. The unique name of the requested cluster. Values are of the form
@@ -4654,9 +4141,6 @@ pub struct GetClusterRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.ListClusters.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListClustersRequest {
     /// Required. The unique name of the instance for which a list of clusters is
@@ -4671,9 +4155,6 @@ pub struct ListClustersRequest {
     pub page_token: ::prost::alloc::string::String,
 }
 /// Response message for BigtableInstanceAdmin.ListClusters.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListClustersResponse {
     /// The list of requested clusters.
@@ -4691,9 +4172,6 @@ pub struct ListClustersResponse {
     pub next_page_token: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.DeleteCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteClusterRequest {
     /// Required. The unique name of the cluster to be deleted. Values are of the
@@ -4702,9 +4180,6 @@ pub struct DeleteClusterRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// The metadata for the Operation returned by CreateInstance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateInstanceMetadata {
     /// The request that prompted the initiation of this CreateInstance operation.
@@ -4718,9 +4193,6 @@ pub struct CreateInstanceMetadata {
     pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// The metadata for the Operation returned by UpdateInstance.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateInstanceMetadata {
     /// The request that prompted the initiation of this UpdateInstance operation.
@@ -4734,9 +4206,6 @@ pub struct UpdateInstanceMetadata {
     pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// The metadata for the Operation returned by CreateCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateClusterMetadata {
     /// The request that prompted the initiation of this CreateCluster operation.
@@ -4765,9 +4234,6 @@ pub struct CreateClusterMetadata {
 /// Nested message and enum types in `CreateClusterMetadata`.
 pub mod create_cluster_metadata {
     /// Progress info for copying a table's data to the new cluster.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct TableProgress {
         /// Estimate of the size of the table to be copied.
@@ -4783,9 +4249,6 @@ pub mod create_cluster_metadata {
     }
     /// Nested message and enum types in `TableProgress`.
     pub mod table_progress {
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(
             Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration,
         )]
@@ -4832,9 +4295,6 @@ pub mod create_cluster_metadata {
     }
 }
 /// The metadata for the Operation returned by UpdateCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateClusterMetadata {
     /// The request that prompted the initiation of this UpdateCluster operation.
@@ -4848,9 +4308,6 @@ pub struct UpdateClusterMetadata {
     pub finish_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// The metadata for the Operation returned by PartialUpdateCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PartialUpdateClusterMetadata {
     /// The time at which the original request was received.
@@ -4864,9 +4321,6 @@ pub struct PartialUpdateClusterMetadata {
     pub original_request: ::core::option::Option<PartialUpdateClusterRequest>,
 }
 /// Request message for BigtableInstanceAdmin.PartialUpdateCluster.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PartialUpdateClusterRequest {
     /// Required. The Cluster which contains the partial updates to be applied,
@@ -4878,9 +4332,6 @@ pub struct PartialUpdateClusterRequest {
     pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
 }
 /// Request message for BigtableInstanceAdmin.CreateAppProfile.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateAppProfileRequest {
     /// Required. The unique name of the instance in which to create the new app
@@ -4901,9 +4352,6 @@ pub struct CreateAppProfileRequest {
     pub ignore_warnings: bool,
 }
 /// Request message for BigtableInstanceAdmin.GetAppProfile.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetAppProfileRequest {
     /// Required. The unique name of the requested app profile. Values are of the
@@ -4912,9 +4360,6 @@ pub struct GetAppProfileRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.ListAppProfiles.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListAppProfilesRequest {
     /// Required. The unique name of the instance for which a list of app profiles
@@ -4940,9 +4385,6 @@ pub struct ListAppProfilesRequest {
     pub page_token: ::prost::alloc::string::String,
 }
 /// Response message for BigtableInstanceAdmin.ListAppProfiles.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListAppProfilesResponse {
     /// The list of requested app profiles.
@@ -4961,9 +4403,6 @@ pub struct ListAppProfilesResponse {
     pub failed_locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Request message for BigtableInstanceAdmin.UpdateAppProfile.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateAppProfileRequest {
     /// Required. The app profile which will (partially) replace the current value.
@@ -4978,9 +4417,6 @@ pub struct UpdateAppProfileRequest {
     pub ignore_warnings: bool,
 }
 /// Request message for BigtableInstanceAdmin.DeleteAppProfile.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteAppProfileRequest {
     /// Required. The unique name of the app profile to be deleted. Values are of
@@ -4993,15 +4429,9 @@ pub struct DeleteAppProfileRequest {
     pub ignore_warnings: bool,
 }
 /// The metadata for the Operation returned by UpdateAppProfile.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateAppProfileMetadata {}
 /// Request message for BigtableInstanceAdmin.ListHotTablets.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListHotTabletsRequest {
     /// Required. The cluster name to list hot tablets.
@@ -5036,9 +4466,6 @@ pub struct ListHotTabletsRequest {
     pub page_token: ::prost::alloc::string::String,
 }
 /// Response message for BigtableInstanceAdmin.ListHotTablets.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListHotTabletsResponse {
     /// List of hot tablets in the tables of the requested cluster that fall
@@ -5055,9 +4482,6 @@ pub struct ListHotTabletsResponse {
     pub next_page_token: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.CreateLogicalView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateLogicalViewRequest {
     /// Required. The parent instance where this logical view will be created.
@@ -5073,9 +4497,6 @@ pub struct CreateLogicalViewRequest {
     pub logical_view: ::core::option::Option<LogicalView>,
 }
 /// The metadata for the Operation returned by CreateLogicalView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateLogicalViewMetadata {
     /// The request that prompted the initiation of this CreateLogicalView
@@ -5090,9 +4511,6 @@ pub struct CreateLogicalViewMetadata {
     pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// Request message for BigtableInstanceAdmin.GetLogicalView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetLogicalViewRequest {
     /// Required. The unique name of the requested logical view. Values are of the
@@ -5101,9 +4519,6 @@ pub struct GetLogicalViewRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.ListLogicalViews.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListLogicalViewsRequest {
     /// Required. The unique name of the instance for which the list of logical
@@ -5124,9 +4539,6 @@ pub struct ListLogicalViewsRequest {
     pub page_token: ::prost::alloc::string::String,
 }
 /// Response message for BigtableInstanceAdmin.ListLogicalViews.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListLogicalViewsResponse {
     /// The list of requested logical views.
@@ -5138,9 +4550,6 @@ pub struct ListLogicalViewsResponse {
     pub next_page_token: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.UpdateLogicalView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateLogicalViewRequest {
     /// Required. The logical view to update.
@@ -5155,9 +4564,6 @@ pub struct UpdateLogicalViewRequest {
     pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
 }
 /// The metadata for the Operation returned by UpdateLogicalView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateLogicalViewMetadata {
     /// The request that prompted the initiation of this UpdateLogicalView
@@ -5172,9 +4578,6 @@ pub struct UpdateLogicalViewMetadata {
     pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// Request message for BigtableInstanceAdmin.DeleteLogicalView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteLogicalViewRequest {
     /// Required. The unique name of the logical view to be deleted.
@@ -5190,9 +4593,6 @@ pub struct DeleteLogicalViewRequest {
     pub etag: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.CreateMaterializedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateMaterializedViewRequest {
     /// Required. The parent instance where this materialized view will be created.
@@ -5208,9 +4608,6 @@ pub struct CreateMaterializedViewRequest {
     pub materialized_view: ::core::option::Option<MaterializedView>,
 }
 /// The metadata for the Operation returned by CreateMaterializedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateMaterializedViewMetadata {
     /// The request that prompted the initiation of this CreateMaterializedView
@@ -5225,9 +4622,6 @@ pub struct CreateMaterializedViewMetadata {
     pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// Request message for BigtableInstanceAdmin.GetMaterializedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetMaterializedViewRequest {
     /// Required. The unique name of the requested materialized view. Values are of
@@ -5237,9 +4631,6 @@ pub struct GetMaterializedViewRequest {
     pub name: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.ListMaterializedViews.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListMaterializedViewsRequest {
     /// Required. The unique name of the instance for which the list of
@@ -5260,9 +4651,6 @@ pub struct ListMaterializedViewsRequest {
     pub page_token: ::prost::alloc::string::String,
 }
 /// Response message for BigtableInstanceAdmin.ListMaterializedViews.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListMaterializedViewsResponse {
     /// The list of requested materialized views.
@@ -5274,9 +4662,6 @@ pub struct ListMaterializedViewsResponse {
     pub next_page_token: ::prost::alloc::string::String,
 }
 /// Request message for BigtableInstanceAdmin.UpdateMaterializedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateMaterializedViewRequest {
     /// Required. The materialized view to update.
@@ -5291,9 +4676,6 @@ pub struct UpdateMaterializedViewRequest {
     pub update_mask: ::core::option::Option<::prost_wkt_types::FieldMask>,
 }
 /// The metadata for the Operation returned by UpdateMaterializedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateMaterializedViewMetadata {
     /// The request that prompted the initiation of this UpdateMaterializedView
@@ -5308,9 +4690,6 @@ pub struct UpdateMaterializedViewMetadata {
     pub end_time: ::core::option::Option<::prost_wkt_types::Timestamp>,
 }
 /// Request message for BigtableInstanceAdmin.DeleteMaterializedView.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteMaterializedViewRequest {
     /// Required. The unique name of the materialized view to be deleted.

@@ -9,9 +9,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         }
       ],
       "results": [
@@ -24,9 +22,7 @@
       "description": "invalid - no cell key before commit",
       "chunks": [
         {
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -41,9 +37,7 @@
         {
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         }
       ],
       "results": [
@@ -61,17 +55,13 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "familyName": "B",
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -89,14 +79,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -123,9 +109,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -146,9 +130,7 @@
           "familyName": "A",
           "qualifier": "Qw==",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -167,9 +149,7 @@
           "rowKey": "Uks=",
           "familyName": "A",
           "qualifier": "Qw==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -189,16 +169,12 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -227,17 +203,13 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "qualifier": "RA==",
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -266,18 +238,14 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "familyName": "B",
           "qualifier": "RQ==",
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -309,9 +277,7 @@
             "L_1"
           ],
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "98",
@@ -319,9 +285,7 @@
             "L_2"
           ],
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -353,20 +317,14 @@
           "timestampMicros": "100",
           "value": "dg==",
           "valueSize": 9,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUw=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -394,15 +352,11 @@
           "timestampMicros": "100",
           "value": "dg==",
           "valueSize": 9,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUw=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -428,29 +382,21 @@
           ],
           "value": "dg==",
           "valueSize": 9,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YQ==",
           "valueSize": 9,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "bA==",
           "valueSize": 9,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "dWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -474,29 +420,21 @@
           "timestampMicros": "99",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMQ==",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "98",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMg==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -526,30 +464,22 @@
           "timestampMicros": "99",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMQ==",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "qualifier": "RA==",
           "timestampMicros": "98",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMg==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -579,44 +509,32 @@
           "timestampMicros": "99",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YQ==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "bHVlLVZBTF8x",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "qualifier": "RA==",
           "timestampMicros": "98",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YQ==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "bHVlLVZBTF8y",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -646,15 +564,11 @@
           "timestampMicros": "99",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMQ==",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "familyName": "B",
@@ -662,15 +576,11 @@
           "timestampMicros": "98",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMg==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -699,9 +609,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "rowKey": "UktfMg==",
@@ -709,9 +617,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         }
       ],
       "results": [
@@ -729,9 +635,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "rowKey": "UktfMg==",
@@ -739,9 +643,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -759,9 +661,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -769,9 +669,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         }
       ],
       "results": [
@@ -796,9 +694,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMQ==",
@@ -806,9 +702,7 @@
           "qualifier": "RA==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -833,16 +727,12 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -867,9 +757,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -877,9 +765,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -907,9 +793,7 @@
           "familyName": "A",
           "qualifier": "Qw==",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -917,9 +801,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -945,9 +827,7 @@
           "rowKey": "UktfMQ==",
           "familyName": "A",
           "qualifier": "Qw==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -955,9 +835,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -984,16 +862,12 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -1001,9 +875,7 @@
           "qualifier": "RA==",
           "timestampMicros": "97",
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1039,17 +911,13 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "qualifier": "RA==",
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -1057,17 +925,13 @@
           "qualifier": "RQ==",
           "timestampMicros": "97",
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "qualifier": "Rg==",
           "timestampMicros": "96",
           "value": "dmFsdWUtVkFMXzQ=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1110,18 +974,14 @@
           "qualifier": "Qw==",
           "timestampMicros": "99",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "familyName": "B",
           "qualifier": "RQ==",
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -1129,18 +989,14 @@
           "qualifier": "Tw==",
           "timestampMicros": "97",
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "familyName": "N",
           "qualifier": "UA==",
           "timestampMicros": "96",
           "value": "dmFsdWUtVkFMXzQ=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1186,16 +1042,12 @@
             "L_1"
           ],
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -1206,16 +1058,12 @@
             "L_3"
           ],
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "96",
           "value": "dmFsdWUtVkFMXzQ=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1261,15 +1109,11 @@
           "timestampMicros": "100",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMQ==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -1278,15 +1122,11 @@
           "timestampMicros": "100",
           "value": "dg==",
           "valueSize": 11,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YWx1ZS1WQUxfMg==",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1310,9 +1150,7 @@
       "description": "invalid - bare reset",
       "chunks": [
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         }
       ],
       "results": [
@@ -1325,9 +1163,7 @@
       "description": "invalid - bad reset, no commit",
       "chunks": [
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1335,9 +1171,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         }
       ],
       "results": [
@@ -1355,21 +1189,15 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1387,14 +1215,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         }
       ]
     },
@@ -1407,14 +1231,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1422,9 +1242,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1446,14 +1264,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1461,9 +1275,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1485,14 +1297,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1500,9 +1308,7 @@
           "qualifier": "RA==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1524,21 +1330,15 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "98",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1546,9 +1346,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1570,14 +1368,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1585,16 +1379,12 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "timestampMicros": "97",
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1623,14 +1413,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1638,14 +1424,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1653,9 +1435,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1677,14 +1457,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "Uks=",
@@ -1692,17 +1468,13 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "qualifier": "RA==",
           "timestampMicros": "97",
           "value": "dmFsdWUtVkFMXzM=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1731,14 +1503,10 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "UktfMg==",
@@ -1746,9 +1514,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzI=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1774,21 +1540,15 @@
           ],
           "value": "dg==",
           "valueSize": 10,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YQ==",
           "valueSize": 10,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         },
         {
           "rowKey": "UktfMQ==",
@@ -1796,9 +1556,7 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFMXzE=",
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1824,16 +1582,12 @@
           ],
           "value": "dg==",
           "valueSize": 10,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YQ==",
           "valueSize": 10,
-          "rowStatus": {
-            "resetRow": false
-          }
+          "resetRow": true
         }
       ],
       "results": [
@@ -1855,16 +1609,12 @@
           ],
           "value": "dg==",
           "valueSize": 10,
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
           "value": "YQ==",
           "valueSize": 10,
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [
@@ -1882,19 +1632,13 @@
           "qualifier": "Qw==",
           "timestampMicros": "100",
           "value": "dmFsdWUtVkFM",
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "commitRow": false
-          }
+          "commitRow": false
         },
         {
-          "rowStatus": {
-            "commitRow": true
-          }
+          "commitRow": true
         }
       ],
       "results": [

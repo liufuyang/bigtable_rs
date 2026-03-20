@@ -21,9 +21,6 @@
 /// modes. For example, when encoding INT64 as a numeric STRING, negative numbers
 /// cannot be encoded in sorted mode. This is because `INT64(1) > INT64(-1)`, but
 /// `STRING("-00001") > STRING("00001")`.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Type {
     /// The kind of type that this represents.
@@ -37,9 +34,6 @@ pub struct Type {
 pub mod r#type {
     /// Bytes
     /// Values of type `Bytes` are stored in `Value.bytes_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Bytes {
         /// The encoding to use when converting to or from lower level types.
@@ -49,9 +43,6 @@ pub mod r#type {
     /// Nested message and enum types in `Bytes`.
     pub mod bytes {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -65,9 +56,6 @@ pub mod r#type {
             /// Sorted mode: all values are supported.
             ///
             /// Distinct mode: all values are supported.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Raw {
                 /// If set, allows NULL values to be encoded as the empty string "".
@@ -78,9 +66,6 @@ pub mod r#type {
                 pub escape_nulls: bool,
             }
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Use `Raw` encoding.
@@ -91,9 +76,6 @@ pub mod r#type {
     }
     /// String
     /// Values of type `String` are stored in `Value.string_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct String {
         /// The encoding to use when converting to or from lower level types.
@@ -103,9 +85,6 @@ pub mod r#type {
     /// Nested message and enum types in `String`.
     pub mod string {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -115,9 +94,6 @@ pub mod r#type {
         /// Nested message and enum types in `Encoding`.
         pub mod encoding {
             /// Deprecated: prefer the equivalent `Utf8Bytes`.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Utf8Raw {}
             /// UTF-8 encoding.
@@ -134,9 +110,6 @@ pub mod r#type {
             /// * BigQuery `TEXT` encoding
             /// * HBase `Bytes.toBytes`
             /// * Java `String#getBytes(StandardCharsets.UTF_8)`
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Utf8Bytes {
                 /// Single-character escape sequence used to support NULL values.
@@ -154,9 +127,6 @@ pub mod r#type {
                 pub null_escape_char: ::prost::alloc::string::String,
             }
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Deprecated: if set, converts to an empty `utf8_bytes`.
@@ -171,9 +141,6 @@ pub mod r#type {
     }
     /// Int64
     /// Values of type `Int64` are stored in `Value.int_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Int64 {
         /// The encoding to use when converting to or from lower level types.
@@ -183,9 +150,6 @@ pub mod r#type {
     /// Nested message and enum types in `Int64`.
     pub mod int64 {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -205,9 +169,6 @@ pub mod r#type {
             /// * BigQuery `BINARY` encoding
             /// * HBase `Bytes.toBytes`
             /// * Java `ByteBuffer.putLong()` with `ByteOrder.BIG_ENDIAN`
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct BigEndianBytes {
                 /// Deprecated: ignored if set.
@@ -221,15 +182,9 @@ pub mod r#type {
             /// Sorted mode: all values are supported.
             ///
             /// Distinct mode: all values are supported.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct OrderedCodeBytes {}
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Use `BigEndianBytes` encoding.
@@ -243,30 +198,18 @@ pub mod r#type {
     }
     /// bool
     /// Values of type `Bool` are stored in `Value.bool_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Bool {}
     /// Float32
     /// Values of type `Float32` are stored in `Value.float_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Float32 {}
     /// Float64
     /// Values of type `Float64` are stored in `Value.float_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Float64 {}
     /// Timestamp
     /// Values of type `Timestamp` are stored in `Value.timestamp_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Timestamp {
         /// The encoding to use when converting to or from lower level types.
@@ -276,9 +219,6 @@ pub mod r#type {
     /// Nested message and enum types in `Timestamp`.
     pub mod timestamp {
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -288,9 +228,6 @@ pub mod r#type {
         /// Nested message and enum types in `Encoding`.
         pub mod encoding {
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Encodes the number of microseconds since the Unix epoch using the
@@ -306,18 +243,12 @@ pub mod r#type {
     }
     /// Date
     /// Values of type `Date` are stored in `Value.date_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Date {}
     /// A structured data value, consisting of fields which map to dynamically
     /// typed values.
     /// Values of type `Struct` are stored in `Value.array_value` where entries are
     /// in the same order and number as `field_types`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Struct {
         /// The names and types of the fields in this struct.
@@ -330,9 +261,6 @@ pub mod r#type {
     /// Nested message and enum types in `Struct`.
     pub mod r#struct {
         /// A struct field and its type.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, ::prost::Message)]
         pub struct Field {
             /// The field name (optional). Fields without a `field_name` are considered
@@ -344,9 +272,6 @@ pub mod r#type {
             pub r#type: ::core::option::Option<super::super::Type>,
         }
         /// Rules used to convert to or from lower level types.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Encoding {
             /// Which encoding to use.
@@ -357,9 +282,6 @@ pub mod r#type {
         pub mod encoding {
             /// Uses the encoding of `fields\[0\].type` as-is.
             /// Only valid if `fields.size == 1`.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct Singleton {}
             /// Fields are encoded independently and concatenated with a configurable
@@ -378,9 +300,6 @@ pub mod r#type {
             ///
             /// * Fields are encoded in distinct mode.
             /// * Encoded field values must not contain `delimiter\[0\]`.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct DelimitedBytes {
                 /// Byte sequence used to delimit concatenated fields. The delimiter must
@@ -430,15 +349,9 @@ pub mod r#type {
             ///
             /// * Fields are encoded in distinct mode.
             /// * All values supported by the field encodings are allowed.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
             pub struct OrderedCodeBytes {}
             /// Which encoding to use.
-            #[serde_with::serde_as]
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(rename_all = "camelCase")]
             #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
             pub enum Encoding {
                 /// Use `Singleton` encoding.
@@ -455,9 +368,6 @@ pub mod r#type {
     }
     /// A protobuf message type.
     /// Values of type `Proto` are stored in `Value.bytes_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Proto {
         /// The ID of the schema bundle that this proto is defined in.
@@ -470,9 +380,6 @@ pub mod r#type {
     }
     /// A protobuf enum type.
     /// Values of type `Enum` are stored in `Value.int_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Enum {
         /// The ID of the schema bundle that this enum is defined in.
@@ -485,9 +392,6 @@ pub mod r#type {
     }
     /// An ordered list of elements of a given type.
     /// Values of type `Array` are stored in `Value.array_value`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Array {
         /// The type of the elements in the array. This must not be `Array`.
@@ -501,9 +405,6 @@ pub mod r#type {
     /// Normally encoded Map values won't have repeated keys, however, clients are
     /// expected to handle the case in which they do. If the same key appears
     /// multiple times, the *last* value takes precedence.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Map {
         /// The type of a map key.
@@ -519,9 +420,6 @@ pub mod r#type {
     /// Data is never directly written or read using type `Aggregate`. Writes
     /// provide either the `input_type` or `state_type`, and reads always return
     /// the `state_type` .
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Aggregate {
         /// Type of the inputs that are accumulated by this `Aggregate`.
@@ -542,25 +440,16 @@ pub mod r#type {
         /// Computes the sum of the input values.
         /// Allowed input: `Int64`
         /// State: same as input
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Sum {}
         /// Computes the max of the input values.
         /// Allowed input: `Int64`
         /// State: same as input
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Max {}
         /// Computes the min of the input values.
         /// Allowed input: `Int64`
         /// State: same as input
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct Min {}
         /// Computes an approximate unique count over the input values. When using
@@ -570,15 +459,9 @@ pub mod r#type {
         /// Input: Any, or omit for Raw
         /// State: TBD
         /// Special state conversions: `Int64` (the unique count estimate)
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct HyperLogLogPlusPlusUniqueCount {}
         /// Which aggregator function to use. The configured types must match.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
         pub enum Aggregator {
             /// Sum aggregator.
@@ -596,9 +479,6 @@ pub mod r#type {
         }
     }
     /// The kind of type that this represents.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Kind {
         /// Bytes
@@ -647,9 +527,6 @@ pub mod r#type {
 }
 /// Specifies the complete (requested) contents of a single row of a table.
 /// Rows which exceed 256MiB in size cannot be read in full.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Row {
     /// The unique key which identifies this row within its table. This is the same
@@ -664,9 +541,6 @@ pub struct Row {
 }
 /// Specifies (some of) the contents of a single row/column family intersection
 /// of a table.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Family {
     /// The unique key which identifies this family within its row. This is the
@@ -683,9 +557,6 @@ pub struct Family {
 }
 /// Specifies (some of) the contents of a single row/column intersection of a
 /// table.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Column {
     /// The unique key which identifies this column within its family. This is the
@@ -700,9 +571,6 @@ pub struct Column {
     pub cells: ::prost::alloc::vec::Vec<Cell>,
 }
 /// Specifies (some of) the contents of a single row/column/timestamp of a table.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Cell {
     /// The cell's stored timestamp, which also uniquely identifies it within
@@ -726,9 +594,6 @@ pub struct Cell {
 /// The typed fields in `Value` are used as a transport encoding for the actual
 /// value (which may be of a more complex type). See the documentation of the
 /// `Type` message for more details.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Value {
     /// The verified `Type` of this `Value`, if it cannot be inferred.
@@ -762,9 +627,6 @@ pub mod value {
     ///
     /// The value is `NULL` if none of the fields in `kind` is set. If `type` is
     /// also omitted on write, we will infer it based on the schema.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Kind {
         /// Represents a raw byte sequence with no type information.
@@ -807,9 +669,6 @@ pub mod value {
     }
 }
 /// `ArrayValue` is an ordered list of `Value`.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ArrayValue {
     /// The ordered elements in the array.
@@ -817,9 +676,6 @@ pub struct ArrayValue {
     pub values: ::prost::alloc::vec::Vec<Value>,
 }
 /// Specifies a contiguous range of rows.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RowRange {
     /// The row key at which to start the range.
@@ -835,9 +691,6 @@ pub struct RowRange {
 pub mod row_range {
     /// The row key at which to start the range.
     /// If neither field is set, interpreted as the empty string, inclusive.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum StartKey {
         /// Used when giving an inclusive lower bound for the range.
@@ -849,9 +702,6 @@ pub mod row_range {
     }
     /// The row key at which to end the range.
     /// If neither field is set, interpreted as the infinite row key, exclusive.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum EndKey {
         /// Used when giving an exclusive upper bound for the range.
@@ -863,9 +713,6 @@ pub mod row_range {
     }
 }
 /// Specifies a non-contiguous set of rows.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowSet {
     /// Single rows included in the set.
@@ -879,9 +726,6 @@ pub struct RowSet {
 /// The range spans from \<column_family\>:\<start_qualifier\> to
 /// \<column_family\>:\<end_qualifier\>, where both bounds can be either
 /// inclusive or exclusive.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ColumnRange {
     /// The name of the column family within which this range falls.
@@ -900,9 +744,6 @@ pub struct ColumnRange {
 pub mod column_range {
     /// The column qualifier at which to start the range (within `column_family`).
     /// If neither field is set, interpreted as the empty string, inclusive.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum StartQualifier {
         /// Used when giving an inclusive lower bound for the range.
@@ -914,9 +755,6 @@ pub mod column_range {
     }
     /// The column qualifier at which to end the range (within `column_family`).
     /// If neither field is set, interpreted as the infinite string, exclusive.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum EndQualifier {
         /// Used when giving an inclusive upper bound for the range.
@@ -928,9 +766,6 @@ pub mod column_range {
     }
 }
 /// Specified a contiguous range of microsecond timestamps.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TimestampRange {
     /// Inclusive lower bound. If left empty, interpreted as 0.
@@ -941,9 +776,6 @@ pub struct TimestampRange {
     pub end_timestamp_micros: i64,
 }
 /// Specifies a contiguous range of raw byte values.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ValueRange {
     /// The value at which to start the range.
@@ -959,9 +791,6 @@ pub struct ValueRange {
 pub mod value_range {
     /// The value at which to start the range.
     /// If neither field is set, interpreted as the empty string, inclusive.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum StartValue {
         /// Used when giving an inclusive lower bound for the range.
@@ -973,9 +802,6 @@ pub mod value_range {
     }
     /// The value at which to end the range.
     /// If neither field is set, interpreted as the infinite string, exclusive.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum EndValue {
         /// Used when giving an inclusive upper bound for the range.
@@ -1019,9 +845,6 @@ pub mod value_range {
 /// The total serialized size of a RowFilter message must not
 /// exceed 20480 bytes, and RowFilters may not be nested within each other
 /// (in Chains or Interleaves) to a depth of more than 20.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowFilter {
     /// Which of the possible RowFilter types to apply. If none are set, this
@@ -1035,9 +858,6 @@ pub struct RowFilter {
 /// Nested message and enum types in `RowFilter`.
 pub mod row_filter {
     /// A RowFilter which sends rows through several RowFilters in sequence.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Chain {
         /// The elements of "filters" are chained together to process the input row:
@@ -1048,9 +868,6 @@ pub mod row_filter {
     }
     /// A RowFilter which sends each row to each of several component
     /// RowFilters and interleaves the results.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Interleave {
         /// The elements of "filters" all process a copy of the input row, and the
@@ -1090,9 +907,6 @@ pub mod row_filter {
     /// true and false filters, which may lead to inconsistent or unexpected
     /// results. Additionally, Condition filters have poor performance, especially
     /// when filters are set for the false condition.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Condition {
         /// If `predicate_filter` outputs any cells, then `true_filter` will be
@@ -1111,9 +925,6 @@ pub mod row_filter {
     }
     /// Which of the possible RowFilter types to apply. If none are set, this
     /// RowFilter returns all cells in the input row.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Filter {
         /// Applies several RowFilters to the data in sequence, progressively
@@ -1283,9 +1094,6 @@ pub mod row_filter {
     }
 }
 /// Specifies a particular change to be made to the contents of a row.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Mutation {
     /// Which of the possible Mutation types to apply.
@@ -1295,9 +1103,6 @@ pub struct Mutation {
 /// Nested message and enum types in `Mutation`.
 pub mod mutation {
     /// A Mutation which sets the value of the specified cell.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct SetCell {
         /// The name of the family into which new data should be written.
@@ -1320,9 +1125,6 @@ pub mod mutation {
         pub value: ::prost::alloc::vec::Vec<u8>,
     }
     /// A Mutation which incrementally updates a cell in an `Aggregate` family.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct AddToCell {
         /// The name of the `Aggregate` family into which new data should be added.
@@ -1345,9 +1147,6 @@ pub mod mutation {
     }
     /// A Mutation which merges accumulated state into a cell in an `Aggregate`
     /// family.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct MergeToCell {
         /// The name of the `Aggregate` family into which new data should be added.
@@ -1371,9 +1170,6 @@ pub mod mutation {
     }
     /// A Mutation which deletes cells from the specified column, optionally
     /// restricting the deletions to a given timestamp range.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct DeleteFromColumn {
         /// The name of the family from which cells should be deleted.
@@ -1389,9 +1185,6 @@ pub mod mutation {
         pub time_range: ::core::option::Option<super::TimestampRange>,
     }
     /// A Mutation which deletes all cells from the specified column family.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct DeleteFromFamily {
         /// The name of the family from which cells should be deleted.
@@ -1400,15 +1193,9 @@ pub mod mutation {
         pub family_name: ::prost::alloc::string::String,
     }
     /// A Mutation which deletes all cells from the containing row.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct DeleteFromRow {}
     /// Which of the possible Mutation types to apply.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Mutation {
         /// Set a cell's value.
@@ -1433,9 +1220,6 @@ pub mod mutation {
 }
 /// Specifies an atomic read/modify/write operation on the latest value of the
 /// specified column.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ReadModifyWriteRule {
     /// The name of the family to which the read/modify/write should be applied.
@@ -1456,9 +1240,6 @@ pub struct ReadModifyWriteRule {
 pub mod read_modify_write_rule {
     /// The rule used to determine the column's new latest value from its current
     /// latest value.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Rule {
         /// Rule specifying that `append_value` be appended to the existing value.
@@ -1476,9 +1257,6 @@ pub mod read_modify_write_rule {
 }
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// A partition of a change stream.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StreamPartition {
     /// The row range covered by this partition and is specified by
@@ -1489,9 +1267,6 @@ pub struct StreamPartition {
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// The information required to continue reading the data from multiple
 /// `StreamPartitions` from where a previous read left off.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamContinuationTokens {
     /// List of continuation tokens.
@@ -1501,9 +1276,6 @@ pub struct StreamContinuationTokens {
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// The information required to continue reading the data from a
 /// `StreamPartition` from where a previous read left off.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StreamContinuationToken {
     /// The partition that this token applies to.
@@ -1515,15 +1287,9 @@ pub struct StreamContinuationToken {
 }
 /// Protocol buffers format descriptor, as described by Messages ProtoSchema and
 /// ProtoRows
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ProtoFormat {}
 /// Describes a column in a Bigtable Query Language result set.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ColumnMetadata {
     /// The name of the column.
@@ -1534,9 +1300,6 @@ pub struct ColumnMetadata {
     pub r#type: ::core::option::Option<Type>,
 }
 /// ResultSet schema in proto format
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoSchema {
     /// The columns in the result set.
@@ -1544,9 +1307,6 @@ pub struct ProtoSchema {
     pub columns: ::prost::alloc::vec::Vec<ColumnMetadata>,
 }
 /// Describes the structure of a Bigtable result set.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResultSetMetadata {
     /// The schema of the ResultSet, contains ordered list of column names
@@ -1558,9 +1318,6 @@ pub struct ResultSetMetadata {
 pub mod result_set_metadata {
     /// The schema of the ResultSet, contains ordered list of column names
     /// with types
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Schema {
         /// Schema in proto format
@@ -1573,9 +1330,6 @@ pub mod result_set_metadata {
 /// This should be constructed by concatenating the `batch_data` from each
 /// of the relevant `ProtoRowsBatch` messages and parsing the result as a
 /// `ProtoRows` message.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoRows {
     /// A proto rows message consists of a list of values. Every N complete values
@@ -1585,9 +1339,6 @@ pub struct ProtoRows {
     pub values: ::prost::alloc::vec::Vec<Value>,
 }
 /// A part of a serialized `ProtoRows` message.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ProtoRowsBatch {
     /// Part of a serialized `ProtoRows` message.
@@ -1632,9 +1383,6 @@ pub struct ProtoRowsBatch {
 ///   save `p.resume_token` in `resume_token`
 ///   }
 ///   }
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PartialResultSet {
     /// CRC32C checksum of concatenated `partial_rows` data for the current batch.
@@ -1711,9 +1459,6 @@ pub mod partial_result_set {
     /// response. The client should buffer data constructed from the fields in
     /// `partial_rows` until a non-empty `resume_token` is received. Each
     /// sub-message documents the appropriate way to combine results.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum PartialRows {
         /// Partial rows in serialized ProtoRows format.
@@ -1724,9 +1469,6 @@ pub mod partial_result_set {
 /// Parameters on mutations where clients want to ensure idempotency (i.e.
 /// at-most-once semantics). This is currently only needed for certain aggregate
 /// types.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Idempotency {
     /// Unique token used to identify replays of this mutation.
@@ -1745,9 +1487,6 @@ pub struct Idempotency {
 /// ReadIterationStats captures information about the iteration of rows or cells
 /// over the course of a read, e.g. how many results were scanned in a read
 /// operation versus the results returned.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ReadIterationStats {
     /// The rows seen (scanned) as part of the request. This includes the count of
@@ -1768,9 +1507,6 @@ pub struct ReadIterationStats {
 /// RequestLatencyStats provides a measurement of the latency of the request as
 /// it interacts with different systems over its lifetime, e.g. how long the
 /// request took to execute within a frontend server.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RequestLatencyStats {
     /// The latency measured by the frontend server handling this request, from
@@ -1794,9 +1530,6 @@ pub struct RequestLatencyStats {
     pub frontend_server_latency: ::core::option::Option<::prost_wkt_types::Duration>,
 }
 /// FullReadStatsView captures all known information about a read.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct FullReadStatsView {
     /// Iteration stats describe how efficient the read is, e.g. comparing
@@ -1813,9 +1546,6 @@ pub struct FullReadStatsView {
 /// RequestStats is the container for additional information pertaining to a
 /// single request, helpful for evaluating the performance of the sent request.
 /// Currently, the following method is supported: google.bigtable.v2.ReadRows
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RequestStats {
     /// Information pertaining to each request type received. The type is chosen
@@ -1831,9 +1561,6 @@ pub mod request_stats {
     /// based on the requested view.
     ///
     /// See the messages above for additional context.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum StatsView {
         /// Available with the ReadRowsRequest.RequestStatsView.REQUEST_STATS_FULL
@@ -1843,9 +1570,6 @@ pub mod request_stats {
     }
 }
 /// Request message for Bigtable.ReadRows.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsRequest {
     /// Optional. The unique name of the table from which to read.
@@ -1907,9 +1631,6 @@ pub mod read_rows_request {
     /// The desired view into RequestStats that should be returned in the response.
     ///
     /// See also: RequestStats message.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
     #[repr(i32)]
     pub enum RequestStatsView {
@@ -1946,9 +1667,6 @@ pub mod read_rows_request {
     }
 }
 /// Response message for Bigtable.ReadRows.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRowsResponse {
     /// A collection of a row's contents as part of the read request.
@@ -1975,9 +1693,6 @@ pub struct ReadRowsResponse {
 pub mod read_rows_response {
     /// Specifies a piece of a row's contents returned as part of the read
     /// response stream.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct CellChunk {
         /// The row key for this chunk of data.  If the row key is empty,
@@ -1985,8 +1700,6 @@ pub mod read_rows_response {
         /// CellChunk in the response stream, even if that CellChunk was in a
         /// previous ReadRowsResponse message.
         #[prost(bytes = "vec", tag = "1")]
-        #[serde_as(as = "serde_with::base64::Base64")]
-        #[serde(default)]
         pub row_key: ::prost::alloc::vec::Vec<u8>,
         /// The column family name for this chunk of data.  If this message
         /// is not present this CellChunk is a continuation of the same column
@@ -2002,8 +1715,6 @@ pub mod read_rows_response {
         /// clients must check for the presence of this message, not just
         /// for `qualifier.value` being non-empty.
         #[prost(message, optional, tag = "3")]
-        #[serde_as(as = "Option<serde_with::base64::Base64>")]
-        #[serde(default)]
         pub qualifier: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
         /// The cell's stored timestamp, which also uniquely identifies it
         /// within its column.  Values are always expressed in
@@ -2014,14 +1725,11 @@ pub mod read_rows_response {
         /// 1000.  Timestamps are only set in the first CellChunk per cell
         /// (for cells split into multiple chunks).
         #[prost(int64, tag = "4")]
-        #[serde(default)]
-        #[serde_as(as = "serde_with::DisplayFromStr")]
         pub timestamp_micros: i64,
         /// Labels applied to the cell by a
         /// \[RowFilter\]\[google.bigtable.v2.RowFilter\].  Labels are only set
         /// on the first CellChunk per cell.
         #[prost(string, repeated, tag = "5")]
-        #[serde(default)]
         pub labels: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
         /// The value stored in the cell.  Cell values can be split across
         /// multiple CellChunks.  In that case only the value field will be
@@ -2029,15 +1737,12 @@ pub mod read_rows_response {
         /// will only be present in the first CellChunk, even if the first
         /// CellChunk came in a previous ReadRowsResponse.
         #[prost(bytes = "vec", tag = "6")]
-        #[serde_as(as = "serde_with::base64::Base64")]
-        #[serde(default)]
         pub value: ::prost::alloc::vec::Vec<u8>,
         /// If this CellChunk is part of a chunked cell value and this is
         /// not the final chunk of that cell, value_size will be set to the
         /// total length of the cell value.  The client can use this size
         /// to pre-allocate memory to hold the full cell value.
         #[prost(int32, tag = "7")]
-        #[serde(default)]
         pub value_size: i32,
         /// Signals to the client concerning previous CellChunks received.
         #[prost(oneof = "cell_chunk::RowStatus", tags = "8, 9")]
@@ -2046,9 +1751,6 @@ pub mod read_rows_response {
     /// Nested message and enum types in `CellChunk`.
     pub mod cell_chunk {
         /// Signals to the client concerning previous CellChunks received.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
         pub enum RowStatus {
             /// Indicates that the client should drop all previous chunks for
@@ -2063,9 +1765,6 @@ pub mod read_rows_response {
     }
 }
 /// Request message for Bigtable.SampleRowKeys.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SampleRowKeysRequest {
     /// Optional. The unique name of the table from which to sample row keys.
@@ -2093,9 +1792,6 @@ pub struct SampleRowKeysRequest {
     pub app_profile_id: ::prost::alloc::string::String,
 }
 /// Response message for Bigtable.SampleRowKeys.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SampleRowKeysResponse {
     /// Sorted streamed sequence of sample row keys in the table. The table might
@@ -2115,9 +1811,6 @@ pub struct SampleRowKeysResponse {
     pub offset_bytes: i64,
 }
 /// Request message for Bigtable.MutateRow.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowRequest {
     /// Optional. The unique name of the table to which the mutation should be
@@ -2152,15 +1845,9 @@ pub struct MutateRowRequest {
     pub idempotency: ::core::option::Option<Idempotency>,
 }
 /// Response message for Bigtable.MutateRow.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct MutateRowResponse {}
 /// Request message for BigtableService.MutateRows.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowsRequest {
     /// Optional. The unique name of the table to which the mutations should be
@@ -2192,9 +1879,6 @@ pub struct MutateRowsRequest {
 /// Nested message and enum types in `MutateRowsRequest`.
 pub mod mutate_rows_request {
     /// A mutation for a given row.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Entry {
         /// The key of the row to which the `mutations` should be applied.
@@ -2212,9 +1896,6 @@ pub mod mutate_rows_request {
     }
 }
 /// Response message for BigtableService.MutateRows.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MutateRowsResponse {
     /// One or more results for Entries from the batch request.
@@ -2229,9 +1910,6 @@ pub struct MutateRowsResponse {
 /// Nested message and enum types in `MutateRowsResponse`.
 pub mod mutate_rows_response {
     /// The result of applying a passed mutation in the original request.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Entry {
         /// The index into the original request's `entries` list of the Entry
@@ -2247,9 +1925,6 @@ pub mod mutate_rows_response {
     }
 }
 /// Information about how client should adjust the load to Bigtable.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct RateLimitInfo {
     /// Time that clients should wait before adjusting the target rate again.
@@ -2273,9 +1948,6 @@ pub struct RateLimitInfo {
     pub factor: f64,
 }
 /// Request message for Bigtable.CheckAndMutateRow.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CheckAndMutateRowRequest {
     /// Optional. The unique name of the table to which the conditional mutation
@@ -2322,9 +1994,6 @@ pub struct CheckAndMutateRowRequest {
     pub false_mutations: ::prost::alloc::vec::Vec<Mutation>,
 }
 /// Response message for Bigtable.CheckAndMutateRow.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CheckAndMutateRowResponse {
     /// Whether or not the request's `predicate_filter` yielded any results for
@@ -2333,9 +2002,6 @@ pub struct CheckAndMutateRowResponse {
     pub predicate_matched: bool,
 }
 /// Request message for client connection keep-alive and warming.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PingAndWarmRequest {
     /// Required. The unique name of the instance to check permissions for as well
@@ -2349,15 +2015,9 @@ pub struct PingAndWarmRequest {
     pub app_profile_id: ::prost::alloc::string::String,
 }
 /// Response message for Bigtable.PingAndWarm connection keepalive and warming.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PingAndWarmResponse {}
 /// Request message for Bigtable.ReadModifyWriteRow.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadModifyWriteRowRequest {
     /// Optional. The unique name of the table to which the read/modify/write rules
@@ -2390,9 +2050,6 @@ pub struct ReadModifyWriteRowRequest {
     pub rules: ::prost::alloc::vec::Vec<ReadModifyWriteRule>,
 }
 /// Response message for Bigtable.ReadModifyWriteRow.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadModifyWriteRowResponse {
     /// A Row containing the new contents of all cells modified by the request.
@@ -2401,9 +2058,6 @@ pub struct ReadModifyWriteRowResponse {
 }
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// Request message for Bigtable.GenerateInitialChangeStreamPartitions.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GenerateInitialChangeStreamPartitionsRequest {
     /// Required. The unique name of the table from which to get change stream
@@ -2420,9 +2074,6 @@ pub struct GenerateInitialChangeStreamPartitionsRequest {
 }
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// Response message for Bigtable.GenerateInitialChangeStreamPartitions.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GenerateInitialChangeStreamPartitionsResponse {
     /// A partition of the change stream.
@@ -2431,9 +2082,6 @@ pub struct GenerateInitialChangeStreamPartitionsResponse {
 }
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// Request message for Bigtable.ReadChangeStream.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadChangeStreamRequest {
     /// Required. The unique name of the table from which to read a change stream.
@@ -2466,9 +2114,6 @@ pub struct ReadChangeStreamRequest {
 /// Nested message and enum types in `ReadChangeStreamRequest`.
 pub mod read_change_stream_request {
     /// Options for describing where we want to start reading from the stream.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum StartFrom {
         /// Start reading the stream at the specified timestamp. This timestamp must
@@ -2493,9 +2138,6 @@ pub mod read_change_stream_request {
 }
 /// NOTE: This API is intended to be used by Apache Beam BigtableIO.
 /// Response message for Bigtable.ReadChangeStream.
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadChangeStreamResponse {
     /// The data or control message on the stream.
@@ -2505,9 +2147,6 @@ pub struct ReadChangeStreamResponse {
 /// Nested message and enum types in `ReadChangeStreamResponse`.
 pub mod read_change_stream_response {
     /// A partial or complete mutation.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct MutationChunk {
         /// If set, then the mutation is a `SetCell` with a chunked value across
@@ -2525,9 +2164,6 @@ pub mod read_change_stream_response {
         /// Information about the chunking of this mutation.
         /// Only `SetCell` mutations can be chunked, and all chunks for a `SetCell`
         /// will be delivered contiguously with no other mutation types interleaved.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
         pub struct ChunkInfo {
             /// The total value size of all the chunks that make up the `SetCell`.
@@ -2548,9 +2184,6 @@ pub mod read_change_stream_response {
     /// the first in a sequence will only have the `type` and `chunks` fields
     /// populated, with the final message in the sequence also containing `done`
     /// set to true.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct DataChange {
         /// The type of the mutation.
@@ -2602,9 +2235,6 @@ pub mod read_change_stream_response {
     /// Nested message and enum types in `DataChange`.
     pub mod data_change {
         /// The type of mutation.
-        #[serde_with::serde_as]
-        #[derive(serde::Serialize, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[derive(
             Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration,
         )]
@@ -2647,9 +2277,6 @@ pub mod read_change_stream_response {
     }
     /// A periodic message with information that can be used to checkpoint
     /// the state of a stream.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Heartbeat {
         /// A token that can be provided to a subsequent `ReadChangeStream` call
@@ -2689,9 +2316,6 @@ pub mod read_change_stream_response {
     /// To read the new partition \[A,C), supply the continuation tokens whose
     /// ranges cover the new partition, for example ContinuationToken\[A,B) &
     /// ContinuationToken\[B,C).
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct CloseStream {
         /// The status of the stream.
@@ -2708,9 +2332,6 @@ pub mod read_change_stream_response {
         pub new_partitions: ::prost::alloc::vec::Vec<super::StreamPartition>,
     }
     /// The data or control message on the stream.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum StreamRecord {
         /// A mutation to the partition.
@@ -2725,9 +2346,6 @@ pub mod read_change_stream_response {
     }
 }
 /// Request message for Bigtable.ExecuteQuery
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteQueryRequest {
     /// Required. The unique name of the instance against which the query should be
@@ -2807,9 +2425,6 @@ pub mod execute_query_request {
     /// If `prepared_query` is set, then the `data_format` is fixed by the
     /// `PrepareQueryRequest`, and a non-empty `data_format` in the
     /// `ExecuteQueryRequest` will be rejected with `INVALID_ARGUMENT`.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum DataFormat {
         /// Protocol buffer format as described by ProtoSchema and ProtoRows
@@ -2820,9 +2435,6 @@ pub mod execute_query_request {
     }
 }
 /// Response message for Bigtable.ExecuteQuery
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteQueryResponse {
     /// The first response streamed from the server is of type `ResultSetMetadata`
@@ -2842,9 +2454,6 @@ pub mod execute_query_response {
     /// information. `PartialResultSet` will contain `resume_token` to restart the
     /// response if query interrupts. In case of resumption with `resume_token`,
     /// the server will not resend the ResultSetMetadata.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Response {
         /// Structure of rows in this response stream. The first (and only the first)
@@ -2859,9 +2468,6 @@ pub mod execute_query_response {
     }
 }
 /// Request message for Bigtable.PrepareQuery
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PrepareQueryRequest {
     /// Required. The unique name of the instance against which the query should be
@@ -2902,9 +2508,6 @@ pub mod prepare_query_request {
     /// Required. Requested data format for the response. Note that the selected
     /// data format is binding for all `ExecuteQuery` rpcs that use the prepared
     /// query.
-    #[serde_with::serde_as]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    #[serde(rename_all = "camelCase")]
     #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum DataFormat {
         /// Protocol buffer format as described by ProtoSchema and ProtoRows
@@ -2914,9 +2517,6 @@ pub mod prepare_query_request {
     }
 }
 /// Response message for Bigtable.PrepareQueryResponse
-#[serde_with::serde_as]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PrepareQueryResponse {
     /// Structure of rows in the response stream of `ExecuteQueryResponse` for the

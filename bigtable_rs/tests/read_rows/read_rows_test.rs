@@ -1,11 +1,11 @@
 use std::fs;
 
-use bigtable_rs::bigtable::read_rows::decode_read_rows_response_to_vec;
-use bigtable_rs::google::bigtable::v2::read_rows_response::cell_chunk::RowStatus;
-use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
-use bigtable_rs::google::cloud::conformace::bigtable::v2::{
+use crate::read_rows::google::cloud::conformace::bigtable::v2::{
     read_rows_test, ReadRowsTest, TestFile,
 };
+use crate::read_rows::proxy_types::CellChunkProxy;
+use bigtable_rs::bigtable::read_rows::decode_read_rows_response_to_vec;
+use bigtable_rs::google::bigtable::v2::read_rows_response::CellChunk;
 
 type ReadRowTestResult = read_rows_test::Result;
 
@@ -16,7 +16,7 @@ type ReadRowTestResult = read_rows_test::Result;
 
 #[test]
 fn tmp_test_1() {
-    let chunk = CellChunk {
+    let chunk = CellChunkProxy {
         row_key: vec![],
         family_name: None,
         qualifier: None,
@@ -24,7 +24,8 @@ fn tmp_test_1() {
         labels: vec![],
         value: vec![],
         value_size: 0,
-        row_status: Some(RowStatus::CommitRow(true)),
+        commit_row: Some(true),
+        reset_row: Some(false),
     };
 
     println!("{}", serde_json::to_string_pretty(&chunk).unwrap());
@@ -45,7 +46,8 @@ fn read_rows_test_from_json_can_all_pass() {
     };
 
     for (test_id, mut rrt) in test_file.read_rows_tests.into_iter().enumerate() {
-        let decode_read_rows_results = decode_read_rows_response_to_vec(rrt.chunks);
+        let chunks: Vec<CellChunk> = rrt.chunks.into_iter().map(CellChunk::from).collect();
+        let decode_read_rows_results = decode_read_rows_response_to_vec(chunks);
         rrt.chunks = vec![]; // fill in partial moved chunks, let borrow checker pass
 
         println!("{} Testing: {}", test_id, rrt.description);
