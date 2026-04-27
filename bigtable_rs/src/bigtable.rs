@@ -310,7 +310,8 @@ impl BigTableConnection {
                                 .domain_name("bigtable.googleapis.com"),
                         )
                         .map_err(Error::TransportError)?
-                        .http2_keep_alive_interval(Duration::from_secs(60))
+                        .http2_keep_alive_interval(Duration::from_secs(30))
+                        .keep_alive_timeout(Duration::from_secs(10))
                         .keep_alive_while_idle(true);
 
                     let endpoint = if let Some(timeout) = timeout {
@@ -352,7 +353,8 @@ impl BigTableConnection {
         // configures the endpoint with the specified parameters
         fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint {
             let endpoint = endpoint
-                .http2_keep_alive_interval(Duration::from_secs(60))
+                .http2_keep_alive_interval(Duration::from_secs(30))
+                .keep_alive_timeout(Duration::from_secs(10))
                 .keep_alive_while_idle(true);
 
             if let Some(timeout) = timeout {
