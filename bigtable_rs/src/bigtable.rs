@@ -535,18 +535,6 @@ pub struct BigTable {
 }
 
 impl BigTable {
-    /// Helper to attach `x-goog-request-params` header for table APIs
-    fn add_routing_header<T: RoutingMetadata>(
-        mut tonic_req: tonic::Request<T>,
-    ) -> Result<tonic::Request<T>> {
-        let header_val = tonic_req.get_ref().get_routing_header();
-        tonic_req.metadata_mut().insert(
-            "x-goog-request-params",
-            MetadataValue::from_str(&header_val).map_err(Error::MetadataError)?,
-        );
-        Ok(tonic_req)
-    }
-
     /// Wrapped `check_and_mutate_row` method
     pub async fn check_and_mutate_row(
         &mut self,
@@ -690,6 +678,18 @@ impl BigTable {
     /// Provide a convenient method to get full table, which can be used for building requests
     pub fn get_full_table_name(&self, table_name: &str) -> String {
         [&self.table_prefix, table_name].concat()
+    }
+
+    /// Helper to attach `x-goog-request-params` header for table APIs
+    fn add_routing_header<T: RoutingMetadata>(
+        mut tonic_req: tonic::Request<T>,
+    ) -> Result<tonic::Request<T>> {
+        let header_val = tonic_req.get_ref().get_routing_header();
+        tonic_req.metadata_mut().insert(
+            "x-goog-request-params",
+            MetadataValue::from_str(&header_val).map_err(Error::MetadataError)?,
+        );
+        Ok(tonic_req)
     }
 }
 
