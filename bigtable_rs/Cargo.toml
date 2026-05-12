@@ -37,7 +37,7 @@ integration_tests = []
 
 [dev-dependencies]
 googleapis-tonic-google-bigtable-v2 = "0.36.0"
-googleapis-tonic-google-bigtable-admin-v2 = "0.42.0"
+googleapis-tonic-google-bigtable-admin-v2 = "0.44.0"
 env_logger = "0.11.1"
 futures-util = "0.3.31"
 prost = "0.14.1"
