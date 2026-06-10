@@ -22,10 +22,12 @@ use googleapis_tonic_google_bigtable_admin_v2::google::bigtable::admin::v2::{
 };
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation;
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation::SetCell;
+use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::prepare_query_request;
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKey, StartKey};
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
-    MutateRowRequest, Mutation, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest,
+    r#type, value, ExecuteQueryRequest, MutateRowRequest, Mutation, PrepareQueryRequest,
+    ProtoFormat, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest, Type, Value,
 };
 use tokio::sync::OnceCell;
 use tonic::transport::Channel;
@@ -445,4 +447,122 @@ async fn test_read_nonexistent_row() {
 
     let rows = response.unwrap();
     assert!(rows.is_empty(), "Expected no rows for nonexistent key");
+}
+
+#[tokio::test]
+async fn test_prepare_query() {
+    global_setup().await;
+
+    let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
+    let mut bigtable = connection.client();
+
+    let instance_name = format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME);
+    let request = PrepareQueryRequest {
+        instance_name,
+        app_profile_id: String::new(),
+        query: format!("SELECT * FROM {}", TABLE_NAME),
+        param_types: std::collections::HashMap::new(),
+        data_format: Some(prepare_query_request::DataFormat::ProtoFormat(
+            ProtoFormat {},
+        )),
+    };
+
+    let response = bigtable.prepare_query(request).await;
+    assert!(
+        response.is_ok(),
+        "prepare_query failed: {:?}",
+        response.err()
+    );
+    let prepared = response.unwrap();
+    assert!(
+        !prepared.prepared_query.is_empty(),
+        "Expected non-empty prepared_query bytes"
+    );
+}
+
+#[tokio::test]
+async fn test_execute_query_with_query_string() {
+    global_setup().await;
+
+    let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
+    let mut bigtable = connection.client();
+
+    let instance_name = format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME);
+    #[allow(deprecated)]
+    let request = ExecuteQueryRequest {
+        instance_name,
+        app_profile_id: String::new(),
+        query: format!("SELECT * FROM {}", TABLE_NAME),
+        params: std::collections::HashMap::new(),
+        ..ExecuteQueryRequest::default()
+    };
+
+    let response = bigtable.execute_query(request).await;
+    assert!(
+        response.is_ok(),
+        "execute_query failed: {:?}",
+        response.err()
+    );
+}
+
+#[tokio::test]
+async fn test_execute_query_with_prepared_query() {
+    global_setup().await;
+
+    let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
+    let mut bigtable = connection.client();
+
+    let instance_name = format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME);
+
+    // Step 1: prepare
+    let prepare_request = PrepareQueryRequest {
+        instance_name: instance_name.clone(),
+        app_profile_id: String::new(),
+        query: format!("SELECT * FROM {} WHERE _key = @row_key", TABLE_NAME),
+        param_types: [(
+            "row_key".to_string(),
+            Type {
+                kind: Some(r#type::Kind::BytesType(r#type::Bytes::default())),
+            },
+        )]
+        .into_iter()
+        .collect(),
+        data_format: Some(prepare_query_request::DataFormat::ProtoFormat(
+            ProtoFormat {},
+        )),
+    };
+
+    let prepared = bigtable
+        .prepare_query(prepare_request)
+        .await
+        .expect("prepare_query failed");
+    assert!(!prepared.prepared_query.is_empty());
+
+    // Step 2: execute with prepared_query bytes
+    let request = ExecuteQueryRequest {
+        instance_name,
+        app_profile_id: String::new(),
+        prepared_query: prepared.prepared_query,
+        params: [(
+            "row_key".to_string(),
+            Value {
+                r#type: Some(Type {
+                    kind: Some(r#type::Kind::BytesType(r#type::Bytes::default())),
+                }),
+                kind: Some(value::Kind::BytesValue(
+                    "integration_test_key".as_bytes().into(),
+                )),
+            },
+        )]
+        .into_iter()
+        .collect(),
+        ..ExecuteQueryRequest::default()
+    };
+
+    let response = bigtable.execute_query(request).await;
+    assert!(
+        response.is_ok(),
+        "execute_query with prepared_query failed: {:?}",
+        response.err()
+    );
 }

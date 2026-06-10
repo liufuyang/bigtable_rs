@@ -1,0 +1,181 @@
+{
+  "executeQueryTests": [
+    {
+      "description": "single batch yields two rows",
+      "numColumns": 2,
+      "messages": [
+        { "rawValues": ["YQ==", "Yg==", "Yw==", "ZA=="], "withChecksum": true }
+      ],
+      "results": [
+        { "rows": [["YQ==", "Yg=="], ["Yw==", "ZA=="]] }
+      ]
+    },
+    {
+      "description": "data-only message accumulates without yielding",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["dmFs"] }
+      ],
+      "results": []
+    },
+    {
+      "description": "multi-fragment batch assembled from two messages",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["aGVsbG8="] },
+        { "rawValues": ["d29ybGQ="], "withChecksum": true }
+      ],
+      "results": [
+        { "rows": [["aGVsbG8="], ["d29ybGQ="]] }
+      ]
+    },
+    {
+      "description": "multi-fragment batch assembled one message",
+      "numColumns": 2,
+      "messages": [
+        {
+          "rawValues": [
+            "aGVsbG8="
+          ]
+        },
+        {
+          "rawValues": [
+            "d29ybGQ="
+          ],
+          "withChecksum": true
+        }
+      ],
+      "results": [
+        {
+          "rows": [
+            [
+              "aGVsbG8=",
+              "d29ybGQ="
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "description": "token-only checkpoint yields empty rows with token",
+      "numColumns": 2,
+      "messages": [
+        { "resumeToken": "Y2hlY2twb2ludA==" }
+      ],
+      "results": [
+        { "rows": [], "token": "Y2hlY2twb2ludA==" }
+      ]
+    },
+    {
+      "description": "checksum and token in same message yields rows with token",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["dmFs"], "withChecksum": true, "resumeToken": "dG9rMTIz" }
+      ],
+      "results": [
+        { "rows": [["dmFs"]], "token": "dG9rMTIz" }
+      ]
+    },
+    {
+      "description": "rows yielded at checksum boundary then separate token checkpoint",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["Zmlyc3Q="], "withChecksum": true },
+        { "resumeToken": "cmVzdW1l" }
+      ],
+      "results": [
+        { "rows": [["Zmlyc3Q="]] },
+        { "rows": [], "token": "cmVzdW1l" }
+      ]
+    },
+    {
+      "description": "reset discards previous accumulation before new data",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["Z2FyYmFnZQ=="] },
+        { "rawValues": ["ZnJlc2g="], "withChecksum": true, "reset": true }
+      ],
+      "results": [
+        { "rows": [["ZnJlc2g="]] }
+      ]
+    },
+    {
+      "description": "reset-only message clears buffer and yields nothing",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["b2xk"] },
+        { "reset": true }
+      ],
+      "results": []
+    },
+    {
+      "description": "empty-batch checksum on empty buffer yields nothing",
+      "numColumns": 2,
+      "messages": [
+        { "withChecksum": true }
+      ],
+      "results": []
+    },
+    {
+      "description": "empty-batch checksum with token is a progress checkpoint",
+      "numColumns": 2,
+      "messages": [
+        { "withChecksum": true, "resumeToken": "dG9r" }
+      ],
+      "results": [
+        { "rows": [], "token": "dG9r" }
+      ]
+    },
+    {
+      "description": "CRC mismatch returns an error",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["eA=="], "badChecksum": true }
+      ],
+      "results": [
+        { "error": true }
+      ]
+    },
+    {
+      "description": "zero columns with non-empty values returns an error",
+      "numColumns": 0,
+      "messages": [
+        { "rawValues": ["eA=="], "withChecksum": true }
+      ],
+      "results": [
+        { "error": true }
+      ]
+    },
+    {
+      "description": "values not divisible by column count returns an error",
+      "numColumns": 3,
+      "messages": [
+        { "rawValues": ["YQ==", "Yg=="], "withChecksum": true }
+      ],
+      "results": [
+        { "error": true }
+      ]
+    },
+    {
+      "description": "resume token with open batch is a protocol error",
+      "numColumns": 1,
+      "messages": [
+        { "rawValues": ["eA=="] },
+        { "resumeToken": "dG9r" }
+      ],
+      "results": [
+        { "error": true }
+      ]
+    },
+    {
+      "description": "unknown format variant detected via CRC mismatch",
+      "numColumns": 1,
+      "messages": [
+        { "badChecksum": true }
+      ],
+      "results": [
+        { "error": true }
+      ]
+    }
+  ]
+}

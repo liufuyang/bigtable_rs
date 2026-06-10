@@ -113,9 +113,12 @@ use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
     MutateRowsResponse, ReadRowsRequest, RowSet, SampleRowKeysRequest, SampleRowKeysResponse,
 };
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
+    execute_query_response, prepare_query_request, r#type, result_set_metadata, value,
     CheckAndMutateRowRequest, CheckAndMutateRowResponse, ExecuteQueryRequest, ExecuteQueryResponse,
+    PrepareQueryRequest, PrepareQueryResponse, ProtoFormat, ResultSetMetadata, Type, Value,
 };
 
+pub mod execute_query;
 pub mod read_rows;
 
 /// An alias for Vec<u8> as row key
@@ -174,6 +177,9 @@ pub enum Error {
 
     #[error("Invalid metadata")]
     MetadataError(tonic::metadata::errors::InvalidMetadataValue),
+
+    #[error("Invalid value: {0}")]
+    InvalidValue(String),
 }
 
 impl std::convert::From<std::io::Error> for Error {
@@ -192,6 +198,61 @@ impl std::convert::From<tonic::Status> for Error {
     fn from(err: tonic::Status) -> Self {
         Self::RpcError(err)
     }
+}
+
+// Inserts the x-goog-request-params routing header for SQL RPCs (PrepareQuery,
+// ExecuteQuery).
+pub(crate) fn insert_sql_routing_header(
+    metadata: &mut tonic::metadata::MetadataMap,
+    instance_prefix: &str,
+    app_profile_id: &str,
+) -> Result<()> {
+    metadata.insert(
+        "x-goog-request-params",
+        MetadataValue::from_str(&format!(
+            "name={}&app_profile_id={}",
+            instance_prefix, app_profile_id
+        ))
+        .map_err(Error::MetadataError)?,
+    );
+    Ok(())
+}
+
+// Infers a Bigtable SQL Type from the kind of a Value. Explicit types always take precedence;
+// this is only called when Value.r#type is None. Ambiguous kinds (float, array, NULL) require
+// the caller to set r#type explicitly.
+fn infer_value_type(name: &str, v: &Value) -> Result<Type> {
+    let kind = match &v.kind {
+        Some(value::Kind::BytesValue(_)) => r#type::Kind::BytesType(r#type::Bytes::default()),
+        Some(value::Kind::StringValue(_)) => r#type::Kind::StringType(r#type::String::default()),
+        Some(value::Kind::IntValue(_)) => r#type::Kind::Int64Type(r#type::Int64::default()),
+        Some(value::Kind::BoolValue(_)) => r#type::Kind::BoolType(r#type::Bool::default()),
+        Some(value::Kind::TimestampValue(_)) => {
+            r#type::Kind::TimestampType(r#type::Timestamp::default())
+        }
+        Some(value::Kind::DateValue(_)) => r#type::Kind::DateType(r#type::Date::default()),
+        Some(value::Kind::FloatValue(_)) => {
+            return Err(Error::InvalidValue(format!(
+                "param '{name}': cannot infer float type; set Value.r#type to Float32 or Float64 explicitly"
+            )))
+        }
+        Some(value::Kind::ArrayValue(_)) => {
+            return Err(Error::InvalidValue(format!(
+                "param '{name}': cannot infer array element type; set Value.r#type explicitly"
+            )))
+        }
+        Some(value::Kind::RawValue(_)) | Some(value::Kind::RawTimestampMicros(_)) => {
+            return Err(Error::InvalidValue(format!(
+                "param '{name}': raw values cannot be used as query parameters; use BytesValue or TimestampValue"
+            )))
+        }
+        None => {
+            return Err(Error::InvalidValue(format!(
+                "param '{name}': NULL value requires an explicit Value.r#type"
+            )))
+        }
+    };
+    Ok(Type { kind: Some(kind) })
 }
 
 /// For initiate a Bigtable connection, then a `Bigtable` client can be made from it.
@@ -571,24 +632,165 @@ impl BigTable {
         Ok(response)
     }
 
-    /// Wrapped `execute_query` method
-    pub async fn execute_query(
+    // Validates the request and auto-prepares if only a raw SQL query string is set.
+    // If `prepared_query` is already set on the request, sends the `ExecuteQuery` RPC directly.
+    // Otherwise, calls `prepare_query` first using the `query` string.  Parameter types are
+    // inferred automatically for unambiguous value kinds (`BytesValue`, `StringValue`,
+    // `IntValue`, `BoolValue`, `TimestampValue`, `DateValue`).  Ambiguous kinds
+    // (`FloatValue`, `ArrayValue`, NULL) and raw values require an explicit `Value.r#type`.
+    #[allow(deprecated)]
+    async fn ensure_prepared(&mut self, request: &mut ExecuteQueryRequest) -> Result<()> {
+        if !request.prepared_query.is_empty() && !request.query.is_empty() {
+            return Err(Error::InvalidValue(
+                "cannot set both `query` and `prepared_query`; use one or the other".to_string(),
+            ));
+        }
+        if request.prepared_query.is_empty() {
+            if request.query.is_empty() {
+                return Err(Error::InvalidValue(
+                    "either `query` or `prepared_query` must be set".to_string(),
+                ));
+            }
+            if !request.resume_token.is_empty() {
+                return Err(Error::InvalidValue(
+                    "resume_token requires prepared_query to be set; save the \
+                     PrepareQueryResponse.prepared_query bytes from the first call \
+                     and include them on retry"
+                        .to_string(),
+                ));
+            }
+            // Build param_types for PrepareQuery. If the caller set Value.r#type
+            // explicitly, use it. Otherwise infer from the value kind, mirroring
+            // the Python client. Ambiguous kinds (float, array, NULL) require an
+            // explicit type.
+            let param_types = request
+                .params
+                .iter()
+                .map(|(k, v)| {
+                    let t = if let Some(explicit) = v.r#type.clone() {
+                        explicit
+                    } else {
+                        infer_value_type(k, v)?
+                    };
+                    Ok((k.clone(), t))
+                })
+                .collect::<Result<std::collections::HashMap<_, _>>>()?;
+            let query = std::mem::take(&mut request.query);
+            let prepare_response = self
+                .prepare_query(PrepareQueryRequest {
+                    instance_name: request.instance_name.clone(),
+                    app_profile_id: request.app_profile_id.clone(),
+                    query,
+                    param_types,
+                    data_format: Some(prepare_query_request::DataFormat::ProtoFormat(
+                        ProtoFormat {},
+                    )),
+                })
+                .await?;
+            request.prepared_query = prepare_response.prepared_query;
+        }
+        Ok(())
+    }
+
+    /// Wrapped `prepare_query` method
+    pub async fn prepare_query(
         &mut self,
-        request: ExecuteQueryRequest,
-    ) -> Result<Streaming<ExecuteQueryResponse>> {
+        request: PrepareQueryRequest,
+    ) -> Result<PrepareQueryResponse> {
         let app_profile_id = request.app_profile_id.clone();
         let mut tonic_req: tonic::Request<_> = request.into_request();
-        // Add x-goog-request-params header with routing options, without those the call fails.
-        tonic_req.metadata_mut().insert(
-            "x-goog-request-params",
-            MetadataValue::from_str(&format!(
-                "name={}&app_profile_id={}",
-                self.instance_prefix, app_profile_id
-            ))
-            .map_err(Error::MetadataError)?,
-        );
+        insert_sql_routing_header(
+            tonic_req.metadata_mut(),
+            &self.instance_prefix,
+            &app_profile_id,
+        )?;
+        let response = self.client.prepare_query(tonic_req).await?.into_inner();
+        Ok(response)
+    }
+
+    /// Wrapped `execute_query` method.
+    pub async fn execute_query(
+        &mut self,
+        mut request: ExecuteQueryRequest,
+    ) -> Result<Streaming<ExecuteQueryResponse>> {
+        self.ensure_prepared(&mut request).await?;
+        // data_format must be empty when prepared_query is set (applies to both paths).
+        request.data_format = None;
+        let app_profile_id = request.app_profile_id.clone();
+        let mut tonic_req: tonic::Request<_> = request.into_request();
+        insert_sql_routing_header(
+            tonic_req.metadata_mut(),
+            &self.instance_prefix,
+            &app_profile_id,
+        )?;
         let response = self.client.execute_query(tonic_req).await?.into_inner();
         Ok(response)
+    }
+
+    /// Execute a SQL query and stream decoded rows as they become available.
+    ///
+    /// Returns `(ResultSetMetadata, Stream)` where:
+    /// - `ResultSetMetadata.proto_schema.columns` describes the column names and types.
+    /// - Each stream item is `(rows, resume_token)`:
+    ///   - `rows` (`Vec<Vec<Value>>`) is yielded as soon as a `batch_checksum` verifies
+    ///     the batch — callers receive rows without waiting for the next checkpoint.
+    ///   - `resume_token` is `Some` only at checkpoint boundaries; pass it in a subsequent
+    ///     `ExecuteQueryRequest.resume_token` with the original prepared query to resume
+    ///     the query from that point.
+    ///   - Both may be present in the same item when a message carries a checksum and a
+    ///     token together.
+    ///
+    /// Auto-prepare: if `prepared_query` is not set, `prepare_query` is called first.
+    /// Parameter types are inferred automatically for unambiguous value kinds
+    /// (`BytesValue`, `StringValue`, `IntValue`, `BoolValue`, `TimestampValue`, `DateValue`).
+    /// Ambiguous kinds (`FloatValue`, `ArrayValue`, NULL) and raw values require an explicit
+    /// `Value.r#type`.
+    pub async fn execute_query_stream(
+        &mut self,
+        mut request: ExecuteQueryRequest,
+    ) -> Result<(
+        ResultSetMetadata,
+        impl Stream<Item = Result<(Vec<Vec<Value>>, Option<Vec<u8>>)>>,
+    )> {
+        self.ensure_prepared(&mut request).await?;
+        request.data_format = None;
+
+        let app_profile_id = request.app_profile_id.clone();
+        let mut tonic_req: tonic::Request<_> = request.into_request();
+        insert_sql_routing_header(
+            tonic_req.metadata_mut(),
+            &self.instance_prefix,
+            &app_profile_id,
+        )?;
+        let mut stream = self.client.execute_query(tonic_req).await?.into_inner();
+
+        // The server sends ResultSetMetadata exactly once as the first message.
+        let metadata = match stream.message().await? {
+            Some(msg) => match msg.response {
+                Some(execute_query_response::Response::Metadata(m)) => m,
+                _ => {
+                    return Err(Error::InvalidValue(
+                        "first execute_query response was not ResultSetMetadata".to_string(),
+                    ))
+                }
+            },
+            None => {
+                return Err(Error::InvalidValue(
+                    "execute_query returned an empty stream".to_string(),
+                ))
+            }
+        };
+
+        let num_columns = match &metadata.schema {
+            Some(result_set_metadata::Schema::ProtoSchema(s)) => s.columns.len(),
+            None => {
+                return Err(Error::InvalidValue(
+                    "ResultSetMetadata has no schema".to_string(),
+                ))
+            }
+        };
+
+        Ok((metadata, execute_query::make_stream(stream, num_columns)))
     }
 
     /// Provide a convenient method to get the inner `BigtableClient` so user can use any methods
