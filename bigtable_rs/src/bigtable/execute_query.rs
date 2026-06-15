@@ -37,7 +37,7 @@ fn process_partial(
         state.buffer.clear();
     }
 
-    // Dispatch on format.  Currently only ProtoFormat exists in the proto.
+    // Dispatch on format. Currently only ProtoFormat exists in the proto.
     // When ArrowFormat is added, extend this match with a new arm.
     if let Some(partial_result_set::PartialRows::ProtoRowsBatch(batch)) = p.partial_rows {
         state.buffer.extend_from_slice(&batch.batch_data);
@@ -86,19 +86,16 @@ fn process_partial(
         }
     }
 
-    let token = if !p.resume_token.is_empty() {
-        // A non-empty buffer here means the server emitted a resume_token while
-        // a batch was still open — batch_data arrived without a preceding
-        // batch_checksum.  This is a protocol violation.
-        if !state.buffer.is_empty() {
-            return Err(Error::ProtocolViolation(
-                "resume_token received while batch buffer is non-empty (missing batch_checksum)"
-                    .to_string(),
-            ));
-        }
-        Some(p.resume_token)
-    } else {
+    if !p.resume_token.is_empty() && !state.buffer.is_empty() {
+        return Err(Error::ProtocolViolation(
+            "resume_token received while batch buffer is non-empty (missing batch_checksum)"
+                .to_string(),
+        ));
+    }
+    let token = if p.resume_token.is_empty() {
         None
+    } else {
+        Some(p.resume_token)
     };
 
     if rows.is_empty() && token.is_none() {

@@ -146,7 +146,7 @@ pub struct SqlQueryBatch {
 
 /// A stream of decoded rows from an [`BigTable::execute_query_stream`] call.
 ///
-/// Drive with `.next().await` in a loop; no `futures-util` import required.
+/// Drive with `.next().await` in a loop.
 pub struct ExecuteQueryStream {
     inner: futures_util::stream::BoxStream<'static, Result<SqlQueryBatch>>,
 }
