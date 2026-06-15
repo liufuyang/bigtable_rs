@@ -131,22 +131,28 @@ type Result<T> = std::result::Result<T, Error>;
 ///
 /// Values are in column order per `ResultSetMetadata.proto_schema.columns`.
 #[derive(Debug, Clone)]
-pub struct SqlRow(pub Vec<Value>);
+pub struct ResultSet(pub Vec<Value>);
+
+/// A batch of rows from a single stream item, with an optional retry checkpoint.
+///
+/// Yielded by [`ExecuteQueryStream::next`]. `retry_context` is `Some` only at
+/// checkpoint boundaries; pass it back to [`BigTable::execute_query_stream`] to
+/// resume without re-reading earlier results.
+#[derive(Debug)]
+pub struct SqlQueryBatch {
+    pub rows: Vec<ResultSet>,
+    pub retry_context: Option<ExecuteQueryRetryContext>,
+}
 
 /// A stream of decoded rows from an [`BigTable::execute_query_stream`] call.
 ///
 /// Drive with `.next().await` in a loop; no `futures-util` import required.
 pub struct ExecuteQueryStream {
-    inner: futures_util::stream::BoxStream<
-        'static,
-        Result<(Vec<SqlRow>, Option<ExecuteQueryRetryContext>)>,
-    >,
+    inner: futures_util::stream::BoxStream<'static, Result<SqlQueryBatch>>,
 }
 
 impl ExecuteQueryStream {
-    pub async fn next(
-        &mut self,
-    ) -> Option<Result<(Vec<SqlRow>, Option<ExecuteQueryRetryContext>)>> {
+    pub async fn next(&mut self) -> Option<Result<SqlQueryBatch>> {
         use futures_util::StreamExt;
         self.inner.next().await
     }

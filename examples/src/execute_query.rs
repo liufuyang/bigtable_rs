@@ -86,13 +86,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             match stream.next().await {
                 None => break, // stream finished cleanly
-                Some(Ok((rows, ctx))) => {
-                    for row in &rows {
+                Some(Ok(batch)) => {
+                    for row in &batch.rows {
                         println!("row: {} column(s)", row.0.len());
                     }
                     // Save the latest checkpoint so a subsequent retry can
                     // resume from here rather than from the beginning.
-                    if let Some(c) = ctx {
+                    if let Some(c) = batch.retry_context {
                         retry_ctx = Some(c);
                     }
                 }

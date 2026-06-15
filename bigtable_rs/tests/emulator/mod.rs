@@ -529,9 +529,9 @@ async fn test_retry_execute_query_stream() {
     // Drain the stream, capturing the last retry context seen (if any).
     let mut last_retry_ctx: Option<ExecuteQueryRetryContext> = None;
     while let Some(item) = stream.next().await {
-        let (_rows, ctx) = item.expect("stream item error");
-        if ctx.is_some() {
-            last_retry_ctx = ctx;
+        let batch = item.expect("stream item error");
+        if batch.retry_context.is_some() {
+            last_retry_ctx = batch.retry_context;
         }
     }
 

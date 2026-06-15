@@ -5,7 +5,7 @@ use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
     execute_query_response, partial_result_set, ExecuteQueryResponse, PartialResultSet, ProtoRows,
 };
 
-use crate::bigtable::{Error, ExecuteQueryRetryContext, Result, SqlRow};
+use crate::bigtable::{Error, ExecuteQueryRetryContext, Result, ResultSet, SqlQueryBatch};
 
 // Accumulates ProtoRowsBatch.batch_data fragments and tracks the column count.
 // Kept separate from StreamState so tests can construct it without a live gRPC
@@ -32,7 +32,7 @@ struct MergeState {
 fn process_partial(
     p: PartialResultSet,
     state: &mut MergeState,
-) -> Result<Option<(Vec<SqlRow>, Option<Vec<u8>>)>> {
+) -> Result<Option<(Vec<ResultSet>, Option<Vec<u8>>)>> {
     if p.reset {
         state.buffer.clear();
     }
@@ -43,7 +43,7 @@ fn process_partial(
         state.buffer.extend_from_slice(&batch.batch_data);
     }
 
-    let mut rows: Vec<SqlRow> = Vec::new();
+    let mut rows: Vec<ResultSet> = Vec::new();
 
     if let Some(expected_crc) = p.batch_checksum {
         // Always compute CRC regardless of whether buffer is empty.  If an
@@ -80,7 +80,7 @@ fn process_partial(
                 let n_rows = proto_rows.values.len() / state.num_columns;
                 let mut values = proto_rows.values.into_iter();
                 rows = (0..n_rows)
-                    .map(|_| SqlRow(values.by_ref().take(state.num_columns).collect()))
+                    .map(|_| ResultSet(values.by_ref().take(state.num_columns).collect()))
                     .collect();
             }
         }
@@ -111,7 +111,7 @@ fn process_partial(
 /// Build a stream of decoded row batches from an already-started ExecuteQuery
 /// RPC stream.
 ///
-/// Each item is `Result<(Vec<SqlRow>, Option<ExecuteQueryRetryContext>)>`:
+/// Each item is `Result<SqlQueryBatch>`:
 /// - `rows` is yielded as soon as a `batch_checksum` verifies the batch —
 ///   callers receive rows without waiting for the next checkpoint.
 /// - `retry_context` is `Some` only at checkpoint boundaries.  Pass it back
@@ -127,7 +127,7 @@ pub(crate) fn make_stream(
     stream: tonic::Streaming<ExecuteQueryResponse>,
     num_columns: usize,
     prepared_query: Vec<u8>,
-) -> impl Stream<Item = Result<(Vec<SqlRow>, Option<ExecuteQueryRetryContext>)>> {
+) -> impl Stream<Item = Result<SqlQueryBatch>> {
     struct State {
         current_stream: tonic::Streaming<ExecuteQueryResponse>,
         merge: MergeState,
@@ -174,7 +174,13 @@ pub(crate) fn make_stream(
                                         prepared_query: state.prepared_query.clone(),
                                         resume_token: token,
                                     });
-                                return Some((Ok((rows, retry_context)), Some(state)));
+                                return Some((
+                                    Ok(SqlQueryBatch {
+                                        rows,
+                                        retry_context,
+                                    }),
+                                    Some(state),
+                                ));
                             }
                         }
                     }
