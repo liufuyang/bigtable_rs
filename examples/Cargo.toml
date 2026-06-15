@@ -41,6 +41,10 @@ path = "src/custom_query.rs"
 name = "stream"
 path = "src/stream.rs"
 
+[[bin]]
+name = "execute_query"
+path = "src/execute_query.rs"
+
 [dependencies]
 googleapis-tonic-google-bigtable-v2 = "0.36.0"
 bigtable_rs = { path = "../bigtable_rs" }

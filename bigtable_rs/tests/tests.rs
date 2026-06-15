@@ -1,9 +1,3 @@
-mod execute_query {
-    #[cfg(test)]
-    mod execute_query_test;
-    mod types;
-}
-
 mod read_rows {
     mod google;
     #[cfg(test)]

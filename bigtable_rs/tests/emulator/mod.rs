@@ -12,7 +12,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use bigtable_rs::bigtable::{BigTableConnection, Error};
+use bigtable_rs::bigtable::{BigTableConnection, Error, ExecuteQueryRetryContext};
 use futures_util::TryStreamExt;
 use googleapis_tonic_google_bigtable_admin_v2::google::bigtable::admin::v2::{
     bigtable_table_admin_client::BigtableTableAdminClient, // This is the raw tonic client
@@ -22,12 +22,11 @@ use googleapis_tonic_google_bigtable_admin_v2::google::bigtable::admin::v2::{
 };
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation;
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::mutation::SetCell;
-use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::prepare_query_request;
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKey, StartKey};
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
-    r#type, value, ExecuteQueryRequest, MutateRowRequest, Mutation, PrepareQueryRequest,
-    ProtoFormat, ReadRowsRequest, RowFilter, RowRange, RowSet, SampleRowKeysRequest, Type, Value,
+    r#type, value, ExecuteQueryRequest, MutateRowRequest, Mutation, ReadRowsRequest, RowFilter,
+    RowRange, RowSet, SampleRowKeysRequest, Type, Value,
 };
 use tokio::sync::OnceCell;
 use tonic::transport::Channel;
@@ -450,37 +449,6 @@ async fn test_read_nonexistent_row() {
 }
 
 #[tokio::test]
-async fn test_prepare_query() {
-    global_setup().await;
-
-    let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
-    let mut bigtable = connection.client();
-
-    let instance_name = format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME);
-    let request = PrepareQueryRequest {
-        instance_name,
-        app_profile_id: String::new(),
-        query: format!("SELECT * FROM {}", TABLE_NAME),
-        param_types: std::collections::HashMap::new(),
-        data_format: Some(prepare_query_request::DataFormat::ProtoFormat(
-            ProtoFormat {},
-        )),
-    };
-
-    let response = bigtable.prepare_query(request).await;
-    assert!(
-        response.is_ok(),
-        "prepare_query failed: {:?}",
-        response.err()
-    );
-    let prepared = response.unwrap();
-    assert!(
-        !prepared.prepared_query.is_empty(),
-        "Expected non-empty prepared_query bytes"
-    );
-}
-
-#[tokio::test]
 async fn test_execute_query_with_query_string() {
     global_setup().await;
 
@@ -505,64 +473,83 @@ async fn test_execute_query_with_query_string() {
     );
 }
 
+// Verifies that execute_query_stream auto-prepares from a raw SQL string,
+// returns valid metadata, and exposes the prepared_query bytes.
 #[tokio::test]
-async fn test_execute_query_with_prepared_query() {
+async fn test_prepare_query() {
     global_setup().await;
 
     let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
     let mut bigtable = connection.client();
 
     let instance_name = format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME);
-
-    // Step 1: prepare
-    let prepare_request = PrepareQueryRequest {
-        instance_name: instance_name.clone(),
-        app_profile_id: String::new(),
-        query: format!("SELECT * FROM {} WHERE _key = @row_key", TABLE_NAME),
-        param_types: [(
-            "row_key".to_string(),
-            Type {
-                kind: Some(r#type::Kind::BytesType(r#type::Bytes::default())),
-            },
-        )]
-        .into_iter()
-        .collect(),
-        data_format: Some(prepare_query_request::DataFormat::ProtoFormat(
-            ProtoFormat {},
-        )),
-    };
-
-    let prepared = bigtable
-        .prepare_query(prepare_request)
-        .await
-        .expect("prepare_query failed");
-    assert!(!prepared.prepared_query.is_empty());
-
-    // Step 2: execute with prepared_query bytes
+    #[allow(deprecated)]
     let request = ExecuteQueryRequest {
         instance_name,
         app_profile_id: String::new(),
-        prepared_query: prepared.prepared_query,
-        params: [(
-            "row_key".to_string(),
-            Value {
-                r#type: Some(Type {
-                    kind: Some(r#type::Kind::BytesType(r#type::Bytes::default())),
-                }),
-                kind: Some(value::Kind::BytesValue(
-                    "integration_test_key".as_bytes().into(),
-                )),
-            },
-        )]
-        .into_iter()
-        .collect(),
+        query: format!("SELECT * FROM {}", TABLE_NAME),
         ..ExecuteQueryRequest::default()
     };
 
-    let response = bigtable.execute_query(request).await;
-    assert!(
-        response.is_ok(),
-        "execute_query with prepared_query failed: {:?}",
-        response.err()
-    );
+    let (metadata, _stream) = bigtable
+        .execute_query_stream(request, None)
+        .await
+        .expect("execute_query_stream failed");
+
+    let cols = match &metadata.schema {
+        Some(googleapis_tonic_google_bigtable_v2::google::bigtable::v2::result_set_metadata::Schema::ProtoSchema(s)) => s.columns.len(),
+        None => panic!("ResultSetMetadata has no schema"),
+    };
+    assert!(cols > 0, "expected at least one column in schema");
+}
+
+// Verifies that execute_query_stream resumes from a checkpoint when a resume token is issued.
+// If the emulator does not send a resume token the retry path is skipped.
+#[tokio::test]
+async fn test_retry_execute_query_stream() {
+    global_setup().await;
+
+    let connection: BigTableConnection = create_connection(false).await.expect("Failed to connect");
+    let mut bigtable = connection.client();
+
+    let instance_name = format!("projects/{}/instances/{}", PROJECT_ID, INSTANCE_NAME);
+    #[allow(deprecated)]
+    let request = ExecuteQueryRequest {
+        instance_name: instance_name.clone(),
+        app_profile_id: String::new(),
+        query: format!("SELECT * FROM {}", TABLE_NAME),
+        ..ExecuteQueryRequest::default()
+    };
+
+    let (_metadata, mut stream) = bigtable
+        .execute_query_stream(request, None)
+        .await
+        .expect("execute_query_stream failed");
+
+    // Drain the stream, capturing the last retry context seen (if any).
+    let mut last_retry_ctx: Option<ExecuteQueryRetryContext> = None;
+    while let Some(item) = stream.next().await {
+        let (_rows, ctx) = item.expect("stream item error");
+        if ctx.is_some() {
+            last_retry_ctx = ctx;
+        }
+    }
+
+    // Only exercise the retry path if the emulator issued a resume token.
+    if let Some(retry_ctx) = last_retry_ctx {
+        #[allow(deprecated)]
+        let retry_request = ExecuteQueryRequest {
+            instance_name,
+            app_profile_id: String::new(),
+            ..ExecuteQueryRequest::default()
+        };
+        let (_metadata2, mut stream2) = bigtable
+            .execute_query_stream(retry_request, Some(retry_ctx))
+            .await
+            .expect("execute_query_stream (retry) failed");
+
+        while let Some(item) = stream2.next().await {
+            item.expect("retry stream item error");
+        }
+    }
 }

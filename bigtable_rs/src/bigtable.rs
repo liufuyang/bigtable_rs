@@ -86,6 +86,7 @@
 //! }
 //! ```
 
+use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -125,6 +126,42 @@ pub mod read_rows;
 type RowKey = Vec<u8>;
 /// A convenient Result type
 type Result<T> = std::result::Result<T, Error>;
+
+/// A single row returned by [`BigTable::execute_query_stream`].
+///
+/// Values are in column order per `ResultSetMetadata.proto_schema.columns`.
+#[derive(Debug, Clone)]
+pub struct SqlRow(pub Vec<Value>);
+
+/// A stream of decoded rows from an [`BigTable::execute_query_stream`] call.
+///
+/// Drive with `.next().await` in a loop; no `futures-util` import required.
+pub struct ExecuteQueryStream {
+    inner: futures_util::stream::BoxStream<
+        'static,
+        Result<(Vec<SqlRow>, Option<ExecuteQueryRetryContext>)>,
+    >,
+}
+
+impl ExecuteQueryStream {
+    pub async fn next(
+        &mut self,
+    ) -> Option<Result<(Vec<SqlRow>, Option<ExecuteQueryRetryContext>)>> {
+        use futures_util::StreamExt;
+        self.inner.next().await
+    }
+}
+
+/// State needed to retry a streaming query from the last checkpoint.
+///
+/// Yielded by `execute_query_stream` stream items that carry a resume token.
+/// Pass it back as `retry_context: Some(ctx)` to resume from that checkpoint
+/// without re-reading earlier results.
+#[derive(Debug, Clone)]
+pub struct ExecuteQueryRetryContext {
+    pub prepared_query: Vec<u8>,
+    pub resume_token: Vec<u8>,
+}
 
 /// A data structure for returning the read content of a cell in a row.
 #[derive(Debug)]
@@ -180,6 +217,12 @@ pub enum Error {
 
     #[error("Invalid value: {0}")]
     InvalidValue(String),
+
+    #[error("CRC32C checksum mismatch: expected {expected:#010x}, got {actual:#010x}")]
+    ChecksumMismatch { expected: u32, actual: u32 },
+
+    #[error("Protocol violation: {0}")]
+    ProtocolViolation(String),
 }
 
 impl std::convert::From<std::io::Error> for Error {
@@ -202,7 +245,7 @@ impl std::convert::From<tonic::Status> for Error {
 
 // Inserts the x-goog-request-params routing header for SQL RPCs (PrepareQuery,
 // ExecuteQuery).
-pub(crate) fn insert_sql_routing_header(
+fn insert_sql_routing_header(
     metadata: &mut tonic::metadata::MetadataMap,
     instance_prefix: &str,
     app_profile_id: &str,
@@ -632,12 +675,11 @@ impl BigTable {
         Ok(response)
     }
 
-    // Validates the request and auto-prepares if only a raw SQL query string is set.
-    // If `prepared_query` is already set on the request, sends the `ExecuteQuery` RPC directly.
-    // Otherwise, calls `prepare_query` first using the `query` string.  Parameter types are
-    // inferred automatically for unambiguous value kinds (`BytesValue`, `StringValue`,
-    // `IntValue`, `BoolValue`, `TimestampValue`, `DateValue`).  Ambiguous kinds
-    // (`FloatValue`, `ArrayValue`, NULL) and raw values require an explicit `Value.r#type`.
+    // Validates and mutates `request` so it is ready to pass to the ExecuteQuery RPC:
+    //   - Errors if both `query` and `prepared_query` are set, or if neither is set.
+    //   - Errors if `resume_token` is set without `prepared_query`.
+    //   - Calls `prepare_query` when only `query` is set, populating `prepared_query`.
+    //   - Clears `data_format` (must be unset when `prepared_query` is used).
     #[allow(deprecated)]
     async fn ensure_prepared(&mut self, request: &mut ExecuteQueryRequest) -> Result<()> {
         if !request.prepared_query.is_empty() && !request.query.is_empty() {
@@ -674,7 +716,7 @@ impl BigTable {
                     };
                     Ok((k.clone(), t))
                 })
-                .collect::<Result<std::collections::HashMap<_, _>>>()?;
+                .collect::<Result<HashMap<_, _>>>()?;
             let query = std::mem::take(&mut request.query);
             let prepare_response = self
                 .prepare_query(PrepareQueryRequest {
@@ -689,11 +731,12 @@ impl BigTable {
                 .await?;
             request.prepared_query = prepare_response.prepared_query;
         }
+        request.data_format = None;
         Ok(())
     }
 
-    /// Wrapped `prepare_query` method
-    pub async fn prepare_query(
+    // Wrapped `prepare_query` method
+    async fn prepare_query(
         &mut self,
         request: PrepareQueryRequest,
     ) -> Result<PrepareQueryResponse> {
@@ -708,53 +751,13 @@ impl BigTable {
         Ok(response)
     }
 
-    /// Wrapped `execute_query` method.
-    pub async fn execute_query(
+    // Sends the ExecuteQuery RPC and reads the leading ResultSetMetadata message.
+    // Caller is responsible for setting prepared_query, resume_token, and data_format
+    // before calling this.
+    async fn do_execute_rpc(
         &mut self,
-        mut request: ExecuteQueryRequest,
-    ) -> Result<Streaming<ExecuteQueryResponse>> {
-        self.ensure_prepared(&mut request).await?;
-        // data_format must be empty when prepared_query is set (applies to both paths).
-        request.data_format = None;
-        let app_profile_id = request.app_profile_id.clone();
-        let mut tonic_req: tonic::Request<_> = request.into_request();
-        insert_sql_routing_header(
-            tonic_req.metadata_mut(),
-            &self.instance_prefix,
-            &app_profile_id,
-        )?;
-        let response = self.client.execute_query(tonic_req).await?.into_inner();
-        Ok(response)
-    }
-
-    /// Execute a SQL query and stream decoded rows as they become available.
-    ///
-    /// Returns `(ResultSetMetadata, Stream)` where:
-    /// - `ResultSetMetadata.proto_schema.columns` describes the column names and types.
-    /// - Each stream item is `(rows, resume_token)`:
-    ///   - `rows` (`Vec<Vec<Value>>`) is yielded as soon as a `batch_checksum` verifies
-    ///     the batch — callers receive rows without waiting for the next checkpoint.
-    ///   - `resume_token` is `Some` only at checkpoint boundaries; pass it in a subsequent
-    ///     `ExecuteQueryRequest.resume_token` with the original prepared query to resume
-    ///     the query from that point.
-    ///   - Both may be present in the same item when a message carries a checksum and a
-    ///     token together.
-    ///
-    /// Auto-prepare: if `prepared_query` is not set, `prepare_query` is called first.
-    /// Parameter types are inferred automatically for unambiguous value kinds
-    /// (`BytesValue`, `StringValue`, `IntValue`, `BoolValue`, `TimestampValue`, `DateValue`).
-    /// Ambiguous kinds (`FloatValue`, `ArrayValue`, NULL) and raw values require an explicit
-    /// `Value.r#type`.
-    pub async fn execute_query_stream(
-        &mut self,
-        mut request: ExecuteQueryRequest,
-    ) -> Result<(
-        ResultSetMetadata,
-        impl Stream<Item = Result<(Vec<Vec<Value>>, Option<Vec<u8>>)>>,
-    )> {
-        self.ensure_prepared(&mut request).await?;
-        request.data_format = None;
-
+        request: ExecuteQueryRequest,
+    ) -> Result<(ResultSetMetadata, Streaming<ExecuteQueryResponse>)> {
         let app_profile_id = request.app_profile_id.clone();
         let mut tonic_req: tonic::Request<_> = request.into_request();
         insert_sql_routing_header(
@@ -764,33 +767,130 @@ impl BigTable {
         )?;
         let mut stream = self.client.execute_query(tonic_req).await?.into_inner();
 
-        // The server sends ResultSetMetadata exactly once as the first message.
-        let metadata = match stream.message().await? {
-            Some(msg) => match msg.response {
-                Some(execute_query_response::Response::Metadata(m)) => m,
-                _ => {
-                    return Err(Error::InvalidValue(
-                        "first execute_query response was not ResultSetMetadata".to_string(),
-                    ))
-                }
-            },
+        let metadata = stream
+            .message()
+            .await?
+            .ok_or_else(|| {
+                Error::ProtocolViolation("execute_query returned an empty stream".to_string())
+            })
+            .and_then(|msg| match msg.response {
+                Some(execute_query_response::Response::Metadata(m)) => Ok(m),
+                _ => Err(Error::ProtocolViolation(
+                    "first execute_query response was not ResultSetMetadata".to_string(),
+                )),
+            })?;
+
+        Ok((metadata, stream))
+    }
+
+    /// Execute a SQL query and stream decoded rows as they become available.
+    ///
+    /// Pass `retry_context: None` for a fresh query (auto-prepares from `request.query`).
+    /// Pass `retry_context: Some(ctx)` to resume from a checkpoint returned by a previous
+    /// stream item; the prepared plan and resume token are taken from `ctx`. If
+    /// `request.prepared_query` or `request.resume_token` are also set they must match
+    /// the values in `ctx`; leaving them unset is equivalent.
+    ///
+    /// Returns `(ResultSetMetadata, Stream)` where each stream item is
+    /// `(rows, retry_context)`:
+    /// - `rows` is yielded as soon as a `batch_checksum` verifies the batch.
+    /// - `retry_context` is `Some` at checkpoint boundaries; pass it back as
+    ///   `retry_context` to resume from that point.
+    ///
+    /// Auto-prepare infers parameter types for unambiguous value kinds (`BytesValue`,
+    /// `StringValue`, `IntValue`, `BoolValue`, `TimestampValue`, `DateValue`).
+    /// Ambiguous kinds (`FloatValue`, `ArrayValue`, NULL) and raw values require an
+    /// explicit `Value.r#type`.
+    pub async fn execute_query_stream(
+        &mut self,
+        mut request: ExecuteQueryRequest,
+        retry_context: Option<ExecuteQueryRetryContext>,
+    ) -> Result<(ResultSetMetadata, ExecuteQueryStream)> {
+        let prepared_query = match retry_context {
             None => {
-                return Err(Error::InvalidValue(
-                    "execute_query returned an empty stream".to_string(),
-                ))
+                self.ensure_prepared(&mut request).await?;
+                request.prepared_query.clone()
+            }
+            Some(ctx) => {
+                #[allow(deprecated)]
+                if !request.query.is_empty() {
+                    return Err(Error::InvalidValue(
+                        "when retry_context is Some, `query` must be unset on the request"
+                            .to_string(),
+                    ));
+                }
+                if ctx.prepared_query.is_empty() {
+                    return Err(Error::InvalidValue(
+                        "retry_context.prepared_query must not be empty".to_string(),
+                    ));
+                }
+                if ctx.resume_token.is_empty() {
+                    return Err(Error::InvalidValue(
+                        "retry_context.resume_token must not be empty".to_string(),
+                    ));
+                }
+                #[allow(deprecated)]
+                if !request.prepared_query.is_empty()
+                    && request.prepared_query != ctx.prepared_query
+                {
+                    return Err(Error::InvalidValue(
+                        "request.prepared_query conflicts with retry_context.prepared_query"
+                            .to_string(),
+                    ));
+                }
+                #[allow(deprecated)]
+                if !request.resume_token.is_empty() && request.resume_token != ctx.resume_token {
+                    return Err(Error::InvalidValue(
+                        "request.resume_token conflicts with retry_context.resume_token"
+                            .to_string(),
+                    ));
+                }
+                request.prepared_query = ctx.prepared_query.clone();
+                request.resume_token = ctx.resume_token;
+                request.data_format = None;
+                ctx.prepared_query
             }
         };
 
+        let (metadata, stream) = self.do_execute_rpc(request).await?;
         let num_columns = match &metadata.schema {
             Some(result_set_metadata::Schema::ProtoSchema(s)) => s.columns.len(),
             None => {
-                return Err(Error::InvalidValue(
+                return Err(Error::ProtocolViolation(
                     "ResultSetMetadata has no schema".to_string(),
                 ))
             }
         };
+        Ok((
+            metadata,
+            ExecuteQueryStream {
+                inner: Box::pin(execute_query::make_stream(
+                    stream,
+                    num_columns,
+                    prepared_query,
+                )),
+            },
+        ))
+    }
 
-        Ok((metadata, execute_query::make_stream(stream, num_columns)))
+    /// Wrapped `execute_query` method.
+    ///
+    /// Auto-prepares if `prepared_query` is not set (see `execute_query_stream` for details).
+    /// Returns the raw gRPC stream; prefer `execute_query_stream` for decoded rows.
+    pub async fn execute_query(
+        &mut self,
+        mut request: ExecuteQueryRequest,
+    ) -> Result<Streaming<ExecuteQueryResponse>> {
+        self.ensure_prepared(&mut request).await?;
+        let app_profile_id = request.app_profile_id.clone();
+        let mut tonic_req: tonic::Request<_> = request.into_request();
+        insert_sql_routing_header(
+            tonic_req.metadata_mut(),
+            &self.instance_prefix,
+            &app_profile_id,
+        )?;
+        let response = self.client.execute_query(tonic_req).await?.into_inner();
+        Ok(response)
     }
 
     /// Provide a convenient method to get the inner `BigtableClient` so user can use any methods
