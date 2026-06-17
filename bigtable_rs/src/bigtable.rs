@@ -220,7 +220,11 @@ fn infer_value_type(name: &str, v: &Value) -> Result<Type> {
     let kind = match &v.kind {
         Some(value::Kind::BytesValue(_)) => r#type::Kind::BytesType(r#type::Bytes::default()),
         Some(value::Kind::StringValue(_)) => r#type::Kind::StringType(r#type::String::default()),
-        Some(value::Kind::IntValue(_)) => r#type::Kind::Int64Type(r#type::Int64::default()),
+        Some(value::Kind::IntValue(_)) => {
+            return Err(Error::InvalidArgument(format!(
+                "param '{name}': cannot infer int type; set Value.r#type to Int32 or Int64 explicitly"
+            )))
+        }
         Some(value::Kind::BoolValue(_)) => r#type::Kind::BoolType(r#type::Bool::default()),
         Some(value::Kind::TimestampValue(_)) => {
             r#type::Kind::TimestampType(r#type::Timestamp::default())

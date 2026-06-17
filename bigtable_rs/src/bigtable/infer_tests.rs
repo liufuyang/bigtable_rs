@@ -1,4 +1,4 @@
-use super::{infer_value_type, Error};
+use super::infer_value_type;
 use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{r#type, value, Value};
 
 fn make_val(kind: value::Kind) -> Value {
@@ -21,9 +21,9 @@ fn infer_type_string() {
 }
 
 #[test]
-fn infer_type_int() {
-    let t = infer_value_type("p", &make_val(value::Kind::IntValue(0))).unwrap();
-    assert!(matches!(t.kind, Some(r#type::Kind::Int64Type(_))));
+fn int_requires_explicit_type() {
+    let err = infer_value_type("p", &make_val(value::Kind::IntValue(0))).unwrap_err();
+    assert!(err.to_string().contains("cannot infer int type"));
 }
 
 #[test]
@@ -44,8 +44,7 @@ fn infer_type_timestamp() {
 
 #[test]
 fn infer_type_date() {
-    let t =
-        infer_value_type("p", &make_val(value::Kind::DateValue(Default::default()))).unwrap();
+    let t = infer_value_type("p", &make_val(value::Kind::DateValue(Default::default()))).unwrap();
     assert!(matches!(t.kind, Some(r#type::Kind::DateType(_))));
 }
 
@@ -59,8 +58,8 @@ fn float_requires_explicit_type() {
 
 #[test]
 fn array_requires_explicit_type() {
-    let err = infer_value_type("p", &make_val(value::Kind::ArrayValue(Default::default())))
-        .unwrap_err();
+    let err =
+        infer_value_type("p", &make_val(value::Kind::ArrayValue(Default::default()))).unwrap_err();
     assert!(err.to_string().contains("cannot infer array element type"));
 }
 
