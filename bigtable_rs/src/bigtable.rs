@@ -178,8 +178,8 @@ pub enum Error {
     #[error("Invalid metadata")]
     MetadataError(tonic::metadata::errors::InvalidMetadataValue),
 
-    #[error("Invalid value: {0}")]
-    InvalidRequest(String),
+    #[error("Invalid argument: {0}")]
+    InvalidArgument(String),
 }
 
 impl std::convert::From<std::io::Error> for Error {
@@ -227,22 +227,22 @@ fn infer_value_type(name: &str, v: &Value) -> Result<Type> {
         }
         Some(value::Kind::DateValue(_)) => r#type::Kind::DateType(r#type::Date::default()),
         Some(value::Kind::FloatValue(_)) => {
-            return Err(Error::InvalidRequest(format!(
+            return Err(Error::InvalidArgument(format!(
                 "param '{name}': cannot infer float type; set Value.r#type to Float32 or Float64 explicitly"
             )))
         }
         Some(value::Kind::ArrayValue(_)) => {
-            return Err(Error::InvalidRequest(format!(
+            return Err(Error::InvalidArgument(format!(
                 "param '{name}': cannot infer array element type; set Value.r#type explicitly"
             )))
         }
         Some(value::Kind::RawValue(_)) | Some(value::Kind::RawTimestampMicros(_)) => {
-            return Err(Error::InvalidRequest(format!(
+            return Err(Error::InvalidArgument(format!(
                 "param '{name}': raw values cannot be used as query parameters; use BytesValue or TimestampValue"
             )))
         }
         None => {
-            return Err(Error::InvalidRequest(format!(
+            return Err(Error::InvalidArgument(format!(
                 "param '{name}': NULL value requires an explicit Value.r#type"
             )))
         }
@@ -627,32 +627,11 @@ impl BigTable {
         Ok(response)
     }
 
-    // Validates and mutates `request` so it is ready to pass to the ExecuteQuery RPC:
-    //   - Errors if both `query` and `prepared_query` are set, or if neither is set.
-    //   - Errors if `resume_token` is set without `prepared_query`.
-    //   - Calls `prepare_query` when only `query` is set, populating `prepared_query`.
-    //   - Clears `query` and `data_format` (must be unset when `prepared_query` is used).
+    // Calls prepare_query first if `prepared_query` field is empty and clear the query string
+    // field.
     #[allow(deprecated)]
     async fn ensure_prepared(&mut self, request: &mut ExecuteQueryRequest) -> Result<()> {
-        if !request.prepared_query.is_empty() && !request.query.is_empty() {
-            return Err(Error::InvalidRequest(
-                "cannot set both `query` and `prepared_query`; use one or the other".to_string(),
-            ));
-        }
         if request.prepared_query.is_empty() {
-            if request.query.is_empty() {
-                return Err(Error::InvalidRequest(
-                    "either `query` or `prepared_query` must be set".to_string(),
-                ));
-            }
-            if !request.resume_token.is_empty() {
-                return Err(Error::InvalidRequest(
-                    "resume_token requires prepared_query to be set; save the \
-                     PrepareQueryResponse.prepared_query bytes from the first call \
-                     and include them on retry"
-                        .to_string(),
-                ));
-            }
             // Build param_types for PrepareQuery. If the caller set Value.r#type
             // explicitly, use it. Otherwise infer from the value kind, mirroring
             // the Python client. Ambiguous kinds (float, array, NULL) require an
@@ -682,9 +661,9 @@ impl BigTable {
                 })
                 .await?;
             request.prepared_query = prepare_response.prepared_query;
+            request.query.clear();
+            request.data_format = None;
         }
-        request.query.clear();
-        request.data_format = None;
         Ok(())
     }
 
@@ -744,84 +723,4 @@ impl BigTable {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::{infer_value_type, Error};
-    use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{r#type, value, Value};
-
-    fn make_val(kind: value::Kind) -> Value {
-        Value {
-            kind: Some(kind),
-            r#type: None,
-        }
-    }
-
-    #[test]
-    fn infer_type_bytes() {
-        let t = infer_value_type("p", &make_val(value::Kind::BytesValue(vec![]))).unwrap();
-        assert!(matches!(t.kind, Some(r#type::Kind::BytesType(_))));
-    }
-
-    #[test]
-    fn infer_type_string() {
-        let t = infer_value_type("p", &make_val(value::Kind::StringValue(String::new()))).unwrap();
-        assert!(matches!(t.kind, Some(r#type::Kind::StringType(_))));
-    }
-
-    #[test]
-    fn infer_type_int() {
-        let t = infer_value_type("p", &make_val(value::Kind::IntValue(0))).unwrap();
-        assert!(matches!(t.kind, Some(r#type::Kind::Int64Type(_))));
-    }
-
-    #[test]
-    fn infer_type_bool() {
-        let t = infer_value_type("p", &make_val(value::Kind::BoolValue(false))).unwrap();
-        assert!(matches!(t.kind, Some(r#type::Kind::BoolType(_))));
-    }
-
-    #[test]
-    fn infer_type_timestamp() {
-        let t = infer_value_type(
-            "p",
-            &make_val(value::Kind::TimestampValue(Default::default())),
-        )
-        .unwrap();
-        assert!(matches!(t.kind, Some(r#type::Kind::TimestampType(_))));
-    }
-
-    #[test]
-    fn infer_type_date() {
-        let t =
-            infer_value_type("p", &make_val(value::Kind::DateValue(Default::default()))).unwrap();
-        assert!(matches!(t.kind, Some(r#type::Kind::DateType(_))));
-    }
-
-    #[test]
-    fn float_requires_explicit_type() {
-        let err = infer_value_type("p", &make_val(value::Kind::FloatValue(0.0))).unwrap_err();
-        assert!(matches!(err, Error::InvalidRequest(_)));
-    }
-
-    #[test]
-    fn array_requires_explicit_type() {
-        let err = infer_value_type("p", &make_val(value::Kind::ArrayValue(Default::default())))
-            .unwrap_err();
-        assert!(matches!(err, Error::InvalidRequest(_)));
-    }
-
-    #[test]
-    fn raw_value_rejected() {
-        let err = infer_value_type("p", &make_val(value::Kind::RawValue(vec![]))).unwrap_err();
-        assert!(matches!(err, Error::InvalidRequest(_)));
-    }
-
-    #[test]
-    fn null_requires_explicit_type() {
-        let v = Value {
-            kind: None,
-            r#type: None,
-        };
-        let err = infer_value_type("p", &v).unwrap_err();
-        assert!(matches!(err, Error::InvalidRequest(_)));
-    }
-}
+mod infer_tests;
