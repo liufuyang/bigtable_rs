@@ -121,6 +121,60 @@ use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{
 
 pub mod read_rows;
 
+pub trait RoutingMetadata {
+    fn get_routing_header(&self) -> String;
+}
+
+impl RoutingMetadata for ReadRowsRequest {
+    fn get_routing_header(&self) -> String {
+        format!(
+            "table_name={}&app_profile_id={}",
+            urlencoding::encode(&self.table_name),
+            urlencoding::encode(&self.app_profile_id)
+        )
+    }
+}
+
+impl RoutingMetadata for MutateRowRequest {
+    fn get_routing_header(&self) -> String {
+        format!(
+            "table_name={}&app_profile_id={}",
+            urlencoding::encode(&self.table_name),
+            urlencoding::encode(&self.app_profile_id)
+        )
+    }
+}
+
+impl RoutingMetadata for MutateRowsRequest {
+    fn get_routing_header(&self) -> String {
+        format!(
+            "table_name={}&app_profile_id={}",
+            urlencoding::encode(&self.table_name),
+            urlencoding::encode(&self.app_profile_id)
+        )
+    }
+}
+
+impl RoutingMetadata for CheckAndMutateRowRequest {
+    fn get_routing_header(&self) -> String {
+        format!(
+            "table_name={}&app_profile_id={}",
+            urlencoding::encode(&self.table_name),
+            urlencoding::encode(&self.app_profile_id)
+        )
+    }
+}
+
+impl RoutingMetadata for SampleRowKeysRequest {
+    fn get_routing_header(&self) -> String {
+        format!(
+            "table_name={}&app_profile_id={}",
+            urlencoding::encode(&self.table_name),
+            urlencoding::encode(&self.app_profile_id)
+        )
+    }
+}
+
 /// An alias for Vec<u8> as row key
 type RowKey = Vec<u8>;
 /// A convenient Result type
@@ -546,9 +600,11 @@ impl BigTable {
         &mut self,
         request: CheckAndMutateRowRequest,
     ) -> Result<CheckAndMutateRowResponse> {
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+
         let response = self
             .client
-            .check_and_mutate_row(request)
+            .check_and_mutate_row(tonic_req)
             .await?
             .into_inner();
         Ok(response)
@@ -559,7 +615,8 @@ impl BigTable {
         &mut self,
         request: ReadRowsRequest,
     ) -> Result<Vec<(RowKey, Vec<RowCell>)>> {
-        let response = self.client.read_rows(request).await?.into_inner();
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+        let response = self.client.read_rows(tonic_req).await?.into_inner();
         decode_read_rows_response(self.timeout.as_ref(), response).await
     }
 
@@ -574,7 +631,9 @@ impl BigTable {
             row_keys: vec![], // use this field to put keys for reading specific rows
             row_ranges: vec![row_range],
         });
-        let response = self.client.read_rows(request).await?.into_inner();
+
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+        let response = self.client.read_rows(tonic_req).await?.into_inner();
         decode_read_rows_response(self.timeout.as_ref(), response).await
     }
 
@@ -583,7 +642,9 @@ impl BigTable {
         &mut self,
         request: ReadRowsRequest,
     ) -> Result<impl Stream<Item = Result<(RowKey, Vec<RowCell>)>>> {
-        let response = self.client.read_rows(request).await?.into_inner();
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+
+        let response = self.client.read_rows(tonic_req).await?.into_inner();
         let stream = decode_read_rows_response_stream(response).await;
         Ok(stream)
     }
@@ -599,7 +660,10 @@ impl BigTable {
             row_keys: vec![],
             row_ranges: vec![row_range],
         });
-        let response = self.client.read_rows(request).await?.into_inner();
+
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+
+        let response = self.client.read_rows(tonic_req).await?.into_inner();
         let stream = decode_read_rows_response_stream(response).await;
         Ok(stream)
     }
@@ -609,7 +673,9 @@ impl BigTable {
         &mut self,
         request: SampleRowKeysRequest,
     ) -> Result<Streaming<SampleRowKeysResponse>> {
-        let response = self.client.sample_row_keys(request).await?.into_inner();
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+
+        let response = self.client.sample_row_keys(tonic_req).await?.into_inner();
         Ok(response)
     }
 
@@ -618,7 +684,9 @@ impl BigTable {
         &mut self,
         request: MutateRowRequest,
     ) -> Result<Response<MutateRowResponse>> {
-        let response = self.client.mutate_row(request).await?;
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+
+        let response = self.client.mutate_row(tonic_req).await?;
         Ok(response)
     }
 
@@ -627,7 +695,9 @@ impl BigTable {
         &mut self,
         request: MutateRowsRequest,
     ) -> Result<Streaming<MutateRowsResponse>> {
-        let response = self.client.mutate_rows(request).await?.into_inner();
+        let tonic_req = Self::add_routing_header(request.into_request())?;
+
+        let response = self.client.mutate_rows(tonic_req).await?.into_inner();
         Ok(response)
     }
 
@@ -723,6 +793,128 @@ impl BigTable {
     /// Provide a convenient method to get full table, which can be used for building requests
     pub fn get_full_table_name(&self, table_name: &str) -> String {
         [&self.table_prefix, table_name].concat()
+    }
+
+    /// Helper to attach `x-goog-request-params` header for table APIs
+    fn add_routing_header<T: RoutingMetadata>(
+        mut tonic_req: tonic::Request<T>,
+    ) -> Result<tonic::Request<T>> {
+        let header_val = tonic_req.get_ref().get_routing_header();
+        tonic_req.metadata_mut().insert(
+            "x-goog-request-params",
+            MetadataValue::from_str(&header_val).map_err(Error::MetadataError)?,
+        );
+        Ok(tonic_req)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tonic::Request;
+
+    #[test]
+    fn test_add_routing_header_standard() {
+        let req = ReadRowsRequest {
+            table_name: "projects/my-project/instances/my-instance/tables/my-table".to_owned(),
+            app_profile_id: "default".to_owned(),
+            ..ReadRowsRequest::default()
+        };
+
+        let tonic_req = Request::new(req);
+        let result = BigTable::add_routing_header(tonic_req).expect("Failed to add routing header");
+
+        let metadata = result.metadata();
+        let header_val = metadata
+            .get("x-goog-request-params")
+            .expect("Header missing")
+            .to_str()
+            .expect("Header is not a valid string");
+
+        let expected_table = "projects%2Fmy-project%2Finstances%2Fmy-instance%2Ftables%2Fmy-table";
+        let expected = format!("table_name={}&app_profile_id=default", expected_table);
+
+        assert_eq!(header_val, expected);
+    }
+
+    #[test]
+    fn test_add_routing_header_empty_app_profile() {
+        let req = ReadRowsRequest {
+            table_name: "projects/my-project/instances/my-instance/tables/my-table".to_owned(),
+            app_profile_id: "".to_owned(),
+            ..ReadRowsRequest::default()
+        };
+
+        let tonic_req = Request::new(req);
+        let result = BigTable::add_routing_header(tonic_req).expect("Failed to add routing header");
+
+        let metadata = result.metadata();
+        let header_val = metadata
+            .get("x-goog-request-params")
+            .expect("Header missing")
+            .to_str()
+            .expect("Header is not a valid string");
+
+        let expected_table = "projects%2Fmy-project%2Finstances%2Fmy-instance%2Ftables%2Fmy-table";
+        let expected = format!("table_name={}&app_profile_id=", expected_table);
+
+        assert_eq!(header_val, expected);
+    }
+
+    #[test]
+    fn test_add_routing_header_with_special_chars() {
+        let req = ReadRowsRequest {
+            table_name: "my table@name".to_owned(),
+            app_profile_id: "profile/v1".to_owned(),
+            ..ReadRowsRequest::default()
+        };
+
+        let tonic_req = Request::new(req);
+        let result = BigTable::add_routing_header(tonic_req).unwrap();
+
+        let metadata = result.metadata();
+        let header_val = metadata
+            .get("x-goog-request-params")
+            .unwrap()
+            .to_str()
+            .unwrap();
+
+        let expected = "table_name=my%20table%40name&app_profile_id=profile%2Fv1";
+
+        assert_eq!(header_val, expected);
+    }
+
+    #[test]
+    fn test_routing_metadata_trait() {
+        let read_rows = ReadRowsRequest {
+            table_name: "table1".to_owned(),
+            app_profile_id: "profile1".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(
+            read_rows.get_routing_header(),
+            "table_name=table1&app_profile_id=profile1"
+        );
+
+        let mutate_row = MutateRowRequest {
+            table_name: "table2".to_owned(),
+            app_profile_id: "profile2".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(
+            mutate_row.get_routing_header(),
+            "table_name=table2&app_profile_id=profile2"
+        );
+
+        let sample_row_keys = SampleRowKeysRequest {
+            table_name: "table3".to_owned(),
+            app_profile_id: "profile3".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(
+            sample_row_keys.get_routing_header(),
+            "table_name=table3&app_profile_id=profile3"
+        );
     }
 }
 
