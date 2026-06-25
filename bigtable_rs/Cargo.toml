@@ -22,12 +22,15 @@ tonic-prost = "0.14.2"
 tower = { version = "0.5.1", features = ["util"] }
 # end of above part
 futures-util = "0.3.31"
-gcp_auth = "0.12.2"
+gcp_auth = { version = "0.12.7", default-features = false }
 log = "0.4.20"
 thiserror = "2.0.3"
 
 [features]
-default = ["tonic-tls-aws-lc"]
+default = ["gcp-auth-aws-lc-rs", "tonic-tls-aws-lc"]
+# allows choosing the gcp_auth crypto provider
+gcp-auth-aws-lc-rs = ["gcp_auth/aws-lc-rs"]
+gcp-auth-ring = ["gcp_auth/ring"]
 # allows choosing between tonic/tls-*
 tonic-tls-aws-lc = ["tonic/tls-aws-lc"]
 tonic-tls-ring = ["tonic/tls-ring"]
