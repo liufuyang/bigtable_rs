@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/liufuyang/bigtable_rs/compare/v0.3.0...v0.4.0) - 2026-06-25
+
+### Added
+
+- [**breaking**] Allow selecting `gcp_auth` crypto provider, default to `aws-lc-rs` ([#151](https://github.com/liufuyang/bigtable_rs/pull/151))
+- split execute query ([#148](https://github.com/liufuyang/bigtable_rs/pull/148))
+- Align HTTP/2 keepalive config with official clients ([#143](https://github.com/liufuyang/bigtable_rs/pull/143))
+
+### Other
+
+- *(deps)* update googleapis-tonic-google-bigtable-v2 requirement from 0.36.0 to 0.39.0 ([#152](https://github.com/liufuyang/bigtable_rs/pull/152))
+- *(deps)* update googleapis-tonic-google-bigtable-admin-v2 requirement ([#150](https://github.com/liufuyang/bigtable_rs/pull/150))
+- *(deps)* update googleapis-tonic-google-bigtable-admin-v2 requirement ([#145](https://github.com/liufuyang/bigtable_rs/pull/145))
+- *(deps)* update googleapis-tonic-google-bigtable-admin-v2 requirement ([#142](https://github.com/liufuyang/bigtable_rs/pull/142))
+- *(deps)* update googleapis-tonic-google-bigtable-admin-v2 requirement ([#140](https://github.com/liufuyang/bigtable_rs/pull/140))
+
 ## [0.3.0](https://github.com/liufuyang/bigtable_rs/compare/v0.2.21...v0.3.0) - 2026-03-20
 
 ### Added
