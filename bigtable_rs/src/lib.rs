@@ -20,6 +20,14 @@ pub mod util;
 #[allow(dead_code)]
 pub mod session_proto;
 
+/// Transport layer for Bigtable Sessions — per-Session lifecycle, retry
+/// classification, and (later) pool + picker. Internal to the crate;
+/// public callers use the `SessionClient` / `TableShim` surface landing
+/// in later PRs.
+#[cfg(feature = "sessions")]
+#[allow(dead_code)]
+pub(crate) mod transport;
+
 #[cfg(test)]
 mod tests {
     #[test]
