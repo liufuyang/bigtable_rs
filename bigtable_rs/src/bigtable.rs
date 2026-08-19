@@ -122,55 +122,25 @@ pub trait RoutingMetadata {
     fn get_routing_header(&self) -> String;
 }
 
-impl RoutingMetadata for ReadRowsRequest {
-    fn get_routing_header(&self) -> String {
-        format!(
-            "table_name={}&app_profile_id={}",
-            urlencoding::encode(&self.table_name),
-            urlencoding::encode(&self.app_profile_id)
-        )
-    }
+macro_rules! impl_routing_metadata {
+    ($t:ty) => {
+        impl RoutingMetadata for $t {
+            fn get_routing_header(&self) -> String {
+                format!(
+                    "table_name={}&app_profile_id={}",
+                    urlencoding::encode(&self.table_name),
+                    urlencoding::encode(&self.app_profile_id)
+                )
+            }
+        }
+    };
 }
 
-impl RoutingMetadata for MutateRowRequest {
-    fn get_routing_header(&self) -> String {
-        format!(
-            "table_name={}&app_profile_id={}",
-            urlencoding::encode(&self.table_name),
-            urlencoding::encode(&self.app_profile_id)
-        )
-    }
-}
-
-impl RoutingMetadata for MutateRowsRequest {
-    fn get_routing_header(&self) -> String {
-        format!(
-            "table_name={}&app_profile_id={}",
-            urlencoding::encode(&self.table_name),
-            urlencoding::encode(&self.app_profile_id)
-        )
-    }
-}
-
-impl RoutingMetadata for CheckAndMutateRowRequest {
-    fn get_routing_header(&self) -> String {
-        format!(
-            "table_name={}&app_profile_id={}",
-            urlencoding::encode(&self.table_name),
-            urlencoding::encode(&self.app_profile_id)
-        )
-    }
-}
-
-impl RoutingMetadata for SampleRowKeysRequest {
-    fn get_routing_header(&self) -> String {
-        format!(
-            "table_name={}&app_profile_id={}",
-            urlencoding::encode(&self.table_name),
-            urlencoding::encode(&self.app_profile_id)
-        )
-    }
-}
+impl_routing_metadata!(ReadRowsRequest);
+impl_routing_metadata!(MutateRowRequest);
+impl_routing_metadata!(MutateRowsRequest);
+impl_routing_metadata!(CheckAndMutateRowRequest);
+impl_routing_metadata!(SampleRowKeysRequest);
 
 /// An alias for Vec<u8> as row key
 type RowKey = Vec<u8>;
@@ -541,7 +511,6 @@ impl BigTable {
         request: CheckAndMutateRowRequest,
     ) -> Result<CheckAndMutateRowResponse> {
         let tonic_req = Self::add_routing_header(request.into_request())?;
-
         let response = self
             .client
             .check_and_mutate_row(tonic_req)
@@ -583,7 +552,6 @@ impl BigTable {
         request: ReadRowsRequest,
     ) -> Result<impl Stream<Item = Result<(RowKey, Vec<RowCell>)>>> {
         let tonic_req = Self::add_routing_header(request.into_request())?;
-
         let response = self.client.read_rows(tonic_req).await?.into_inner();
         let stream = decode_read_rows_response_stream(response).await;
         Ok(stream)
@@ -602,7 +570,6 @@ impl BigTable {
         });
 
         let tonic_req = Self::add_routing_header(request.into_request())?;
-
         let response = self.client.read_rows(tonic_req).await?.into_inner();
         let stream = decode_read_rows_response_stream(response).await;
         Ok(stream)
@@ -614,7 +581,6 @@ impl BigTable {
         request: SampleRowKeysRequest,
     ) -> Result<Streaming<SampleRowKeysResponse>> {
         let tonic_req = Self::add_routing_header(request.into_request())?;
-
         let response = self.client.sample_row_keys(tonic_req).await?.into_inner();
         Ok(response)
     }
@@ -625,7 +591,6 @@ impl BigTable {
         request: MutateRowRequest,
     ) -> Result<Response<MutateRowResponse>> {
         let tonic_req = Self::add_routing_header(request.into_request())?;
-
         let response = self.client.mutate_row(tonic_req).await?;
         Ok(response)
     }
@@ -636,7 +601,6 @@ impl BigTable {
         request: MutateRowsRequest,
     ) -> Result<Streaming<MutateRowsResponse>> {
         let tonic_req = Self::add_routing_header(request.into_request())?;
-
         let response = self.client.mutate_rows(tonic_req).await?.into_inner();
         Ok(response)
     }
