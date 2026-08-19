@@ -12,6 +12,14 @@ pub mod bigtable;
 mod root_ca_certificate;
 pub mod util;
 
+// Generated proto bindings for the Sessions subsystem. Marked #[doc(hidden)]
+// because callers should reach for the public `SessionClient` / `TableShim`
+// surface (arriving in later PRs), not the raw proto types.
+#[cfg(feature = "sessions")]
+#[doc(hidden)]
+#[allow(dead_code)]
+pub mod session_proto;
+
 #[cfg(test)]
 mod tests {
     #[test]

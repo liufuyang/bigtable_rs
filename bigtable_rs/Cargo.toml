@@ -25,6 +25,11 @@ futures-util = "0.3.31"
 gcp_auth = "0.12.2"
 log = "0.4.20"
 thiserror = "2.0.3"
+# Session-related deps — pulled in only when `sessions` is enabled, but
+# expressed as optional plain deps so the code can `use` them normally.
+googleapis-tonic-google-rpc = { version = "0.23.0", optional = true }
+prost = { version = "0.14.1", optional = true }
+prost-types = { version = "0.14.1", optional = true }
 
 [features]
 default = ["tonic-tls-aws-lc"]
@@ -33,6 +38,10 @@ tonic-tls-aws-lc = ["tonic/tls-aws-lc"]
 tonic-tls-ring = ["tonic/tls-ring"]
 # for integration tests
 integration_tests = []
+# Bigtable Sessions subsystem (compiles session.proto at build time,
+# adds SessionClient / TableShim / debugview / session-tracer). See
+# SESSION_PORT_PLAN.md at the repo root.
+sessions = ["dep:googleapis-tonic-google-rpc", "dep:prost", "dep:prost-types"]
 
 
 [dev-dependencies]
