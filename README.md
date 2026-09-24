@@ -77,7 +77,6 @@ You can use the library as follows:
 [dependencies]
 bigtable_rs = "0.4.0"
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
-googleapis_tonic_google_bigtable_v2 = "0.36.0"
 env_logger = "0.11.1"
 ```
 
@@ -87,9 +86,9 @@ range scan
 
 ```rust
 use bigtable_rs::bigtable;
-use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_filter::{Chain, Filter};
-use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::row_range::{EndKey, StartKey};
-use googleapis_tonic_google_bigtable_v2::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
+use bigtable_rs::google::bigtable::v2::row_filter::{Chain, Filter};
+use bigtable_rs::google::bigtable::v2::row_range::{EndKey, StartKey};
+use bigtable_rs::google::bigtable::v2::{ReadRowsRequest, RowFilter, RowRange, RowSet};
 use env_logger;
 use std::error::Error;
 use std::time::Duration;
