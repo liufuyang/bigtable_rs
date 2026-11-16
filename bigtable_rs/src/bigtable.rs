@@ -229,7 +229,7 @@ impl std::convert::From<tonic::Status> for Error {
     }
 }
 
-fn insert_sql_routing_header(
+fn insert_instance_routing_header(
     metadata: &mut tonic::metadata::MetadataMap,
     instance_prefix: &str,
     app_profile_id: &str,
@@ -733,7 +733,7 @@ impl BigTable {
     ) -> Result<PrepareQueryResponse> {
         let app_profile_id = request.app_profile_id.clone();
         let mut tonic_req: tonic::Request<_> = request.into_request();
-        insert_sql_routing_header(
+        insert_instance_routing_header(
             tonic_req.metadata_mut(),
             &self.instance_prefix,
             &app_profile_id,
@@ -753,7 +753,7 @@ impl BigTable {
         self.ensure_prepared(&mut request).await?;
         let app_profile_id = request.app_profile_id.clone();
         let mut tonic_req: tonic::Request<_> = request.into_request();
-        insert_sql_routing_header(
+        insert_instance_routing_header(
             tonic_req.metadata_mut(),
             &self.instance_prefix,
             &app_profile_id,

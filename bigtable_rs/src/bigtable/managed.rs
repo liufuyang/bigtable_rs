@@ -25,7 +25,10 @@ use tower::discover::Change;
 use tower::load::{CompleteOnResponse, PendingRequests};
 use tower::Service;
 
-use super::{create_client, create_endpoint, BigTableConnection, Error, Result};
+use super::{
+    create_client, create_endpoint, insert_instance_routing_header, BigTableConnection, Error,
+    Result,
+};
 use crate::auth_service::AuthSvc;
 use crate::google::bigtable::v2::{bigtable_client::BigtableClient, PingAndWarmRequest};
 
@@ -246,7 +249,7 @@ impl ChannelSettings {
         };
         let mut client = self.create_client(channel.clone());
         if self.prime_channels {
-            client.ping_and_warm(self.ping_and_warm_request()).await?;
+            self.ping_and_warm(&mut client).await?;
         }
         Ok((channel, client))
     }
@@ -260,11 +263,22 @@ impl ChannelSettings {
         create_client(transport, self.token_provider.clone(), self.is_read_only)
     }
 
-    fn ping_and_warm_request(&self) -> PingAndWarmRequest {
-        PingAndWarmRequest {
+    async fn ping_and_warm(&self, client: &mut BigtableClient<AuthSvc>) -> Result<()> {
+        client.ping_and_warm(self.ping_and_warm_request()?).await?;
+        Ok(())
+    }
+
+    fn ping_and_warm_request(&self) -> Result<tonic::Request<PingAndWarmRequest>> {
+        let mut request = tonic::Request::new(PingAndWarmRequest {
             name: self.instance_prefix.clone(),
             app_profile_id: self.ping_and_warm_app_profile_id.clone(),
-        }
+        });
+        insert_instance_routing_header(
+            request.metadata_mut(),
+            &self.instance_prefix,
+            &self.ping_and_warm_app_profile_id,
+        )?;
+        Ok(request)
     }
 }
 
@@ -293,6 +307,10 @@ struct ManagedTransport {
 
 impl ManagedTransport {
     async fn connect(settings: ChannelSettings) -> Result<Self> {
+        // Fail now, rather than on every request sent in the background, if the app profile
+        // cannot be sent as a header.
+        settings.ping_and_warm_request()?;
+
         let (changes, change_receiver) = mpsc::channel(settings.channel_size);
         let (channels, worker) = Buffer::pair(
             Balance::new(ChannelStream {
@@ -370,10 +388,7 @@ impl ChannelManager {
             // Without any traffic, they would still be queued by the next round, leaving no
             // room to send new ones. Sending a request through the load balancer ourselves
             // guarantees that the queue is empty.
-            if let Err(error) = balanced_client
-                .ping_and_warm(self.settings.ping_and_warm_request())
-                .await
-            {
+            if let Err(error) = self.settings.ping_and_warm(&mut balanced_client).await {
                 warn!("Failed to send PingAndWarm through the channel pool: {error}");
             }
 
@@ -412,10 +427,7 @@ impl ChannelManager {
             ticks.tick().await;
             let channel_clients = self.channel_clients.lock().unwrap().clone();
             for mut client in channel_clients {
-                if let Err(error) = client
-                    .ping_and_warm(self.settings.ping_and_warm_request())
-                    .await
-                {
+                if let Err(error) = self.settings.ping_and_warm(&mut client).await {
                     debug!("Background PingAndWarm failed: {error}");
                 }
             }
@@ -464,6 +476,7 @@ mod tests {
     #[derive(Clone, Default)]
     struct FakeBigtable {
         pings: Arc<Mutex<Vec<SocketAddr>>>,
+        routing_headers: Arc<Mutex<Vec<Option<String>>>>,
     }
 
     impl FakeBigtable {
@@ -524,6 +537,9 @@ mod tests {
         fn call(&mut self, request: tonic::Request<PingAndWarmRequest>) -> Self::Future {
             let address = request.remote_addr().unwrap();
             self.pings.lock().unwrap().push(address);
+            let routing_header = request.metadata().get("x-goog-request-params");
+            let routing_header = routing_header.map(|value| value.to_str().unwrap().to_owned());
+            self.routing_headers.lock().unwrap().push(routing_header);
             Box::pin(async { Ok(tonic::Response::new(PingAndWarmResponse {})) })
         }
     }
@@ -561,6 +577,38 @@ mod tests {
 
         assert_eq!(server.pings().len(), 3);
         assert_eq!(server.channels().len(), 3);
+    }
+
+    #[tokio::test]
+    async fn sends_routing_header_with_ping_and_warm() {
+        let server = FakeBigtable::default();
+        let _transport = ManagedTransport::connect(ChannelSettings {
+            channel_size: 1,
+            prime_channels: true,
+            ping_and_warm_app_profile_id: "profile-1".to_owned(),
+            ..settings(server.serve().await)
+        })
+        .await
+        .unwrap();
+
+        let routing_header =
+            "name=projects/project-1/instances/instance-1&app_profile_id=profile-1".to_owned();
+        assert_eq!(
+            *server.routing_headers.lock().unwrap(),
+            [Some(routing_header)]
+        );
+    }
+
+    #[tokio::test]
+    async fn fails_to_connect_with_app_profile_that_is_not_a_valid_header() {
+        let server = FakeBigtable::default();
+        let result = ManagedTransport::connect(ChannelSettings {
+            ping_and_warm_app_profile_id: "profile\n1".to_owned(),
+            ..settings(server.serve().await)
+        })
+        .await;
+
+        assert!(matches!(result, Err(Error::MetadataError(_))));
     }
 
     #[tokio::test]
