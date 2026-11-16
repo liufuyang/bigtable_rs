@@ -93,9 +93,11 @@ use std::time::Duration;
 
 use futures_util::Stream;
 use gcp_auth::TokenProvider;
+use http::{Request as HttpRequest, Response as HttpResponse};
 use log::info;
 use thiserror::Error;
 use tokio::net::UnixStream;
+use tonic::body::Body;
 use tonic::metadata::MetadataValue;
 use tonic::transport::Endpoint;
 use tonic::IntoRequest;
@@ -104,7 +106,7 @@ use tonic::{
     transport::{channel::Change, Channel, ClientTlsConfig},
     Response,
 };
-use tower::ServiceBuilder;
+use tower::{BoxError, Service, ServiceBuilder};
 
 use crate::auth_service::AuthSvc;
 use crate::bigtable::read_rows::{decode_read_rows_response, decode_read_rows_response_stream};
@@ -119,7 +121,10 @@ use crate::google::bigtable::v2::{
 };
 use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 
+mod managed;
 pub mod read_rows;
+
+pub use managed::ManagedConnectionBuilder;
 
 pub trait RoutingMetadata {
     fn get_routing_header(&self) -> String;
@@ -383,27 +388,7 @@ impl BigTableConnection {
                 let channel_size = channel_size.max(1);
                 let (channel, tx) = Channel::balance_channel(channel_size);
                 for i in 0..channel_size {
-                    let endpoint = Channel::from_static("https://bigtable.googleapis.com")
-                        .tls_config(
-                            ClientTlsConfig::new()
-                                .ca_certificate(
-                                    root_ca_certificate::load()
-                                        .map_err(Error::CertificateError)
-                                        .expect("root certificate error"),
-                                )
-                                .domain_name("bigtable.googleapis.com"),
-                        )
-                        .map_err(Error::TransportError)?
-                        .http2_keep_alive_interval(Duration::from_secs(30))
-                        .keep_alive_timeout(Duration::from_secs(10))
-                        .keep_alive_while_idle(true);
-
-                    let endpoint = if let Some(timeout) = timeout {
-                        endpoint.timeout(timeout)
-                    } else {
-                        endpoint
-                    };
-
+                    let endpoint = create_endpoint(timeout)?;
                     // Use unique keys to ensure each channel has a dedicated HTTP connection
                     tx.try_send(Change::Insert(i, endpoint)).unwrap();
                 }
@@ -497,6 +482,15 @@ impl BigTableConnection {
         })
     }
 
+    /// Start building a connection whose channels are managed in the background: they are
+    /// replaced before the server closes them, and kept warm with periodic `PingAndWarm`
+    /// requests.
+    ///
+    /// See [`ManagedConnectionBuilder`] for the available options and their defaults.
+    pub fn managed_builder(project_id: &str, instance_name: &str) -> ManagedConnectionBuilder {
+        ManagedConnectionBuilder::new(project_id, instance_name)
+    }
+
     /// Create a new BigTable client by cloning needed properties.
     ///
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
@@ -519,13 +513,41 @@ impl BigTableConnection {
     }
 }
 
+/// Helper function to create the `Endpoint` of the Bigtable service.
+fn create_endpoint(timeout: Option<Duration>) -> Result<Endpoint> {
+    let endpoint = Channel::from_static("https://bigtable.googleapis.com")
+        .tls_config(
+            ClientTlsConfig::new()
+                .ca_certificate(
+                    root_ca_certificate::load()
+                        .map_err(Error::CertificateError)
+                        .expect("root certificate error"),
+                )
+                .domain_name("bigtable.googleapis.com"),
+        )
+        .map_err(Error::TransportError)?
+        .http2_keep_alive_interval(Duration::from_secs(30))
+        .keep_alive_timeout(Duration::from_secs(10))
+        .keep_alive_while_idle(true);
+
+    Ok(match timeout {
+        Some(timeout) => endpoint.timeout(timeout),
+        None => endpoint,
+    })
+}
+
 /// Helper function to create a BigtableClient<AuthSvc>
-/// from a channel.
-fn create_client(
-    channel: Channel,
+/// from a channel, or any other transport.
+fn create_client<T>(
+    channel: T,
     token_provider: Option<Arc<dyn TokenProvider>>,
     read_only: bool,
-) -> BigtableClient<AuthSvc> {
+) -> BigtableClient<AuthSvc>
+where
+    T: Service<HttpRequest<Body>, Response = HttpResponse<Body>> + Clone + Send + Sync + 'static,
+    T::Error: Into<BoxError>,
+    T::Future: Send + 'static,
+{
     let scopes = if read_only {
         "https://www.googleapis.com/auth/bigtable.data.readonly"
     } else {

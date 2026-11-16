@@ -170,6 +170,37 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 ---
 
+## Managed connections
+
+The Bigtable service closes connections that have been open for an hour, and connections that sit
+idle go cold, which makes the next request through them slow
+(see [Cold starts and low QPS](https://docs.cloud.google.com/bigtable/docs/performance#cold-starts)).
+A managed connection takes care of both in the background, the way the official clients do:
+
+- every channel is replaced before the server closes it (every 50 minutes by default);
+- every channel is sent a `PingAndWarm` request periodically (every 30 seconds by default);
+- every channel is primed with a `PingAndWarm` request before it receives traffic.
+
+```rust,no_run
+use bigtable_rs::bigtable::BigTableConnection;
+use std::time::Duration;
+
+async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    let connection = BigTableConnection::managed_builder("project-1", "instance-1")
+        .channel_size(4)
+        .timeout(Duration::from_secs(10))
+        .build()
+        .await?;
+    let mut bigtable = connection.client();
+    Ok(())
+}
+```
+
+See `ManagedConnectionBuilder` for all the options. The connections created by
+`BigTableConnection::new` and the other constructors are not affected.
+
+---
+
 ## Play with example code
 
 To start develop or test the example code above,

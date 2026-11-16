@@ -7,24 +7,33 @@ use gcp_auth::TokenProvider;
 use http::{HeaderValue, Request, Response};
 use log::debug;
 use tonic::body::Body;
-use tonic::transport::Channel;
-use tower::Service;
+use tower::util::BoxCloneSyncService;
+use tower::{BoxError, Service, ServiceExt};
 
+/// Attaches an access token to every request before handing it to the transport.
+///
+/// The transport is type-erased, so that connections built on different transports (a plain
+/// `tonic` channel, a managed channel pool, ...) all share the same client type.
 #[derive(Clone)]
 pub struct AuthSvc {
-    inner: Channel,
+    inner: BoxCloneSyncService<Request<Body>, Response<Body>, BoxError>,
     token_provider: Option<Arc<dyn TokenProvider>>,
     scopes: String,
 }
 
 impl AuthSvc {
-    pub fn new(
-        inner: Channel,
+    pub fn new<T>(
+        inner: T,
         authentication_manager: Option<Arc<dyn TokenProvider>>,
         scopes: String,
-    ) -> Self {
+    ) -> Self
+    where
+        T: Service<Request<Body>, Response = Response<Body>> + Clone + Send + Sync + 'static,
+        T::Error: Into<BoxError>,
+        T::Future: Send + 'static,
+    {
         AuthSvc {
-            inner,
+            inner: BoxCloneSyncService::new(inner.map_err(Into::into)),
             token_provider: authentication_manager,
             scopes,
         }
@@ -38,7 +47,7 @@ impl Service<Request<Body>> for AuthSvc {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx).map_err(Into::into)
+        self.inner.poll_ready(cx)
     }
 
     fn call(&mut self, mut request: Request<Body>) -> Self::Future {

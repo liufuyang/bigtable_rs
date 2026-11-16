@@ -16,10 +16,10 @@ googleapis-tonic-google-bigtable-v2 = "0.39.0"
 # tonic, prost, and prost-types are need for build generated rs files
 http = "1.1.0"
 hyper-util = { version = "0.1.7", features = ["tokio"] }
-tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
+tokio = { version = "1.25.0", features = ["rt-multi-thread", "sync", "time"] }
 tonic = { version = "0.14.2", features = ["transport"] }
 tonic-prost = "0.14.2"
-tower = { version = "0.5.1", features = ["util"] }
+tower = { version = "0.5.1", features = ["balance", "buffer", "util"] }
 # end of above part
 futures-util = "0.3.31"
 gcp_auth = { version = "0.12.7", default-features = false }
