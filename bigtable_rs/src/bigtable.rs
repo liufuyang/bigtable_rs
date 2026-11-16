@@ -419,20 +419,6 @@ impl BigTableConnection {
     ) -> Result<Self> {
         info!("Connecting to bigtable emulator at {}", emulator_endpoint);
 
-        // configures the endpoint with the specified parameters
-        fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint {
-            let endpoint = endpoint
-                .http2_keep_alive_interval(Duration::from_secs(30))
-                .keep_alive_timeout(Duration::from_secs(10))
-                .keep_alive_while_idle(true);
-
-            if let Some(timeout) = timeout {
-                endpoint.timeout(timeout)
-            } else {
-                endpoint
-            }
-        }
-
         // Parse emulator_endpoint. Officially, it's only host:port,
         // but unix:///path/to/unix.sock also works in the Go SDK at least.
         // Having the emulator listen on unix domain sockets without ip2unix is
@@ -525,15 +511,37 @@ fn create_endpoint(timeout: Option<Duration>) -> Result<Endpoint> {
                 )
                 .domain_name("bigtable.googleapis.com"),
         )
-        .map_err(Error::TransportError)?
+        .map_err(Error::TransportError)?;
+    Ok(configure_endpoint(endpoint, timeout))
+}
+
+/// Helper function to create the `Endpoint` of a Bigtable emulator, given as `host:port` or
+/// `unix:///path/to/unix.sock`.
+fn create_emulator_endpoint(
+    emulator_endpoint: &str,
+    timeout: Option<Duration>,
+) -> Result<Endpoint> {
+    let endpoint = if emulator_endpoint.starts_with("unix://") {
+        // `tonic` connects to the socket by itself for this scheme.
+        Endpoint::from_shared(emulator_endpoint.to_owned())?
+    } else {
+        Endpoint::from_shared(format!("http://{emulator_endpoint}"))?
+    };
+    Ok(configure_endpoint(endpoint, timeout))
+}
+
+/// configures the endpoint with the specified parameters
+fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint {
+    let endpoint = endpoint
         .http2_keep_alive_interval(Duration::from_secs(30))
         .keep_alive_timeout(Duration::from_secs(10))
         .keep_alive_while_idle(true);
 
-    Ok(match timeout {
-        Some(timeout) => endpoint.timeout(timeout),
-        None => endpoint,
-    })
+    if let Some(timeout) = timeout {
+        endpoint.timeout(timeout)
+    } else {
+        endpoint
+    }
 }
 
 /// Helper function to create a BigtableClient<AuthSvc>

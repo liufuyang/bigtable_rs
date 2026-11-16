@@ -199,6 +199,9 @@ async fn example() -> Result<(), Box<dyn std::error::Error>> {
 See `ManagedConnectionBuilder` for all the options. The connections created by
 `BigTableConnection::new` and the other constructors are not affected.
 
+Managed connections work with the emulator too: `BIGTABLE_EMULATOR_HOST` is respected, and the
+builder has an `emulator_endpoint` option for when setting it is inconvenient.
+
 ---
 
 ## Play with example code

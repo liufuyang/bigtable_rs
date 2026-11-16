@@ -14,7 +14,7 @@ use std::time::Duration;
 use futures_util::Stream;
 use gcp_auth::TokenProvider;
 use http::{Request, Response};
-use log::{debug, warn};
+use log::{debug, info, warn};
 use tokio::sync::mpsc;
 use tokio::task::JoinSet;
 use tonic::body::Body;
@@ -26,8 +26,8 @@ use tower::load::{CompleteOnResponse, PendingRequests};
 use tower::Service;
 
 use super::{
-    create_client, create_endpoint, insert_instance_routing_header, BigTableConnection, Error,
-    Result,
+    create_client, create_emulator_endpoint, create_endpoint, insert_instance_routing_header,
+    BigTableConnection, Error, Result,
 };
 use crate::auth_service::AuthSvc;
 use crate::google::bigtable::v2::{bigtable_client::BigtableClient, PingAndWarmRequest};
@@ -77,6 +77,7 @@ pub struct ManagedConnectionBuilder {
     ping_and_warm_interval: Option<Duration>,
     prime_channels: bool,
     ping_and_warm_app_profile_id: String,
+    emulator_endpoint: Option<String>,
 }
 
 impl ManagedConnectionBuilder {
@@ -92,6 +93,7 @@ impl ManagedConnectionBuilder {
             ping_and_warm_interval: Some(DEFAULT_PING_AND_WARM_INTERVAL),
             prime_channels: true,
             ping_and_warm_app_profile_id: String::new(),
+            emulator_endpoint: None,
         }
     }
 
@@ -160,14 +162,26 @@ impl ManagedConnectionBuilder {
         self
     }
 
+    /// Connect to a Bigtable emulator at the given endpoint, either `host:port` or
+    /// `unix:///path/to/unix.sock`, instead of the Bigtable service. This takes precedence over
+    /// the `BIGTABLE_EMULATOR_HOST` environment variable.
+    ///
+    /// The connection to an emulator is unauthenticated, and otherwise managed in the same
+    /// way. This requires an emulator that implements `PingAndWarm`, like the one from the
+    /// Google Cloud SDK. With one that does not, disable [priming](Self::prime_channels) and
+    /// the [periodic requests](Self::ping_and_warm_interval).
+    pub fn emulator_endpoint(mut self, emulator_endpoint: impl Into<String>) -> Self {
+        self.emulator_endpoint = Some(emulator_endpoint.into());
+        self
+    }
+
     /// Establish the connection.
     ///
     /// Unless a [token provider](Self::token_provider) was given, credentials are discovered
     /// from the environment, as in [`BigTableConnection::new`].
     ///
-    /// The `BIGTABLE_EMULATOR_HOST` environment variable is also respected. As there is nothing
-    /// to manage when talking to an emulator, this then returns the same connection as
-    /// [`BigTableConnection::new_with_emulator`].
+    /// The `BIGTABLE_EMULATOR_HOST` environment variable is also respected, and has the same
+    /// effect as [`emulator_endpoint`](Self::emulator_endpoint).
     pub async fn build(self) -> Result<BigTableConnection> {
         for (name, interval) in [
             ("max_channel_age", self.max_channel_age),
@@ -180,20 +194,22 @@ impl ManagedConnectionBuilder {
             }
         }
 
-        if let Ok(endpoint) = std::env::var("BIGTABLE_EMULATOR_HOST") {
-            return BigTableConnection::new_with_emulator(
-                &endpoint,
-                &self.project_id,
-                &self.instance_name,
-                self.is_read_only,
-                self.channel_size,
-                self.timeout,
-            );
-        }
-
-        let token_provider = match self.token_provider {
-            Some(token_provider) => token_provider,
-            None => gcp_auth::provider().await?,
+        let emulator_endpoint = self
+            .emulator_endpoint
+            .or_else(|| std::env::var("BIGTABLE_EMULATOR_HOST").ok());
+        let (endpoint, token_provider) = match emulator_endpoint {
+            Some(emulator_endpoint) => {
+                info!("Connecting to bigtable emulator at {emulator_endpoint}");
+                let endpoint = create_emulator_endpoint(&emulator_endpoint, self.timeout)?;
+                (endpoint, None)
+            }
+            None => {
+                let token_provider = match self.token_provider {
+                    Some(token_provider) => token_provider,
+                    None => gcp_auth::provider().await?,
+                };
+                (create_endpoint(self.timeout)?, Some(token_provider))
+            }
         };
         let instance_prefix = format!(
             "projects/{}/instances/{}",
@@ -202,8 +218,8 @@ impl ManagedConnectionBuilder {
         let table_prefix = format!("{instance_prefix}/tables/");
 
         let transport = ManagedTransport::connect(ChannelSettings {
-            endpoint: create_endpoint(self.timeout)?,
-            token_provider: Some(token_provider.clone()),
+            endpoint,
+            token_provider: token_provider.clone(),
             is_read_only: self.is_read_only,
             instance_prefix: instance_prefix.clone(),
             channel_size: self.channel_size.max(1),
@@ -215,7 +231,7 @@ impl ManagedConnectionBuilder {
         .await?;
 
         Ok(BigTableConnection {
-            client: create_client(transport, Some(token_provider), self.is_read_only),
+            client: create_client(transport, token_provider, self.is_read_only),
             table_prefix: Arc::new(table_prefix),
             instance_prefix: Arc::new(instance_prefix),
             timeout: Arc::new(self.timeout),
