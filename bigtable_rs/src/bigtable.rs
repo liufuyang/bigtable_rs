@@ -93,11 +93,9 @@ use std::time::Duration;
 
 use futures_util::Stream;
 use gcp_auth::TokenProvider;
-use http::{Request as HttpRequest, Response as HttpResponse};
 use log::info;
 use thiserror::Error;
 use tokio::net::UnixStream;
-use tonic::body::Body;
 use tonic::metadata::MetadataValue;
 use tonic::transport::Endpoint;
 use tonic::IntoRequest;
@@ -106,7 +104,7 @@ use tonic::{
     transport::{channel::Change, Channel, ClientTlsConfig},
     Response,
 };
-use tower::{BoxError, Service, ServiceBuilder};
+use tower::ServiceBuilder;
 
 use crate::auth_service::AuthSvc;
 use crate::bigtable::read_rows::{decode_read_rows_response, decode_read_rows_response_stream};
@@ -119,9 +117,10 @@ use crate::google::bigtable::v2::{
     ExecuteQueryRequest, ExecuteQueryResponse, PrepareQueryRequest, PrepareQueryResponse,
     ProtoFormat, Type, Value,
 };
+use crate::transport::Transport;
 use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 
-mod managed;
+pub(crate) mod managed;
 pub mod read_rows;
 
 pub use managed::ManagedConnectionBuilder;
@@ -546,16 +545,11 @@ fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint
 
 /// Helper function to create a BigtableClient<AuthSvc>
 /// from a channel, or any other transport.
-fn create_client<T>(
-    channel: T,
+fn create_client(
+    channel: impl Into<Transport>,
     token_provider: Option<Arc<dyn TokenProvider>>,
     read_only: bool,
-) -> BigtableClient<AuthSvc>
-where
-    T: Service<HttpRequest<Body>, Response = HttpResponse<Body>> + Clone + Send + Sync + 'static,
-    T::Error: Into<BoxError>,
-    T::Future: Send + 'static,
-{
+) -> BigtableClient<AuthSvc> {
     let scopes = if read_only {
         "https://www.googleapis.com/auth/bigtable.data.readonly"
     } else {
@@ -564,7 +558,7 @@ where
 
     let auth_svc = ServiceBuilder::new()
         .layer_fn(|c| AuthSvc::new(c, token_provider.clone(), scopes.to_string()))
-        .service(channel);
+        .service(channel.into());
     return BigtableClient::new(auth_svc);
 }
 

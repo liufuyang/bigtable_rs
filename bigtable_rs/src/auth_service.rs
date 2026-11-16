@@ -7,33 +7,25 @@ use gcp_auth::TokenProvider;
 use http::{HeaderValue, Request, Response};
 use log::debug;
 use tonic::body::Body;
-use tower::util::BoxCloneSyncService;
-use tower::{BoxError, Service, ServiceExt};
+use tower::Service;
 
-/// Attaches an access token to every request before handing it to the transport.
-///
-/// The transport is type-erased, so that connections built on different transports (a plain
-/// `tonic` channel, a managed channel pool, ...) all share the same client type.
+use crate::transport::Transport;
+
 #[derive(Clone)]
 pub struct AuthSvc {
-    inner: BoxCloneSyncService<Request<Body>, Response<Body>, BoxError>,
+    inner: Transport,
     token_provider: Option<Arc<dyn TokenProvider>>,
     scopes: String,
 }
 
 impl AuthSvc {
-    pub fn new<T>(
-        inner: T,
+    pub(crate) fn new(
+        inner: Transport,
         authentication_manager: Option<Arc<dyn TokenProvider>>,
         scopes: String,
-    ) -> Self
-    where
-        T: Service<Request<Body>, Response = Response<Body>> + Clone + Send + Sync + 'static,
-        T::Error: Into<BoxError>,
-        T::Future: Send + 'static,
-    {
+    ) -> Self {
         AuthSvc {
-            inner: BoxCloneSyncService::new(inner.map_err(Into::into)),
+            inner,
             token_provider: authentication_manager,
             scopes,
         }

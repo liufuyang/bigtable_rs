@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use futures_util::Stream;
 use gcp_auth::TokenProvider;
-use http::{Request, Response};
+use http::Request;
 use log::{debug, info, warn};
 use tokio::sync::mpsc;
 use tokio::task::JoinSet;
@@ -31,6 +31,7 @@ use super::{
 };
 use crate::auth_service::AuthSvc;
 use crate::google::bigtable::v2::{bigtable_client::BigtableClient, PingAndWarmRequest};
+use crate::transport::Transport;
 
 /// The server closes connections after an hour, so replace them comfortably before that.
 const DEFAULT_MAX_CHANNEL_AGE: Duration = Duration::from_secs(50 * 60);
@@ -167,9 +168,7 @@ impl ManagedConnectionBuilder {
     /// the `BIGTABLE_EMULATOR_HOST` environment variable.
     ///
     /// The connection to an emulator is unauthenticated, and otherwise managed in the same
-    /// way. This requires an emulator that implements `PingAndWarm`, like the one from the
-    /// Google Cloud SDK. With one that does not, disable [priming](Self::prime_channels) and
-    /// the [periodic requests](Self::ping_and_warm_interval).
+    /// way.
     pub fn emulator_endpoint(mut self, emulator_endpoint: impl Into<String>) -> Self {
         self.emulator_endpoint = Some(emulator_endpoint.into());
         self
@@ -270,12 +269,7 @@ impl ChannelSettings {
         Ok((channel, client))
     }
 
-    fn create_client<T>(&self, transport: T) -> BigtableClient<AuthSvc>
-    where
-        T: Service<Request<Body>, Response = Response<Body>> + Clone + Send + Sync + 'static,
-        T::Error: Into<tower::BoxError>,
-        T::Future: Send + 'static,
-    {
+    fn create_client(&self, transport: impl Into<Transport>) -> BigtableClient<AuthSvc> {
         create_client(transport, self.token_provider.clone(), self.is_read_only)
     }
 
@@ -315,10 +309,11 @@ fn load_tracked(channel: Channel) -> LoadTrackedChannel {
 
 /// A pool of channels, kept fresh by background tasks that stop when the last clone is dropped.
 #[derive(Clone)]
-struct ManagedTransport {
+pub(crate) struct ManagedTransport {
     channels: BalancedChannels,
-    /// Aborts the tasks it contains on drop.
-    _background_tasks: Arc<JoinSet<()>>,
+    /// Aborts the tasks it contains on drop. The background tasks send requests through the
+    /// pool too, with a clone that does not hold this, as they would otherwise never stop.
+    _background_tasks: Option<Arc<JoinSet<()>>>,
 }
 
 impl ManagedTransport {
@@ -345,8 +340,12 @@ impl ManagedTransport {
             let _ = changes.try_send(Change::Insert(key, load_tracked(channel)));
         }
 
+        let transport = Self {
+            channels,
+            _background_tasks: None,
+        };
         let manager = ChannelManager {
-            balanced_client: settings.create_client(channels.clone()),
+            balanced_client: settings.create_client(transport.clone()),
             channel_clients: Mutex::new(channel_clients),
             changes,
             settings,
@@ -354,8 +353,8 @@ impl ManagedTransport {
         background_tasks.spawn(async move { manager.run().await });
 
         Ok(Self {
-            channels,
-            _background_tasks: Arc::new(background_tasks),
+            _background_tasks: Some(Arc::new(background_tasks)),
+            ..transport
         })
     }
 }
@@ -454,7 +453,7 @@ impl ChannelManager {
 /// Feeds the changes sent by the [`ChannelManager`] to the load balancer.
 ///
 /// Analogous to `tonic`'s `DynamicServiceStream`, which is not exposed.
-struct ChannelStream {
+pub(crate) struct ChannelStream {
     changes: mpsc::Receiver<ChannelChange>,
 }
 
@@ -477,6 +476,7 @@ mod tests {
     use std::future::Future;
     use std::net::SocketAddr;
 
+    use http::Response;
     use tokio::net::TcpListener;
     use tonic::server::NamedService;
     use tonic::transport::server::TcpIncoming;
