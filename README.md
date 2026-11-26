@@ -186,7 +186,7 @@ use bigtable_rs::bigtable::BigTableConnection;
 use std::time::Duration;
 
 async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    let connection = BigTableConnection::managed_builder("project-1", "instance-1")
+    let connection = BigTableConnection::managed("project-1", "instance-1")
         .channel_size(4)
         .timeout(Duration::from_secs(10))
         .build()

@@ -107,7 +107,7 @@ async fn test_managed_connection_to_emulator() {
     let emulator_host = std::env::var("BIGTABLE_EMULATOR_HOST")
         .expect("BIGTABLE_EMULATOR_HOST must be set to run this test");
     // Priming is enabled by default, so this also sends a `PingAndWarm` through every channel.
-    let connection = BigTableConnection::managed_builder(PROJECT_ID, INSTANCE_NAME)
+    let connection = BigTableConnection::managed(PROJECT_ID, INSTANCE_NAME)
         .emulator_endpoint(emulator_host)
         .channel_size(CHANNEL_SIZE)
         .timeout(Duration::from_secs(TIMEOUT_SECS))

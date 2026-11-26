@@ -39,7 +39,7 @@ const DEFAULT_PING_AND_WARM_INTERVAL: Duration = Duration::from_secs(30);
 
 /// Builds a [`BigTableConnection`] whose channels are managed in the background.
 ///
-/// Created with [`BigTableConnection::managed_builder`]. Compared to the connections created
+/// Created with [`BigTableConnection::managed`]. Compared to the connections created
 /// by [`BigTableConnection::new`], a managed connection:
 ///
 /// - replaces every channel once it is older than [`max_channel_age`](Self::max_channel_age),
@@ -58,7 +58,7 @@ const DEFAULT_PING_AND_WARM_INTERVAL: Duration = Duration::from_secs(30);
 /// use std::time::Duration;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-/// let connection = BigTableConnection::managed_builder("project-1", "instance-1")
+/// let connection = BigTableConnection::managed("project-1", "instance-1")
 ///     .channel_size(4)
 ///     .timeout(Duration::from_secs(10))
 ///     .build()
@@ -721,9 +721,9 @@ mod tests {
     #[tokio::test]
     async fn rejects_zero_intervals() {
         for builder in [
-            BigTableConnection::managed_builder("project-1", "instance-1")
+            BigTableConnection::managed("project-1", "instance-1")
                 .max_channel_age(Some(Duration::ZERO)),
-            BigTableConnection::managed_builder("project-1", "instance-1")
+            BigTableConnection::managed("project-1", "instance-1")
                 .ping_and_warm_interval(Some(Duration::ZERO)),
         ] {
             assert!(matches!(

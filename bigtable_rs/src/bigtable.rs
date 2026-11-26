@@ -472,7 +472,7 @@ impl BigTableConnection {
     /// requests.
     ///
     /// See [`ManagedConnectionBuilder`] for the available options and their defaults.
-    pub fn managed_builder(project_id: &str, instance_name: &str) -> ManagedConnectionBuilder {
+    pub fn managed(project_id: &str, instance_name: &str) -> ManagedConnectionBuilder {
         ManagedConnectionBuilder::new(project_id, instance_name)
     }
 
