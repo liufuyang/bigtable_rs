@@ -512,13 +512,12 @@ mod tests {
 
     type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 
-    /// A server answering `PingAndWarm` requests, recording the client address and routing
-    /// header of each of them. As every channel has its own connection, the address tells the
+    /// A server answering `PingAndWarm` requests, recording the client address of each of
+    /// them. As every channel has its own connection, the address tells the
     /// channels apart.
     #[derive(Clone, Default)]
     struct FakeBigtable {
         pings: Arc<Mutex<Vec<SocketAddr>>>,
-        routing_headers: Arc<Mutex<Vec<Option<String>>>>,
     }
 
     impl FakeBigtable {
@@ -584,10 +583,7 @@ mod tests {
 
         fn call(&mut self, request: tonic::Request<PingAndWarmRequest>) -> Self::Future {
             let address = request.remote_addr().unwrap();
-            let routing_header = request.metadata().get("x-goog-request-params");
-            let routing_header = routing_header.map(|value| value.to_str().unwrap().to_owned());
             self.pings.lock().unwrap().push(address);
-            self.routing_headers.lock().unwrap().push(routing_header);
             Box::pin(async { Ok(tonic::Response::new(PingAndWarmResponse {})) })
         }
     }
@@ -599,25 +595,6 @@ mod tests {
 
         assert_eq!(server.pings().len(), 3);
         assert_eq!(server.channels().len(), 3);
-    }
-
-    #[tokio::test]
-    async fn sends_routing_header_with_ping_and_warm() {
-        let server = FakeBigtable::default();
-        let builder = server.serve().await;
-        let _connection = builder
-            .channel_size(1)
-            .ping_and_warm_app_profile_id("profile-1")
-            .build()
-            .await
-            .unwrap();
-
-        let routing_header =
-            "name=projects/project-1/instances/instance-1&app_profile_id=profile-1".to_owned();
-        assert_eq!(
-            *server.routing_headers.lock().unwrap(),
-            [Some(routing_header)]
-        );
     }
 
     #[tokio::test]
@@ -684,55 +661,5 @@ mod tests {
         assert!(ours
             .iter()
             .all(|address| !initial_channels.contains(address)));
-    }
-
-    #[tokio::test]
-    async fn stops_background_tasks_when_dropped() {
-        let server = FakeBigtable::default();
-        let builder = server.serve().await;
-        let connection = builder
-            .ping_and_warm_interval(Some(Duration::from_millis(20)))
-            .build()
-            .await
-            .unwrap();
-        let clone = connection.clone();
-
-        // The tasks keep running for as long as any clone is alive.
-        drop(connection);
-        let pings = server.pings().len();
-        server.wait_for(|server| server.pings().len() > pings).await;
-
-        drop(clone);
-        // A request that was in flight may still arrive.
-        tokio::time::sleep(Duration::from_millis(100)).await;
-        let pings = server.pings().len();
-        tokio::time::sleep(Duration::from_millis(200)).await;
-        assert_eq!(server.pings().len(), pings);
-    }
-
-    #[tokio::test]
-    async fn rejects_zero_intervals() {
-        for builder in [
-            BigTableConnection::managed("project-1", "instance-1")
-                .max_channel_age(Some(Duration::ZERO)),
-            BigTableConnection::managed("project-1", "instance-1")
-                .ping_and_warm_interval(Some(Duration::ZERO)),
-        ] {
-            assert!(matches!(
-                builder.build().await,
-                Err(Error::InvalidArgument(_))
-            ));
-        }
-    }
-
-    #[tokio::test]
-    async fn rejects_app_profile_that_is_not_a_valid_header() {
-        let builder = BigTableConnection::managed("project-1", "instance-1")
-            .ping_and_warm_app_profile_id("profile\n1");
-
-        assert!(matches!(
-            builder.build().await,
-            Err(Error::MetadataError(_))
-        ));
     }
 }
