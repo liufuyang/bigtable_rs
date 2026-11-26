@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
-use std::usize;
 
 use bigtable_rs::bigtable;
 use env_logger;
