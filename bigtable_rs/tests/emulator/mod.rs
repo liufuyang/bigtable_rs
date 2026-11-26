@@ -101,6 +101,34 @@ async fn test_connection_to_emulator() {
 }
 
 #[tokio::test]
+async fn test_managed_connection_to_emulator() {
+    global_setup().await;
+
+    let emulator_host = std::env::var("BIGTABLE_EMULATOR_HOST")
+        .expect("BIGTABLE_EMULATOR_HOST must be set to run this test");
+    // Priming is enabled by default, so this also sends a `PingAndWarm` through every channel.
+    let connection = BigTableConnection::managed(PROJECT_ID, INSTANCE_NAME)
+        .emulator_endpoint(emulator_host)
+        .channel_size(CHANNEL_SIZE)
+        .timeout(Duration::from_secs(TIMEOUT_SECS))
+        .build()
+        .await
+        .expect("Failed to connect to emulator");
+    let mut bigtable = connection.client();
+
+    let request = SampleRowKeysRequest {
+        table_name: bigtable.get_full_table_name(TABLE_NAME),
+        ..SampleRowKeysRequest::default()
+    };
+    let response = bigtable.sample_row_keys(request).await;
+    assert!(
+        response.is_ok(),
+        "Failed to sample row keys: {:?}",
+        response.err()
+    );
+}
+
+#[tokio::test]
 async fn test_write_and_read_row() {
     global_setup().await;
 

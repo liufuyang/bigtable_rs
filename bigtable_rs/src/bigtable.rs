@@ -117,9 +117,13 @@ use crate::google::bigtable::v2::{
     ExecuteQueryRequest, ExecuteQueryResponse, PrepareQueryRequest, PrepareQueryResponse,
     ProtoFormat, Type, Value,
 };
+use crate::transport::Transport;
 use crate::{root_ca_certificate, util::get_row_range_from_prefix};
 
+pub(crate) mod managed;
 pub mod read_rows;
+
+pub use managed::ManagedConnectionBuilder;
 
 pub trait RoutingMetadata {
     fn get_routing_header(&self) -> String;
@@ -224,7 +228,7 @@ impl std::convert::From<tonic::Status> for Error {
     }
 }
 
-fn insert_sql_routing_header(
+fn insert_instance_routing_header(
     metadata: &mut tonic::metadata::MetadataMap,
     instance_prefix: &str,
     app_profile_id: &str,
@@ -383,27 +387,7 @@ impl BigTableConnection {
                 let channel_size = channel_size.max(1);
                 let (channel, tx) = Channel::balance_channel(channel_size);
                 for i in 0..channel_size {
-                    let endpoint = Channel::from_static("https://bigtable.googleapis.com")
-                        .tls_config(
-                            ClientTlsConfig::new()
-                                .ca_certificate(
-                                    root_ca_certificate::load()
-                                        .map_err(Error::CertificateError)
-                                        .expect("root certificate error"),
-                                )
-                                .domain_name("bigtable.googleapis.com"),
-                        )
-                        .map_err(Error::TransportError)?
-                        .http2_keep_alive_interval(Duration::from_secs(30))
-                        .keep_alive_timeout(Duration::from_secs(10))
-                        .keep_alive_while_idle(true);
-
-                    let endpoint = if let Some(timeout) = timeout {
-                        endpoint.timeout(timeout)
-                    } else {
-                        endpoint
-                    };
-
+                    let endpoint = create_endpoint(timeout)?;
                     // Use unique keys to ensure each channel has a dedicated HTTP connection
                     tx.try_send(Change::Insert(i, endpoint)).unwrap();
                 }
@@ -433,20 +417,6 @@ impl BigTableConnection {
         timeout: Option<Duration>,
     ) -> Result<Self> {
         info!("Connecting to bigtable emulator at {}", emulator_endpoint);
-
-        // configures the endpoint with the specified parameters
-        fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint {
-            let endpoint = endpoint
-                .http2_keep_alive_interval(Duration::from_secs(30))
-                .keep_alive_timeout(Duration::from_secs(10))
-                .keep_alive_while_idle(true);
-
-            if let Some(timeout) = timeout {
-                endpoint.timeout(timeout)
-            } else {
-                endpoint
-            }
-        }
 
         // Parse emulator_endpoint. Officially, it's only host:port,
         // but unix:///path/to/unix.sock also works in the Go SDK at least.
@@ -497,6 +467,15 @@ impl BigTableConnection {
         })
     }
 
+    /// Start building a connection whose channels are managed in the background: they are
+    /// replaced before the server closes them, and kept warm with periodic `PingAndWarm`
+    /// requests.
+    ///
+    /// See [`ManagedConnectionBuilder`] for the available options and their defaults.
+    pub fn managed(project_id: &str, instance_name: &str) -> ManagedConnectionBuilder {
+        ManagedConnectionBuilder::new(project_id, instance_name)
+    }
+
     /// Create a new BigTable client by cloning needed properties.
     ///
     /// Clients require `&mut self`, due to `Tonic::transport::Channel` limitations, however
@@ -519,10 +498,55 @@ impl BigTableConnection {
     }
 }
 
+/// Helper function to create the `Endpoint` of the Bigtable service.
+fn create_endpoint(timeout: Option<Duration>) -> Result<Endpoint> {
+    let endpoint = Channel::from_static("https://bigtable.googleapis.com")
+        .tls_config(
+            ClientTlsConfig::new()
+                .ca_certificate(
+                    root_ca_certificate::load()
+                        .map_err(Error::CertificateError)
+                        .expect("root certificate error"),
+                )
+                .domain_name("bigtable.googleapis.com"),
+        )
+        .map_err(Error::TransportError)?;
+    Ok(configure_endpoint(endpoint, timeout))
+}
+
+/// Helper function to create the `Endpoint` of a Bigtable emulator, given as `host:port` or
+/// `unix:///path/to/unix.sock`.
+fn create_emulator_endpoint(
+    emulator_endpoint: &str,
+    timeout: Option<Duration>,
+) -> Result<Endpoint> {
+    let endpoint = if emulator_endpoint.starts_with("unix://") {
+        // `tonic` connects to the socket by itself for this scheme.
+        Endpoint::from_shared(emulator_endpoint.to_owned())?
+    } else {
+        Endpoint::from_shared(format!("http://{emulator_endpoint}"))?
+    };
+    Ok(configure_endpoint(endpoint, timeout))
+}
+
+/// configures the endpoint with the specified parameters
+fn configure_endpoint(endpoint: Endpoint, timeout: Option<Duration>) -> Endpoint {
+    let endpoint = endpoint
+        .http2_keep_alive_interval(Duration::from_secs(30))
+        .keep_alive_timeout(Duration::from_secs(10))
+        .keep_alive_while_idle(true);
+
+    if let Some(timeout) = timeout {
+        endpoint.timeout(timeout)
+    } else {
+        endpoint
+    }
+}
+
 /// Helper function to create a BigtableClient<AuthSvc>
-/// from a channel.
+/// from a channel, or any other transport.
 fn create_client(
-    channel: Channel,
+    channel: impl Into<Transport>,
     token_provider: Option<Arc<dyn TokenProvider>>,
     read_only: bool,
 ) -> BigtableClient<AuthSvc> {
@@ -534,7 +558,7 @@ fn create_client(
 
     let auth_svc = ServiceBuilder::new()
         .layer_fn(|c| AuthSvc::new(c, token_provider.clone(), scopes.to_string()))
-        .service(channel);
+        .service(channel.into());
     return BigtableClient::new(auth_svc);
 }
 
@@ -711,7 +735,7 @@ impl BigTable {
     ) -> Result<PrepareQueryResponse> {
         let app_profile_id = request.app_profile_id.clone();
         let mut tonic_req: tonic::Request<_> = request.into_request();
-        insert_sql_routing_header(
+        insert_instance_routing_header(
             tonic_req.metadata_mut(),
             &self.instance_prefix,
             &app_profile_id,
@@ -731,7 +755,7 @@ impl BigTable {
         self.ensure_prepared(&mut request).await?;
         let app_profile_id = request.app_profile_id.clone();
         let mut tonic_req: tonic::Request<_> = request.into_request();
-        insert_sql_routing_header(
+        insert_instance_routing_header(
             tonic_req.metadata_mut(),
             &self.instance_prefix,
             &app_profile_id,

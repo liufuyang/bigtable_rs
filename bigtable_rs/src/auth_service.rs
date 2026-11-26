@@ -7,19 +7,20 @@ use gcp_auth::TokenProvider;
 use http::{HeaderValue, Request, Response};
 use log::debug;
 use tonic::body::Body;
-use tonic::transport::Channel;
 use tower::Service;
+
+use crate::transport::Transport;
 
 #[derive(Clone)]
 pub struct AuthSvc {
-    inner: Channel,
+    inner: Transport,
     token_provider: Option<Arc<dyn TokenProvider>>,
     scopes: String,
 }
 
 impl AuthSvc {
-    pub fn new(
-        inner: Channel,
+    pub(crate) fn new(
+        inner: Transport,
         authentication_manager: Option<Arc<dyn TokenProvider>>,
         scopes: String,
     ) -> Self {
@@ -38,7 +39,7 @@ impl Service<Request<Body>> for AuthSvc {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx).map_err(Into::into)
+        self.inner.poll_ready(cx)
     }
 
     fn call(&mut self, mut request: Request<Body>) -> Self::Future {

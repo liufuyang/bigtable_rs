@@ -15,6 +15,7 @@ pub mod google {
     }
 }
 mod root_ca_certificate;
+mod transport;
 pub mod util;
 
 #[cfg(test)]
