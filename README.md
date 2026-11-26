@@ -166,14 +166,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
----
-
 ```
+
+---
 
 ## Managed client
 
 The Bigtable service can close connections that have been open for about an hour
-(see [Connection pools](https://docs.cloud.google.com/bigtable/docs/connection-pools)), and connections that sit
+(see [this comment](https://github.com/googleapis/java-bigtable-hbase/issues/1463#issuecomment-315255319)) and connections that sit
 idle can go cold, which makes the next request through them slow
 (see [Cold starts and low QPS](https://docs.cloud.google.com/bigtable/docs/performance#cold-starts)).
 A managed connection takes care of both in the background, the way the official clients do:
