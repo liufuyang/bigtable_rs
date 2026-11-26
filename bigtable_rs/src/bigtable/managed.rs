@@ -512,8 +512,9 @@ mod tests {
 
     type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 
-    /// A server answering `PingAndWarm` requests, recording the client address of each of them.
-    /// As every channel has its own connection, the address tells the channels apart.
+    /// A server answering `PingAndWarm` requests, recording the client address and routing
+    /// header of each of them. As every channel has its own connection, the address tells the
+    /// channels apart.
     #[derive(Clone, Default)]
     struct FakeBigtable {
         pings: Arc<Mutex<Vec<SocketAddr>>>,
@@ -521,12 +522,18 @@ mod tests {
     }
 
     impl FakeBigtable {
-        async fn serve(&self) -> Endpoint {
+        /// Starts serving, and returns a builder for a connection with 3 channels to it. Its
+        /// background tasks are disabled, so that tests only see the requests they expect.
+        async fn serve(&self) -> ManagedConnectionBuilder {
             let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
             let address = listener.local_addr().unwrap();
             let server = Server::builder().add_service(self.clone());
             tokio::spawn(server.serve_with_incoming(TcpIncoming::from(listener)));
-            Endpoint::from_shared(format!("http://{address}")).unwrap()
+            BigTableConnection::managed("project-1", "instance-1")
+                .emulator_endpoint(address.to_string())
+                .channel_size(3)
+                .max_channel_age(None)
+                .ping_and_warm_interval(None)
         }
 
         fn pings(&self) -> Vec<SocketAddr> {
@@ -577,54 +584,18 @@ mod tests {
 
         fn call(&mut self, request: tonic::Request<PingAndWarmRequest>) -> Self::Future {
             let address = request.remote_addr().unwrap();
-            self.pings.lock().unwrap().push(address);
             let routing_header = request.metadata().get("x-goog-request-params");
             let routing_header = routing_header.map(|value| value.to_str().unwrap().to_owned());
+            self.pings.lock().unwrap().push(address);
             self.routing_headers.lock().unwrap().push(routing_header);
             Box::pin(async { Ok(tonic::Response::new(PingAndWarmResponse {})) })
         }
     }
 
-    const POOL: PoolSettings = PoolSettings {
-        channel_size: 3,
-        max_channel_age: None,
-        ping_and_warm_interval: None,
-    };
-
-    fn request(app_profile_id: &str) -> PingAndWarm {
-        PingAndWarm::new("projects/project-1/instances/instance-1", app_profile_id).unwrap()
-    }
-
-    fn factory(endpoint: Endpoint) -> ChannelFactory {
-        ChannelFactory {
-            endpoint,
-            token_provider: None,
-            is_read_only: false,
-            prime: None,
-        }
-    }
-
-    fn priming_factory(endpoint: Endpoint) -> ChannelFactory {
-        ChannelFactory {
-            prime: Some(request("")),
-            ..factory(endpoint)
-        }
-    }
-
-    async fn ping_and_warm(transport: &ManagedTransport) {
-        create_client(transport.clone(), None, false)
-            .ping_and_warm(PingAndWarmRequest::default())
-            .await
-            .unwrap();
-    }
-
     #[tokio::test]
     async fn primes_every_channel_before_use() {
         let server = FakeBigtable::default();
-        let factory = priming_factory(server.serve().await);
-        let _transport = ManagedTransport::connect(factory, request(""), POOL)
-            .await
-            .unwrap();
+        let _connection = server.serve().await.build().await.unwrap();
 
         assert_eq!(server.pings().len(), 3);
         assert_eq!(server.channels().len(), 3);
@@ -633,15 +604,11 @@ mod tests {
     #[tokio::test]
     async fn sends_routing_header_with_ping_and_warm() {
         let server = FakeBigtable::default();
-        let factory = ChannelFactory {
-            prime: Some(request("profile-1")),
-            ..factory(server.serve().await)
-        };
-        let pool = PoolSettings {
-            channel_size: 1,
-            ..POOL
-        };
-        let _transport = ManagedTransport::connect(factory, request("profile-1"), pool)
+        let builder = server.serve().await;
+        let _connection = builder
+            .channel_size(1)
+            .ping_and_warm_app_profile_id("profile-1")
+            .build()
             .await
             .unwrap();
 
@@ -659,9 +626,11 @@ mod tests {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let address = listener.local_addr().unwrap();
         drop(listener);
-        let endpoint = Endpoint::from_shared(format!("http://{address}")).unwrap();
 
-        let result = ManagedTransport::connect(priming_factory(endpoint), request(""), POOL).await;
+        let result = BigTableConnection::managed("project-1", "instance-1")
+            .emulator_endpoint(address.to_string())
+            .build()
+            .await;
 
         assert!(matches!(result, Err(Error::TransportError(_))));
     }
@@ -669,12 +638,11 @@ mod tests {
     #[tokio::test]
     async fn pings_every_channel_on_each_interval() {
         let server = FakeBigtable::default();
-        let pool = PoolSettings {
-            ping_and_warm_interval: Some(Duration::from_millis(50)),
-            ..POOL
-        };
-        let factory = factory(server.serve().await);
-        let _transport = ManagedTransport::connect(factory, request(""), pool)
+        let builder = server.serve().await;
+        let _connection = builder
+            .prime_channels(false)
+            .ping_and_warm_interval(Some(Duration::from_millis(50)))
+            .build()
             .await
             .unwrap();
 
@@ -689,12 +657,10 @@ mod tests {
     #[tokio::test]
     async fn replaces_channels_older_than_max_age() {
         let server = FakeBigtable::default();
-        let pool = PoolSettings {
-            max_channel_age: Some(Duration::from_millis(200)),
-            ..POOL
-        };
-        let factory = priming_factory(server.serve().await);
-        let transport = ManagedTransport::connect(factory, request(""), pool)
+        let builder = server.serve().await;
+        let connection = builder
+            .max_channel_age(Some(Duration::from_millis(200)))
+            .build()
             .await
             .unwrap();
         let initial_channels = server.channels();
@@ -707,8 +673,10 @@ mod tests {
         // The pool is given a moment to pick up the last replacement first.
         tokio::time::sleep(Duration::from_millis(50)).await;
         let pings_before = server.pings().len();
+        let mut bigtable = connection.client();
         for _ in 0..10 {
-            ping_and_warm(&transport).await;
+            let request = PingAndWarmRequest::default();
+            bigtable.get_client().ping_and_warm(request).await.unwrap();
         }
         let pings = server.pings();
         let ours = &pings[pings_before..];
@@ -721,19 +689,16 @@ mod tests {
     #[tokio::test]
     async fn stops_background_tasks_when_dropped() {
         let server = FakeBigtable::default();
-        let pool = PoolSettings {
-            ping_and_warm_interval: Some(Duration::from_millis(20)),
-            ..POOL
-        };
-        let factory = factory(server.serve().await);
-        let transport = ManagedTransport::connect(factory, request(""), pool)
+        let builder = server.serve().await;
+        let connection = builder
+            .ping_and_warm_interval(Some(Duration::from_millis(20)))
+            .build()
             .await
             .unwrap();
-        let clone = transport.clone();
-        server.wait_for(|server| !server.pings().is_empty()).await;
+        let clone = connection.clone();
 
         // The tasks keep running for as long as any clone is alive.
-        drop(transport);
+        drop(connection);
         let pings = server.pings().len();
         server.wait_for(|server| server.pings().len() > pings).await;
 
