@@ -18,7 +18,9 @@ use log::{debug, info, warn};
 use tokio::sync::mpsc;
 use tokio::task::JoinSet;
 use tonic::body::Body;
+use tonic::metadata::MetadataMap;
 use tonic::transport::{Channel, Endpoint};
+use tonic::Extensions;
 use tower::balance::p2c::Balance;
 use tower::buffer::Buffer;
 use tower::discover::Change;
@@ -193,6 +195,15 @@ impl ManagedConnectionBuilder {
             }
         }
 
+        let instance_prefix = format!(
+            "projects/{}/instances/{}",
+            self.project_id, self.instance_name
+        );
+        let table_prefix = format!("{instance_prefix}/tables/");
+        // Fail now, rather than on every request sent in the background, if the app profile
+        // cannot be sent as a header.
+        let ping_and_warm = PingAndWarm::new(&instance_prefix, &self.ping_and_warm_app_profile_id)?;
+
         let emulator_endpoint = self
             .emulator_endpoint
             .or_else(|| std::env::var("BIGTABLE_EMULATOR_HOST").ok());
@@ -210,24 +221,18 @@ impl ManagedConnectionBuilder {
                 (create_endpoint(self.timeout)?, Some(token_provider))
             }
         };
-        let instance_prefix = format!(
-            "projects/{}/instances/{}",
-            self.project_id, self.instance_name
-        );
-        let table_prefix = format!("{instance_prefix}/tables/");
-
-        let transport = ManagedTransport::connect(ChannelSettings {
+        let factory = ChannelFactory {
             endpoint,
             token_provider: token_provider.clone(),
             is_read_only: self.is_read_only,
-            instance_prefix: instance_prefix.clone(),
+            prime: self.prime_channels.then(|| ping_and_warm.clone()),
+        };
+        let pool = PoolSettings {
             channel_size: self.channel_size.max(1),
-            prime_channels: self.prime_channels,
-            ping_and_warm_app_profile_id: self.ping_and_warm_app_profile_id,
             max_channel_age: self.max_channel_age,
             ping_and_warm_interval: self.ping_and_warm_interval,
-        })
-        .await?;
+        };
+        let transport = ManagedTransport::connect(factory, ping_and_warm, pool).await?;
 
         Ok(BigTableConnection {
             client: create_client(transport, token_provider, self.is_read_only),
@@ -238,58 +243,74 @@ impl ManagedConnectionBuilder {
     }
 }
 
-/// Everything needed to open the channels of a [`ManagedTransport`] and keep them fresh.
-struct ChannelSettings {
+/// A `PingAndWarm` request for the instance of the connection, with its routing header.
+#[derive(Clone)]
+struct PingAndWarm {
+    message: PingAndWarmRequest,
+    metadata: MetadataMap,
+}
+
+impl PingAndWarm {
+    /// Fails if the app profile cannot be sent as a header.
+    fn new(instance_prefix: &str, app_profile_id: &str) -> Result<Self> {
+        let mut metadata = MetadataMap::new();
+        insert_instance_routing_header(&mut metadata, instance_prefix, app_profile_id)?;
+        Ok(Self {
+            message: PingAndWarmRequest {
+                name: instance_prefix.to_owned(),
+                app_profile_id: app_profile_id.to_owned(),
+            },
+            metadata,
+        })
+    }
+
+    async fn send(&self, client: &mut BigtableClient<AuthSvc>) -> Result<()> {
+        let request = tonic::Request::from_parts(
+            self.metadata.clone(),
+            Extensions::default(),
+            self.message.clone(),
+        );
+        client.ping_and_warm(request).await?;
+        Ok(())
+    }
+}
+
+/// Opens the channels of a [`ManagedTransport`].
+struct ChannelFactory {
     endpoint: Endpoint,
     token_provider: Option<Arc<dyn TokenProvider>>,
     is_read_only: bool,
-    instance_prefix: String,
-    channel_size: usize,
-    prime_channels: bool,
-    ping_and_warm_app_profile_id: String,
-    max_channel_age: Option<Duration>,
-    ping_and_warm_interval: Option<Duration>,
+    /// Sent through every channel before it is used. `None` disables priming.
+    prime: Option<PingAndWarm>,
 }
 
-impl ChannelSettings {
+impl ChannelFactory {
     /// Opens a channel, priming it if configured to.
     ///
     /// Also returns a client that sends requests through this channel alone, rather than
     /// through whichever channel the load balancer picks.
-    async fn open_channel(&self) -> Result<(Channel, BigtableClient<AuthSvc>)> {
-        let channel = if self.prime_channels {
-            self.endpoint.connect().await?
-        } else {
-            self.endpoint.connect_lazy()
+    async fn open(&self) -> Result<(Channel, BigtableClient<AuthSvc>)> {
+        let Some(prime) = &self.prime else {
+            let channel = self.endpoint.connect_lazy();
+            return Ok((channel.clone(), self.client(channel)));
         };
-        let mut client = self.create_client(channel.clone());
-        if self.prime_channels {
-            self.ping_and_warm(&mut client).await?;
-        }
+        let channel = self.endpoint.connect().await?;
+        let mut client = self.client(channel.clone());
+        prime.send(&mut client).await?;
         Ok((channel, client))
     }
 
-    fn create_client(&self, transport: impl Into<Transport>) -> BigtableClient<AuthSvc> {
+    fn client(&self, transport: impl Into<Transport>) -> BigtableClient<AuthSvc> {
         create_client(transport, self.token_provider.clone(), self.is_read_only)
     }
+}
 
-    async fn ping_and_warm(&self, client: &mut BigtableClient<AuthSvc>) -> Result<()> {
-        client.ping_and_warm(self.ping_and_warm_request()?).await?;
-        Ok(())
-    }
-
-    fn ping_and_warm_request(&self) -> Result<tonic::Request<PingAndWarmRequest>> {
-        let mut request = tonic::Request::new(PingAndWarmRequest {
-            name: self.instance_prefix.clone(),
-            app_profile_id: self.ping_and_warm_app_profile_id.clone(),
-        });
-        insert_instance_routing_header(
-            request.metadata_mut(),
-            &self.instance_prefix,
-            &self.ping_and_warm_app_profile_id,
-        )?;
-        Ok(request)
-    }
+/// How many channels a [`ManagedTransport`] holds, and how often they are replaced and pinged.
+#[derive(Clone, Copy)]
+struct PoolSettings {
+    channel_size: usize,
+    max_channel_age: Option<Duration>,
+    ping_and_warm_interval: Option<Duration>,
 }
 
 type LoadTrackedChannel = PendingRequests<Channel, CompleteOnResponse>;
@@ -317,12 +338,12 @@ pub(crate) struct ManagedTransport {
 }
 
 impl ManagedTransport {
-    async fn connect(settings: ChannelSettings) -> Result<Self> {
-        // Fail now, rather than on every request sent in the background, if the app profile
-        // cannot be sent as a header.
-        settings.ping_and_warm_request()?;
-
-        let (changes, change_receiver) = mpsc::channel(settings.channel_size);
+    async fn connect(
+        factory: ChannelFactory,
+        ping_and_warm: PingAndWarm,
+        pool: PoolSettings,
+    ) -> Result<Self> {
+        let (changes, change_receiver) = mpsc::channel(pool.channel_size);
         let (channels, worker) = Buffer::pair(
             Balance::new(ChannelStream {
                 changes: change_receiver,
@@ -332,9 +353,9 @@ impl ManagedTransport {
         let mut background_tasks = JoinSet::new();
         background_tasks.spawn(worker);
 
-        let mut channel_clients = Vec::with_capacity(settings.channel_size);
-        for key in 0..settings.channel_size {
-            let (channel, client) = settings.open_channel().await?;
+        let mut channel_clients = Vec::with_capacity(pool.channel_size);
+        for key in 0..pool.channel_size {
+            let (channel, client) = factory.open().await?;
             channel_clients.push(client);
             // Cannot fail: there is capacity for every channel, and the receiver is alive.
             let _ = changes.try_send(Change::Insert(key, load_tracked(channel)));
@@ -345,10 +366,12 @@ impl ManagedTransport {
             _background_tasks: None,
         };
         let manager = ChannelManager {
-            balanced_client: settings.create_client(transport.clone()),
+            balanced_client: factory.client(transport.clone()),
             channel_clients: Mutex::new(channel_clients),
             changes,
-            settings,
+            factory,
+            ping_and_warm,
+            pool,
         };
         background_tasks.spawn(async move { manager.run().await });
 
@@ -375,7 +398,9 @@ impl Service<Request<Body>> for ManagedTransport {
 
 /// The background half of a [`ManagedTransport`].
 struct ChannelManager {
-    settings: ChannelSettings,
+    factory: ChannelFactory,
+    ping_and_warm: PingAndWarm,
+    pool: PoolSettings,
     changes: mpsc::Sender<ChannelChange>,
     /// Sends requests through the load balancer, like the requests of the user.
     balanced_client: BigtableClient<AuthSvc>,
@@ -394,7 +419,7 @@ impl ChannelManager {
     /// the pool until the next round. Should the server close it in the meantime, `tonic`
     /// transparently reconnects it on the next request.
     async fn refresh_channels(&self) {
-        let Some(max_channel_age) = self.settings.max_channel_age else {
+        let Some(max_channel_age) = self.pool.max_channel_age else {
             return;
         };
         let mut balanced_client = self.balanced_client.clone();
@@ -403,15 +428,15 @@ impl ChannelManager {
             // Without any traffic, they would still be queued by the next round, leaving no
             // room to send new ones. Sending a request through the load balancer ourselves
             // guarantees that the queue is empty.
-            if let Err(error) = self.settings.ping_and_warm(&mut balanced_client).await {
+            if let Err(error) = self.ping_and_warm.send(&mut balanced_client).await {
                 warn!("Failed to send PingAndWarm through the channel pool: {error}");
             }
 
             tokio::time::sleep(max_channel_age).await;
 
-            debug!("Refreshing {} channels", self.settings.channel_size);
-            for key in 0..self.settings.channel_size {
-                let (channel, client) = match self.settings.open_channel().await {
+            debug!("Refreshing {} channels", self.pool.channel_size);
+            for key in 0..self.pool.channel_size {
+                let (channel, client) = match self.factory.open().await {
                     Ok(opened) => opened,
                     Err(error) => {
                         warn!("Failed to create a replacement for channel {key}: {error}");
@@ -431,7 +456,7 @@ impl ChannelManager {
 
     /// Sends a `PingAndWarm` request through every channel each `ping_and_warm_interval`.
     async fn ping_and_warm_channels(&self) {
-        let Some(interval) = self.settings.ping_and_warm_interval else {
+        let Some(interval) = self.pool.ping_and_warm_interval else {
             return;
         };
         let mut ticks = tokio::time::interval(interval);
@@ -442,7 +467,7 @@ impl ChannelManager {
             ticks.tick().await;
             let channel_clients = self.channel_clients.lock().unwrap().clone();
             for mut client in channel_clients {
-                if let Err(error) = self.settings.ping_and_warm(&mut client).await {
+                if let Err(error) = self.ping_and_warm.send(&mut client).await {
                     debug!("Background PingAndWarm failed: {error}");
                 }
             }
@@ -560,17 +585,29 @@ mod tests {
         }
     }
 
-    fn settings(endpoint: Endpoint) -> ChannelSettings {
-        ChannelSettings {
+    const POOL: PoolSettings = PoolSettings {
+        channel_size: 3,
+        max_channel_age: None,
+        ping_and_warm_interval: None,
+    };
+
+    fn request(app_profile_id: &str) -> PingAndWarm {
+        PingAndWarm::new("projects/project-1/instances/instance-1", app_profile_id).unwrap()
+    }
+
+    fn factory(endpoint: Endpoint) -> ChannelFactory {
+        ChannelFactory {
             endpoint,
             token_provider: None,
             is_read_only: false,
-            instance_prefix: "projects/project-1/instances/instance-1".to_owned(),
-            channel_size: 3,
-            prime_channels: false,
-            ping_and_warm_app_profile_id: String::new(),
-            max_channel_age: None,
-            ping_and_warm_interval: None,
+            prime: None,
+        }
+    }
+
+    fn priming_factory(endpoint: Endpoint) -> ChannelFactory {
+        ChannelFactory {
+            prime: Some(request("")),
+            ..factory(endpoint)
         }
     }
 
@@ -584,12 +621,10 @@ mod tests {
     #[tokio::test]
     async fn primes_every_channel_before_use() {
         let server = FakeBigtable::default();
-        let _transport = ManagedTransport::connect(ChannelSettings {
-            prime_channels: true,
-            ..settings(server.serve().await)
-        })
-        .await
-        .unwrap();
+        let factory = priming_factory(server.serve().await);
+        let _transport = ManagedTransport::connect(factory, request(""), POOL)
+            .await
+            .unwrap();
 
         assert_eq!(server.pings().len(), 3);
         assert_eq!(server.channels().len(), 3);
@@ -598,14 +633,17 @@ mod tests {
     #[tokio::test]
     async fn sends_routing_header_with_ping_and_warm() {
         let server = FakeBigtable::default();
-        let _transport = ManagedTransport::connect(ChannelSettings {
+        let factory = ChannelFactory {
+            prime: Some(request("profile-1")),
+            ..factory(server.serve().await)
+        };
+        let pool = PoolSettings {
             channel_size: 1,
-            prime_channels: true,
-            ping_and_warm_app_profile_id: "profile-1".to_owned(),
-            ..settings(server.serve().await)
-        })
-        .await
-        .unwrap();
+            ..POOL
+        };
+        let _transport = ManagedTransport::connect(factory, request("profile-1"), pool)
+            .await
+            .unwrap();
 
         let routing_header =
             "name=projects/project-1/instances/instance-1&app_profile_id=profile-1".to_owned();
@@ -616,18 +654,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn fails_to_connect_with_app_profile_that_is_not_a_valid_header() {
-        let server = FakeBigtable::default();
-        let result = ManagedTransport::connect(ChannelSettings {
-            ping_and_warm_app_profile_id: "profile\n1".to_owned(),
-            ..settings(server.serve().await)
-        })
-        .await;
-
-        assert!(matches!(result, Err(Error::MetadataError(_))));
-    }
-
-    #[tokio::test]
     async fn fails_to_connect_when_priming_fails() {
         // Nothing is listening on the address of a listener that has been dropped.
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -635,11 +661,7 @@ mod tests {
         drop(listener);
         let endpoint = Endpoint::from_shared(format!("http://{address}")).unwrap();
 
-        let result = ManagedTransport::connect(ChannelSettings {
-            prime_channels: true,
-            ..settings(endpoint)
-        })
-        .await;
+        let result = ManagedTransport::connect(priming_factory(endpoint), request(""), POOL).await;
 
         assert!(matches!(result, Err(Error::TransportError(_))));
     }
@@ -647,12 +669,14 @@ mod tests {
     #[tokio::test]
     async fn pings_every_channel_on_each_interval() {
         let server = FakeBigtable::default();
-        let _transport = ManagedTransport::connect(ChannelSettings {
+        let pool = PoolSettings {
             ping_and_warm_interval: Some(Duration::from_millis(50)),
-            ..settings(server.serve().await)
-        })
-        .await
-        .unwrap();
+            ..POOL
+        };
+        let factory = factory(server.serve().await);
+        let _transport = ManagedTransport::connect(factory, request(""), pool)
+            .await
+            .unwrap();
 
         server.wait_for(|server| server.pings().len() >= 6).await;
 
@@ -665,13 +689,14 @@ mod tests {
     #[tokio::test]
     async fn replaces_channels_older_than_max_age() {
         let server = FakeBigtable::default();
-        let transport = ManagedTransport::connect(ChannelSettings {
-            prime_channels: true,
+        let pool = PoolSettings {
             max_channel_age: Some(Duration::from_millis(200)),
-            ..settings(server.serve().await)
-        })
-        .await
-        .unwrap();
+            ..POOL
+        };
+        let factory = priming_factory(server.serve().await);
+        let transport = ManagedTransport::connect(factory, request(""), pool)
+            .await
+            .unwrap();
         let initial_channels = server.channels();
         assert_eq!(initial_channels.len(), 3);
 
@@ -696,12 +721,14 @@ mod tests {
     #[tokio::test]
     async fn stops_background_tasks_when_dropped() {
         let server = FakeBigtable::default();
-        let transport = ManagedTransport::connect(ChannelSettings {
+        let pool = PoolSettings {
             ping_and_warm_interval: Some(Duration::from_millis(20)),
-            ..settings(server.serve().await)
-        })
-        .await
-        .unwrap();
+            ..POOL
+        };
+        let factory = factory(server.serve().await);
+        let transport = ManagedTransport::connect(factory, request(""), pool)
+            .await
+            .unwrap();
         let clone = transport.clone();
         server.wait_for(|server| !server.pings().is_empty()).await;
 
@@ -731,5 +758,16 @@ mod tests {
                 Err(Error::InvalidArgument(_))
             ));
         }
+    }
+
+    #[tokio::test]
+    async fn rejects_app_profile_that_is_not_a_valid_header() {
+        let builder = BigTableConnection::managed("project-1", "instance-1")
+            .ping_and_warm_app_profile_id("profile\n1");
+
+        assert!(matches!(
+            builder.build().await,
+            Err(Error::MetadataError(_))
+        ));
     }
 }
